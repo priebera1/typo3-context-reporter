@@ -1,0 +1,12 @@
+"be_groups"
+,"uid","pid","title","tables_select","tables_modify","db_mountpoints","groupMods","file_mountpoints","file_permissions","TSconfig"
+,1,0,"Editors","pages,tt_content","pages,tt_content","2","web_layout,web_list,media_management","1","readFolder,readFile",""
+,2,0,"No reporting","pages,tt_content","pages,tt_content","2","web_layout,media_management","1","readFolder,readFile","options.contextReporter.enable = 0"
+,4,0,"Own file list actions","pages,tt_content","pages,tt_content","2","web_layout,web_list,media_management","1","readFolder,readFile","options.file_list.primaryActions = view, delete"
+"be_users"
+,"uid","pid","username","password","admin","usergroup","realName","email","lang","db_mountpoints","options","workspace_perms","disable","deleted"
+,1,0,"admin","$argon2i$v=19$m=65536,t=16,p=1$c29tZXNhbHQ$Kxt6ZxgHKVTLaRJGb0VBdGtYGYnTX0WNe4OHOfr5HDc",1,"","Alice Admin","alice@example.com","default","",3,1,0,0
+,2,0,"editor","$argon2i$v=19$m=65536,t=16,p=1$c29tZXNhbHQ$Kxt6ZxgHKVTLaRJGb0VBdGtYGYnTX0WNe4OHOfr5HDc",0,"1","Erika Editor","erika@example.com","de","",3,1,0,0
+,3,0,"blocked","$argon2i$v=19$m=65536,t=16,p=1$c29tZXNhbHQ$Kxt6ZxgHKVTLaRJGb0VBdGtYGYnTX0WNe4OHOfr5HDc",0,"2","Blocked Editor","blocked@example.com","default","",3,1,0,0
+,4,0,"colleague","$argon2i$v=19$m=65536,t=16,p=1$c29tZXNhbHQ$Kxt6ZxgHKVTLaRJGb0VBdGtYGYnTX0WNe4OHOfr5HDc",0,"1","Carl Colleague","carl@example.com","default","",3,1,0,0
+,6,0,"listeditor","$argon2i$v=19$m=65536,t=16,p=1$c29tZXNhbHQ$Kxt6ZxgHKVTLaRJGb0VBdGtYGYnTX0WNe4OHOfr5HDc",0,"4","Lena Listeditor","lena@example.com","default","",3,1,0,0

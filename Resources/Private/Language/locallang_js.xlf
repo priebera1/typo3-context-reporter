@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+    <file source-language="en" datatype="plaintext" original="EXT:context_reporter/Resources/Private/Language/locallang_js.xlf" date="2026-09-16T12:00:00Z" product-name="context_reporter">
+        <header/>
+        <body>
+            <trans-unit id="context_reporter.dialog.title" resname="context_reporter.dialog.title">
+                <source>Report a problem</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.dialog.loading" resname="context_reporter.dialog.loading">
+                <source>Collecting the TYPO3 context…</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.dialog.failed" resname="context_reporter.dialog.failed">
+                <source>The report dialog could not be prepared</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.subject.heading" resname="context_reporter.subject.heading">
+                <source>Detected context</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.subject.explanation" resname="context_reporter.subject.explanation">
+                <source>The TYPO3 context and technical details are attached automatically.</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.form.title" resname="context_reporter.form.title">
+                <source>Short title</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.form.title.placeholder" resname="context_reporter.form.title.placeholder">
+                <source>e.g. The image selector shows no files</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.form.title.required" resname="context_reporter.form.title.required">
+                <source>Please enter a short title.</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.form.description" resname="context_reporter.form.description">
+                <source>What happened?</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.form.description.placeholder" resname="context_reporter.form.description.placeholder">
+                <source>What did you try to do, what did you expect, and what happened instead?</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.form.description.hint" resname="context_reporter.form.description.hint">
+                <source>Optional, but helpful.</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.form.description.counter" resname="context_reporter.form.description.counter">
+                <source>%s / %s</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.screenshot.legend" resname="context_reporter.screenshot.legend">
+                <source>Screenshot (optional)</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.screenshot.privacy" resname="context_reporter.screenshot.privacy">
+                <source>Screenshots are created and edited in your browser. Nothing is sent before you submit the report. Redact confidential information first.</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.screenshot.capture" resname="context_reporter.screenshot.capture">
+                <source>Capture screen</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.screenshot.upload" resname="context_reporter.screenshot.upload">
+                <source>Upload image</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.screenshot.hint" resname="context_reporter.screenshot.hint">
+                <source>Capture this browser tab, upload an image, or paste one with Ctrl+V / Cmd+V.</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.screenshot.hintNoCapture" resname="context_reporter.screenshot.hintNoCapture">
+                <source>Upload an image or paste one with Ctrl+V / Cmd+V.</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.screenshot.remove" resname="context_reporter.screenshot.remove">
+                <source>Remove screenshot</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.screenshot.status" resname="context_reporter.screenshot.status">
+                <source>%s px · annotations: %s</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.screenshot.error.captureFailed" resname="context_reporter.screenshot.error.captureFailed">
+                <source>The screen could not be captured.</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.screenshot.error.unsupportedFile" resname="context_reporter.screenshot.error.unsupportedFile">
+                <source>This file is not a supported image. Please use PNG, JPEG, WebP or GIF.</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.screenshot.error.fileTooLarge" resname="context_reporter.screenshot.error.fileTooLarge">
+                <source>The image is too large.</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.editor.toolbar" resname="context_reporter.editor.toolbar">
+                <source>Annotation tools</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.editor.colors" resname="context_reporter.editor.colors">
+                <source>Colors</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.editor.tool.select" resname="context_reporter.editor.tool.select">
+                <source>Select</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.editor.tool.rectangle" resname="context_reporter.editor.tool.rectangle">
+                <source>Rectangle</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.editor.tool.arrow" resname="context_reporter.editor.tool.arrow">
+                <source>Arrow</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.editor.tool.draw" resname="context_reporter.editor.tool.draw">
+                <source>Draw</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.editor.tool.text" resname="context_reporter.editor.tool.text">
+                <source>Text</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.editor.tool.redact" resname="context_reporter.editor.tool.redact">
+                <source>Redact</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.editor.color.red" resname="context_reporter.editor.color.red">
+                <source>Red</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.editor.color.orange" resname="context_reporter.editor.color.orange">
+                <source>Orange</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.editor.color.green" resname="context_reporter.editor.color.green">
+                <source>Green</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.editor.color.blue" resname="context_reporter.editor.color.blue">
+                <source>Blue</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.editor.color.black" resname="context_reporter.editor.color.black">
+                <source>Black</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.editor.undo" resname="context_reporter.editor.undo">
+                <source>Undo</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.editor.redo" resname="context_reporter.editor.redo">
+                <source>Redo</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.editor.deleteSelection" resname="context_reporter.editor.deleteSelection">
+                <source>Delete selected annotation</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.editor.canvas" resname="context_reporter.editor.canvas">
+                <source>Screenshot with annotations</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.editor.textInput" resname="context_reporter.editor.textInput">
+                <source>Type a note and press Enter</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.editor.editText" resname="context_reporter.editor.editText">
+                <source>Edit the note and press Enter</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.editor.hint" resname="context_reporter.editor.hint">
+                <source>Drag to draw. Click an annotation to select it, then drag to move it or press Delete to remove it. Double-click a note to edit it. Redact paints an opaque black box into the image that is sent.</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.technical.summary" resname="context_reporter.technical.summary">
+                <source>Review the technical data that will be sent</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.technical.explanation" resname="context_reporter.technical.explanation">
+                <source>This is exactly what will be stored and sent. The report ID, the time and the image data are added when you submit.</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.technical.assignedOnSubmit" resname="context_reporter.technical.assignedOnSubmit">
+                <source>(assigned on submit)</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.technical.screenshotContent" resname="context_reporter.technical.screenshotContent">
+                <source>(the edited image, added on submit)</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.destinations.send" resname="context_reporter.destinations.send">
+                <source>The report will be saved in TYPO3 and sent via: %s.</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.destinations.localOnly" resname="context_reporter.destinations.localOnly">
+                <source>The report will be saved in the TYPO3 report history.</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.button.cancel" resname="context_reporter.button.cancel">
+                <source>Cancel</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.button.download" resname="context_reporter.button.download">
+                <source>Save and download</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.button.send" resname="context_reporter.button.send">
+                <source>Send report</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.button.save" resname="context_reporter.button.save">
+                <source>Save report</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.button.close" resname="context_reporter.button.close">
+                <source>Close</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.button.retry" resname="context_reporter.button.retry">
+                <source>Try again</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.saved" resname="context_reporter.result.saved">
+                <source>Report %s was saved.</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.delivered" resname="context_reporter.result.delivered">
+                <source>Report %s was sent.</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.deliveryFailed" resname="context_reporter.result.deliveryFailed">
+                <source>Report %s was saved, but not every delivery succeeded.</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.downloaded" resname="context_reporter.result.downloaded">
+                <source>Report %s was saved and downloaded.</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.deliverySucceeded" resname="context_reporter.result.deliverySucceeded">
+                <source>Sent via %s</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.deliveryFailedTo" resname="context_reporter.result.deliveryFailedTo">
+                <source>Could not be sent via %s</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.retryHint" resname="context_reporter.result.retryHint">
+                <source>An administrator can retry the delivery in System › Context Reports.</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.openReport" resname="context_reporter.result.openReport">
+                <source>Open report</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.copy" resname="context_reporter.result.copy">
+                <source>Copy</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.copy.summary" resname="context_reporter.result.copy.summary">
+                <source>Summary as text</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.copy.markdown" resname="context_reporter.result.copy.markdown">
+                <source>Markdown</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.copy.json" resname="context_reporter.result.copy.json">
+                <source>JSON (without screenshot)</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.copy.link" resname="context_reporter.result.copy.link">
+                <source>Link to this report</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.download" resname="context_reporter.result.download">
+                <source>Download</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.download.markdown" resname="context_reporter.result.download.markdown">
+                <source>Markdown (.md)</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.download.json" resname="context_reporter.result.download.json">
+                <source>JSON (.json)</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.download.jsonWithScreenshot" resname="context_reporter.result.download.jsonWithScreenshot">
+                <source>JSON with screenshot (.json)</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.download.screenshot" resname="context_reporter.result.download.screenshot">
+                <source>Screenshot</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.error.http" resname="context_reporter.error.http">
+                <source>The server responded with an error (HTTP %s).</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.error.unexpected" resname="context_reporter.error.unexpected">
+                <source>Something went wrong. Please try again.</source>
+            </trans-unit>
+        </body>
+    </file>
+</xliff>

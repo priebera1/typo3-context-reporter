@@ -1,0 +1,5 @@
+# Show "Report problem" as a direct action in the list view of the file list.
+# The first four entries are the TYPO3 default. Projects with their own list
+# can add "contextReporterReport" to it; otherwise the action is available in
+# the "More options" menu.
+options.file_list.primaryActions = view, metadata, translations, delete, contextReporterReport

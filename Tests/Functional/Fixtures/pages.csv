@@ -1,0 +1,8 @@
+"pages"
+,"uid","pid","title","slug","doktype","hidden","deleted","perms_userid","perms_groupid","perms_user","perms_group","perms_everybody","sys_language_uid","l10n_parent","is_siteroot"
+,1,0,"Home","/",1,0,0,1,1,31,31,0,0,0,1
+,2,1,"About","/about",1,0,0,1,1,31,31,0,0,0,0
+,3,2,"Storage","/about/storage",254,0,0,1,1,31,31,0,0,0,0
+,4,0,"Other root","/",1,0,0,1,0,31,0,0,0,0,1
+,5,2,"Removed","/about/removed",1,0,1,1,1,31,31,0,0,0,0
+,6,2,"Über uns","/about",1,0,0,1,1,31,31,0,1,2,0

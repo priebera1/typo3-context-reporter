@@ -1,0 +1,21 @@
+{report.title}
+{report.id} · {report.createdAt} · {report.source}
+
+Reporter: {reporter.name}
+Project:  {project.name} ({project.environment})
+
+WHAT HAPPENED
+{report.description}
+
+WHERE IT HAPPENED
+{context.summary}
+
+Open in TYPO3: {context.subjectUrl}
+Report history: {report.url}
+
+TECHNICAL CONTEXT
+{context.details}
+
+--
+Sent by TYPO3 Context Reporter. The attached JSON file contains the complete,
+machine-readable report.

@@ -1,0 +1,1022 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+    <file source-language="en" datatype="plaintext" original="EXT:context_reporter/Resources/Private/Language/locallang_module.xlf" date="2026-09-16T12:00:00Z" product-name="context_reporter">
+        <header/>
+        <body>
+            <trans-unit id="title" resname="title">
+                <source>Context Reports</source>
+            </trans-unit>
+            <trans-unit id="index.heading" resname="index.heading">
+                <source>Context Reports</source>
+            </trans-unit>
+            <trans-unit id="index.intro" resname="index.intro">
+                <source>Problem reports created by backend users, with the attached TYPO3 context and the delivery history. Reports cannot be edited: this is an audit trail, not a ticket system.</source>
+            </trans-unit>
+            <trans-unit id="index.destinations" resname="index.destinations">
+                <source>Enabled destinations:</source>
+            </trans-unit>
+            <trans-unit id="index.noDestinations" resname="index.noDestinations">
+                <source>No delivery destination is enabled. Reports are stored here and can be downloaded.</source>
+            </trans-unit>
+            <trans-unit id="index.configureDestinations" resname="index.configureDestinations">
+                <source>Configure email or webhook delivery</source>
+            </trans-unit>
+            <trans-unit id="index.hasScreenshot" resname="index.hasScreenshot">
+                <source>Has a screenshot</source>
+            </trans-unit>
+            <trans-unit id="index.empty.title" resname="index.empty.title">
+                <source>No reports yet</source>
+            </trans-unit>
+            <trans-unit id="index.empty.message" resname="index.empty.message">
+                <source>Backend users can report a problem from the toolbar, from the record and file lists, from the Page module, from context menus, or while editing a record.</source>
+            </trans-unit>
+            <trans-unit id="index.emptyFilter.title" resname="index.emptyFilter.title">
+                <source>No matching reports</source>
+            </trans-unit>
+            <trans-unit id="index.emptyFilter.message" resname="index.emptyFilter.message">
+                <source>No report has this delivery state. Choose another filter to see more reports.</source>
+            </trans-unit>
+            <trans-unit id="index.emptyOpen.title" resname="index.emptyOpen.title">
+                <source>No open reports</source>
+            </trans-unit>
+            <trans-unit id="index.emptyOpen.message" resname="index.emptyOpen.message">
+                <source>All reports have been resolved. Choose "Resolved" or "All" to see them.</source>
+            </trans-unit>
+            <trans-unit id="filter.label" resname="filter.label">
+                <source>Filter by delivery state</source>
+            </trans-unit>
+            <trans-unit id="filter.review" resname="filter.review">
+                <source>Filter by review state</source>
+            </trans-unit>
+            <trans-unit id="filter.all" resname="filter.all">
+                <source>All</source>
+            </trans-unit>
+            <trans-unit id="state.local" resname="state.local">
+                <source>Stored locally</source>
+            </trans-unit>
+            <trans-unit id="state.delivered" resname="state.delivered">
+                <source>Delivered</source>
+            </trans-unit>
+            <trans-unit id="state.partial" resname="state.partial">
+                <source>Partially delivered</source>
+            </trans-unit>
+            <trans-unit id="state.failed" resname="state.failed">
+                <source>Delivery failed</source>
+            </trans-unit>
+            <trans-unit id="review.open" resname="review.open">
+                <source>Open</source>
+            </trans-unit>
+            <trans-unit id="review.resolved" resname="review.resolved">
+                <source>Resolved</source>
+            </trans-unit>
+            <trans-unit id="column.report" resname="column.report">
+                <source>Report</source>
+            </trans-unit>
+            <trans-unit id="column.created" resname="column.created">
+                <source>Created</source>
+            </trans-unit>
+            <trans-unit id="column.reporter" resname="column.reporter">
+                <source>Reporter</source>
+            </trans-unit>
+            <trans-unit id="column.context" resname="column.context">
+                <source>Context</source>
+            </trans-unit>
+            <trans-unit id="column.review" resname="column.review">
+                <source>Status</source>
+            </trans-unit>
+            <trans-unit id="column.delivery" resname="column.delivery">
+                <source>Delivery</source>
+            </trans-unit>
+            <trans-unit id="source.toolbar" resname="source.toolbar">
+                <source>Backend toolbar</source>
+            </trans-unit>
+            <trans-unit id="source.contextMenu" resname="source.contextMenu">
+                <source>Context menu</source>
+            </trans-unit>
+            <trans-unit id="source.formEngine" resname="source.formEngine">
+                <source>Record editing form</source>
+            </trans-unit>
+            <trans-unit id="source.recordList" resname="source.recordList">
+                <source>Record list</source>
+            </trans-unit>
+            <trans-unit id="source.pageModule" resname="source.pageModule">
+                <source>Page module</source>
+            </trans-unit>
+            <trans-unit id="source.fileList" resname="source.fileList">
+                <source>File list</source>
+            </trans-unit>
+            <trans-unit id="pagination.label" resname="pagination.label">
+                <source>Pages</source>
+            </trans-unit>
+            <trans-unit id="pagination.previous" resname="pagination.previous">
+                <source>Previous</source>
+            </trans-unit>
+            <trans-unit id="pagination.next" resname="pagination.next">
+                <source>Next</source>
+            </trans-unit>
+            <trans-unit id="pagination.position" resname="pagination.position">
+                <source>Page %s of %s</source>
+            </trans-unit>
+            <trans-unit id="show.description" resname="show.description">
+                <source>Description</source>
+            </trans-unit>
+            <trans-unit id="show.noDescription" resname="show.noDescription">
+                <source>No description was given.</source>
+            </trans-unit>
+            <trans-unit id="show.createdAt" resname="show.createdAt">
+                <source>Created %s</source>
+            </trans-unit>
+            <trans-unit id="show.source" resname="show.source">
+                <source>via %s</source>
+            </trans-unit>
+            <trans-unit id="show.resolve" resname="show.resolve">
+                <source>Mark as resolved</source>
+            </trans-unit>
+            <trans-unit id="show.reopen" resname="show.reopen">
+                <source>Reopen</source>
+            </trans-unit>
+            <trans-unit id="show.resolvedBy" resname="show.resolvedBy">
+                <source>Resolved on %1$s by %2$s</source>
+            </trans-unit>
+            <trans-unit id="show.resolvedAt" resname="show.resolvedAt">
+                <source>Resolved on %s</source>
+            </trans-unit>
+            <trans-unit id="show.subject" resname="show.subject">
+                <source>Reported object</source>
+            </trans-unit>
+            <trans-unit id="show.context" resname="show.context">
+                <source>TYPO3 context</source>
+            </trans-unit>
+            <trans-unit id="show.openSubject" resname="show.openSubject">
+                <source>Open in TYPO3</source>
+            </trans-unit>
+            <trans-unit id="show.openMetadata" resname="show.openMetadata">
+                <source>Edit metadata</source>
+            </trans-unit>
+            <trans-unit id="show.openFrontend" resname="show.openFrontend">
+                <source>Open frontend</source>
+            </trans-unit>
+            <trans-unit id="show.reporter" resname="show.reporter">
+                <source>Reporter</source>
+            </trans-unit>
+            <trans-unit id="show.reporterDeleted" resname="show.reporterDeleted">
+                <source>deleted</source>
+            </trans-unit>
+            <trans-unit id="show.reporterUnknown" resname="show.reporterUnknown">
+                <source>Unknown backend user</source>
+            </trans-unit>
+            <trans-unit id="show.reporterNote" resname="show.reporterNote">
+                <source>The history always records who created a report. What is shared with delivery destinations depends on the privacy settings.</source>
+            </trans-unit>
+            <trans-unit id="show.screenshot" resname="show.screenshot">
+                <source>Screenshot</source>
+            </trans-unit>
+            <trans-unit id="show.screenshotAlt" resname="show.screenshotAlt">
+                <source>Screenshot attached to report %s</source>
+            </trans-unit>
+            <trans-unit id="show.downloadScreenshot" resname="show.downloadScreenshot">
+                <source>Download</source>
+            </trans-unit>
+            <trans-unit id="show.noScreenshot" resname="show.noScreenshot">
+                <source>No screenshot was attached.</source>
+            </trans-unit>
+            <trans-unit id="show.deliveries" resname="show.deliveries">
+                <source>Delivery history</source>
+            </trans-unit>
+            <trans-unit id="show.delete" resname="show.delete">
+                <source>Delete report</source>
+            </trans-unit>
+            <trans-unit id="show.deleteInfo" resname="show.deleteInfo">
+                <source>Deleting removes the report, its screenshot and its delivery history from TYPO3. Copies that were already sent are not affected.</source>
+            </trans-unit>
+            <trans-unit id="show.deleteConfirm.title" resname="show.deleteConfirm.title">
+                <source>Delete report?</source>
+            </trans-unit>
+            <trans-unit id="show.deleteConfirm.message" resname="show.deleteConfirm.message">
+                <source>Report %s will be removed permanently.</source>
+            </trans-unit>
+            <trans-unit id="show.deleteConfirm.ok" resname="show.deleteConfirm.ok">
+                <source>Delete</source>
+            </trans-unit>
+            <trans-unit id="show.deleteConfirm.cancel" resname="show.deleteConfirm.cancel">
+                <source>Cancel</source>
+            </trans-unit>
+            <trans-unit id="show.technical" resname="show.technical">
+                <source>Technical details</source>
+            </trans-unit>
+            <trans-unit id="show.technicalHint" resname="show.technicalHint">
+                <source>Everything that is attached to the report: object metadata, backend view, system and browser.</source>
+            </trans-unit>
+            <trans-unit id="show.json" resname="show.json">
+                <source>Report data (JSON)</source>
+            </trans-unit>
+            <trans-unit id="delivery.destination" resname="delivery.destination">
+                <source>Destination</source>
+            </trans-unit>
+            <trans-unit id="delivery.result" resname="delivery.result">
+                <source>Result</source>
+            </trans-unit>
+            <trans-unit id="delivery.details" resname="delivery.details">
+                <source>Details</source>
+            </trans-unit>
+            <trans-unit id="delivery.succeeded" resname="delivery.succeeded">
+                <source>Succeeded</source>
+            </trans-unit>
+            <trans-unit id="delivery.failed" resname="delivery.failed">
+                <source>Failed</source>
+            </trans-unit>
+            <trans-unit id="delivery.attempt" resname="delivery.attempt">
+                <source>Attempt %s</source>
+            </trans-unit>
+            <trans-unit id="delivery.reference" resname="delivery.reference">
+                <source>Reference:</source>
+            </trans-unit>
+            <trans-unit id="delivery.triggeredBy" resname="delivery.triggeredBy">
+                <source>by %s</source>
+            </trans-unit>
+            <trans-unit id="delivery.retry" resname="delivery.retry">
+                <source>Retry</source>
+            </trans-unit>
+            <trans-unit id="delivery.none" resname="delivery.none">
+                <source>The report has not been delivered anywhere. It is stored in this history only.</source>
+            </trans-unit>
+            <trans-unit id="destination.email" resname="destination.email">
+                <source>Email</source>
+            </trans-unit>
+            <trans-unit id="destination.webhook" resname="destination.webhook">
+                <source>Webhook</source>
+            </trans-unit>
+            <trans-unit id="destination.download" resname="destination.download">
+                <source>Download</source>
+            </trans-unit>
+            <trans-unit id="button.reports" resname="button.reports">
+                <source>Reports</source>
+            </trans-unit>
+            <trans-unit id="button.settings" resname="button.settings">
+                <source>Settings</source>
+            </trans-unit>
+            <trans-unit id="button.copy" resname="button.copy">
+                <source>Copy</source>
+            </trans-unit>
+            <trans-unit id="button.copy.summary" resname="button.copy.summary">
+                <source>Summary as text</source>
+            </trans-unit>
+            <trans-unit id="button.copy.markdown" resname="button.copy.markdown">
+                <source>Markdown</source>
+            </trans-unit>
+            <trans-unit id="button.copy.json" resname="button.copy.json">
+                <source>JSON (without screenshot)</source>
+            </trans-unit>
+            <trans-unit id="button.copy.link" resname="button.copy.link">
+                <source>Link to this report</source>
+            </trans-unit>
+            <trans-unit id="button.download" resname="button.download">
+                <source>Download</source>
+            </trans-unit>
+            <trans-unit id="button.download.markdown" resname="button.download.markdown">
+                <source>Markdown (.md)</source>
+            </trans-unit>
+            <trans-unit id="button.download.json" resname="button.download.json">
+                <source>JSON (.json)</source>
+            </trans-unit>
+            <trans-unit id="button.download.jsonWithScreenshot" resname="button.download.jsonWithScreenshot">
+                <source>JSON with screenshot (.json)</source>
+            </trans-unit>
+            <trans-unit id="button.download.screenshot" resname="button.download.screenshot">
+                <source>Screenshot</source>
+            </trans-unit>
+            <trans-unit id="message.notFound" resname="message.notFound">
+                <source>The report does not exist (anymore).</source>
+            </trans-unit>
+            <trans-unit id="message.deleted" resname="message.deleted">
+                <source>Report %s was deleted.</source>
+            </trans-unit>
+            <trans-unit id="message.accessDenied" resname="message.accessDenied">
+                <source>Only administrators can use Context Reports.</source>
+            </trans-unit>
+            <trans-unit id="message.resolved" resname="message.resolved">
+                <source>Report %s was marked as resolved.</source>
+            </trans-unit>
+            <trans-unit id="message.reopened" resname="message.reopened">
+                <source>Report %s was reopened.</source>
+            </trans-unit>
+            <trans-unit id="message.reviewUnchanged" resname="message.reviewUnchanged">
+                <source>Report %s already had this status.</source>
+            </trans-unit>
+            <trans-unit id="message.retry.succeeded" resname="message.retry.succeeded">
+                <source>Delivery via %s succeeded.</source>
+            </trans-unit>
+            <trans-unit id="message.retry.failed" resname="message.retry.failed">
+                <source>Delivery via %s failed again: %s</source>
+            </trans-unit>
+            <trans-unit id="message.retry.destinationUnavailable" resname="message.retry.destinationUnavailable">
+                <source>Delivery via %s is not enabled or not configured.</source>
+            </trans-unit>
+            <trans-unit id="message.retry.nothingToRetry" resname="message.retry.nothingToRetry">
+                <source>There is no failed delivery via %s to retry.</source>
+            </trans-unit>
+            <trans-unit id="settings.heading" resname="settings.heading">
+                <source>Context Reporter settings</source>
+            </trans-unit>
+            <trans-unit id="settings.intro" resname="settings.intro">
+                <source>What reports contain, how long they are kept and where they are sent. Only administrators can see and change these settings.</source>
+            </trans-unit>
+            <trans-unit id="settings.lastSaved" resname="settings.lastSaved">
+                <source>Last saved on %1$s by %2$s</source>
+            </trans-unit>
+            <trans-unit id="settings.lastSavedAt" resname="settings.lastSavedAt">
+                <source>Last saved on %s</source>
+            </trans-unit>
+            <trans-unit id="settings.neverSaved" resname="settings.neverSaved">
+                <source>Not saved in this module yet.</source>
+            </trans-unit>
+            <trans-unit id="settings.tabs" resname="settings.tabs">
+                <source>Settings sections</source>
+            </trans-unit>
+            <trans-unit id="settings.tab.general" resname="settings.tab.general">
+                <source>General</source>
+            </trans-unit>
+            <trans-unit id="settings.tab.privacy" resname="settings.tab.privacy">
+                <source>Privacy</source>
+            </trans-unit>
+            <trans-unit id="settings.tab.reporting" resname="settings.tab.reporting">
+                <source>Reports &amp; storage</source>
+            </trans-unit>
+            <trans-unit id="settings.tab.email" resname="settings.tab.email">
+                <source>Email</source>
+            </trans-unit>
+            <trans-unit id="settings.tab.webhook" resname="settings.tab.webhook">
+                <source>Webhook</source>
+            </trans-unit>
+            <trans-unit id="settings.save" resname="settings.save">
+                <source>Save settings</source>
+            </trans-unit>
+            <trans-unit id="settings.saved" resname="settings.saved">
+                <source>The settings were saved.</source>
+            </trans-unit>
+            <trans-unit id="settings.invalid" resname="settings.invalid">
+                <source>The settings were not saved. Please correct the marked fields.</source>
+            </trans-unit>
+            <trans-unit id="settings.invalidSecrets" resname="settings.invalidSecrets">
+                <source>Secret values that you entered were not kept; please enter them again.</source>
+            </trans-unit>
+            <trans-unit id="settings.pinned" resname="settings.pinned">
+                <source>Set in the TYPO3 system configuration and cannot be changed here.</source>
+            </trans-unit>
+            <trans-unit id="settings.system.title" resname="settings.system.title">
+                <source>Some settings are set in the TYPO3 system configuration</source>
+            </trans-unit>
+            <trans-unit id="settings.system.message" resname="settings.system.message">
+                <source>Values in $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['context_reporter'] (for example in config/system/additional.php) take precedence over this page: %s</source>
+            </trans-unit>
+            <trans-unit id="settings.legacy.title" resname="settings.legacy.title">
+                <source>Settings of a development version take precedence</source>
+            </trans-unit>
+            <trans-unit id="settings.legacy.message" resname="settings.legacy.message">
+                <source>The TYPO3 system configuration contains Context Reporter settings of a development version (EXTENSIONS › context_reporter, written to config/system/settings.php by the former Extension Configuration form). They take precedence over this page, so most fields are locked. Remove the context_reporter entry from config/system/settings.php (or config/system/additional.php), then configure Context Reporter here.</source>
+            </trans-unit>
+            <trans-unit id="settings.general.intro" resname="settings.general.intro">
+                <source>Whether reports can be created and how the project is named in reports.</source>
+            </trans-unit>
+            <trans-unit id="settings.general.enabled" resname="settings.general.enabled">
+                <source>Enable problem reports</source>
+            </trans-unit>
+            <trans-unit id="settings.general.enabled.description" resname="settings.general.enabled.description">
+                <source>When switched off, backend users cannot create reports. Stored reports remain available here.</source>
+            </trans-unit>
+            <trans-unit id="settings.general.projectName" resname="settings.general.projectName">
+                <source>Project name</source>
+            </trans-unit>
+            <trans-unit id="settings.general.projectName.description" resname="settings.general.projectName.description">
+                <source>Shown in reports, email subjects and webhook payloads. When empty, the TYPO3 site name is used (%s).</source>
+            </trans-unit>
+            <trans-unit id="settings.general.projectIdentifier" resname="settings.general.projectIdentifier">
+                <source>Project identifier</source>
+            </trans-unit>
+            <trans-unit id="settings.general.projectIdentifier.description" resname="settings.general.projectIdentifier.description">
+                <source>Optional key for receiving systems. Letters, digits, dots, hyphens and underscores.</source>
+            </trans-unit>
+            <trans-unit id="settings.general.environment" resname="settings.general.environment">
+                <source>Environment</source>
+            </trans-unit>
+            <trans-unit id="settings.general.environment.description" resname="settings.general.environment.description">
+                <source>Helps recipients tell reports of different systems apart. Automatic uses the TYPO3 application context (%s).</source>
+            </trans-unit>
+            <trans-unit id="settings.general.environment.automatic" resname="settings.general.environment.automatic">
+                <source>Automatic (%s)</source>
+            </trans-unit>
+            <trans-unit id="settings.general.environment.Production" resname="settings.general.environment.Production">
+                <source>Production</source>
+            </trans-unit>
+            <trans-unit id="settings.general.environment.Staging" resname="settings.general.environment.Staging">
+                <source>Staging</source>
+            </trans-unit>
+            <trans-unit id="settings.general.environment.Development" resname="settings.general.environment.Development">
+                <source>Development</source>
+            </trans-unit>
+            <trans-unit id="settings.general.environment.Testing" resname="settings.general.environment.Testing">
+                <source>Testing</source>
+            </trans-unit>
+            <trans-unit id="settings.general.environment.custom" resname="settings.general.environment.custom">
+                <source>Custom name…</source>
+            </trans-unit>
+            <trans-unit id="settings.general.environmentCustom" resname="settings.general.environmentCustom">
+                <source>Custom environment name</source>
+            </trans-unit>
+            <trans-unit id="settings.privacy.intro" resname="settings.privacy.intro">
+                <source>Which personal and technical data a report contains. The data is stored here and included in downloads, emails and webhook deliveries.</source>
+            </trans-unit>
+            <trans-unit id="settings.privacy.reporterHeading" resname="settings.privacy.reporterHeading">
+                <source>Reporting backend user</source>
+            </trans-unit>
+            <trans-unit id="settings.privacy.reporterHeading.description" resname="settings.privacy.reporterHeading.description">
+                <source>Facts about the backend user who creates a report.</source>
+            </trans-unit>
+            <trans-unit id="settings.privacy.reporterUid" resname="settings.privacy.reporterUid">
+                <source>User ID</source>
+            </trans-unit>
+            <trans-unit id="settings.privacy.reporterUid.description" resname="settings.privacy.reporterUid.description">
+                <source>The uid of the backend user. The report history uses it to show who reported a problem.</source>
+            </trans-unit>
+            <trans-unit id="settings.privacy.reporterUsername" resname="settings.privacy.reporterUsername">
+                <source>Username</source>
+            </trans-unit>
+            <trans-unit id="settings.privacy.reporterUsername.description" resname="settings.privacy.reporterUsername.description">
+                <source>The login name of the backend user.</source>
+            </trans-unit>
+            <trans-unit id="settings.privacy.reporterRealName" resname="settings.privacy.reporterRealName">
+                <source>Real name</source>
+            </trans-unit>
+            <trans-unit id="settings.privacy.reporterRealName.description" resname="settings.privacy.reporterRealName.description">
+                <source>The name stored in the backend user record.</source>
+            </trans-unit>
+            <trans-unit id="settings.privacy.reporterEmail" resname="settings.privacy.reporterEmail">
+                <source>Email address</source>
+            </trans-unit>
+            <trans-unit id="settings.privacy.reporterEmail.description" resname="settings.privacy.reporterEmail.description">
+                <source>Required if email recipients should be able to reply to the reporter.</source>
+            </trans-unit>
+            <trans-unit id="settings.privacy.reporterGroups" resname="settings.privacy.reporterGroups">
+                <source>Backend groups</source>
+            </trans-unit>
+            <trans-unit id="settings.privacy.reporterGroups.description" resname="settings.privacy.reporterGroups.description">
+                <source>IDs and titles of the backend groups of the user.</source>
+            </trans-unit>
+            <trans-unit id="settings.privacy.technicalHeading" resname="settings.privacy.technicalHeading">
+                <source>Technical details</source>
+            </trans-unit>
+            <trans-unit id="settings.privacy.technicalHeading.description" resname="settings.privacy.technicalHeading.description">
+                <source>Details that help to reproduce a problem.</source>
+            </trans-unit>
+            <trans-unit id="settings.privacy.browserDetails" resname="settings.privacy.browserDetails">
+                <source>Browser details</source>
+            </trans-unit>
+            <trans-unit id="settings.privacy.browserDetails.description" resname="settings.privacy.browserDetails.description">
+                <source>Browser and operating system, user agent, window and screen size, pixel ratio, languages, time zone, color scheme and reduced motion.</source>
+            </trans-unit>
+            <trans-unit id="settings.privacy.recentBackendErrors" resname="settings.privacy.recentBackendErrors">
+                <source>Recent backend errors</source>
+            </trans-unit>
+            <trans-unit id="settings.privacy.recentBackendErrors.description" resname="settings.privacy.recentBackendErrors.description">
+                <source>Optional and off by default. Adds up to 10 errors and warnings of the reporting user from the TYPO3 system log of the last 30 minutes, shortened. The messages are written by TYPO3 and extensions and can contain record titles or other sensitive diagnostic text. Enable this only if everyone who receives reports may see such text.</source>
+            </trans-unit>
+            <trans-unit id="settings.privacy.summary.title" resname="settings.privacy.summary.title">
+                <source>What a report contains</source>
+            </trans-unit>
+            <trans-unit id="settings.privacy.summary.subtitle" resname="settings.privacy.summary.subtitle">
+                <source>In addition to the options on the left</source>
+            </trans-unit>
+            <trans-unit id="settings.privacy.always.title" resname="settings.privacy.always.title">
+                <source>Always included</source>
+            </trans-unit>
+            <trans-unit id="settings.privacy.always.text" resname="settings.privacy.always.text">
+                <source>The title and description entered by the reporter and the optional screenshot; the reported page, record, file or folder (type, ID, title, page, site, language, workspace); the backend module and route; links to the report and the object; the project name, identifier and environment; TYPO3 and PHP version, application context, database platform and server operating system.</source>
+            </trans-unit>
+            <trans-unit id="settings.privacy.never.title" resname="settings.privacy.never.title">
+                <source>Never read</source>
+            </trans-unit>
+            <trans-unit id="settings.privacy.never.text" resname="settings.privacy.never.text">
+                <source>Field values of records other than the title, form contents, file contents and file metadata values, cookies, sessions, request headers, passwords and API keys. Exception: the optional recent backend errors contain log messages as TYPO3 and extensions wrote them, which can include confidential diagnostic text.</source>
+            </trans-unit>
+            <trans-unit id="settings.privacy.preview" resname="settings.privacy.preview">
+                <source>The report dialog shows all data before it is sent.</source>
+            </trans-unit>
+            <trans-unit id="settings.reporting.intro" resname="settings.reporting.intro">
+                <source>Limits for new reports and how long reports are kept.</source>
+            </trans-unit>
+            <trans-unit id="settings.reporting.maxScreenshotSizeKb" resname="settings.reporting.maxScreenshotSizeKb">
+                <source>Maximum screenshot size (KB)</source>
+            </trans-unit>
+            <trans-unit id="settings.reporting.maxScreenshotSizeKb.description" resname="settings.reporting.maxScreenshotSizeKb.description">
+                <source>Between 100 and 15360 KB. The browser compresses larger screenshots or rejects them.</source>
+            </trans-unit>
+            <trans-unit id="settings.reporting.maxReportsPerUserPerHour" resname="settings.reporting.maxReportsPerUserPerHour">
+                <source>Reports per user per hour</source>
+            </trans-unit>
+            <trans-unit id="settings.reporting.maxReportsPerUserPerHour.description" resname="settings.reporting.maxReportsPerUserPerHour.description">
+                <source>Protects against accidental floods of reports. 0 turns the limit off.</source>
+            </trans-unit>
+            <trans-unit id="settings.reporting.retentionDays" resname="settings.reporting.retentionDays">
+                <source>Keep reports</source>
+            </trans-unit>
+            <trans-unit id="settings.reporting.retentionDays.description" resname="settings.reporting.retentionDays.description">
+                <source>Applies to reports with their screenshots and delivery history. Reports are only removed when an administrator runs the cleanup.</source>
+            </trans-unit>
+            <trans-unit id="settings.reporting.retention.0" resname="settings.reporting.retention.0">
+                <source>Forever</source>
+            </trans-unit>
+            <trans-unit id="settings.reporting.retention.30" resname="settings.reporting.retention.30">
+                <source>30 days</source>
+            </trans-unit>
+            <trans-unit id="settings.reporting.retention.90" resname="settings.reporting.retention.90">
+                <source>90 days</source>
+            </trans-unit>
+            <trans-unit id="settings.reporting.retention.180" resname="settings.reporting.retention.180">
+                <source>180 days</source>
+            </trans-unit>
+            <trans-unit id="settings.reporting.retention.365" resname="settings.reporting.retention.365">
+                <source>365 days</source>
+            </trans-unit>
+            <trans-unit id="settings.reporting.retention.custom" resname="settings.reporting.retention.custom">
+                <source>Custom number of days</source>
+            </trans-unit>
+            <trans-unit id="settings.reporting.retentionCustom" resname="settings.reporting.retentionCustom">
+                <source>Number of days</source>
+            </trans-unit>
+            <trans-unit id="settings.storage.title" resname="settings.storage.title">
+                <source>Storage</source>
+            </trans-unit>
+            <trans-unit id="settings.storage.subtitle" resname="settings.storage.subtitle">
+                <source>Stored in the TYPO3 database</source>
+            </trans-unit>
+            <trans-unit id="settings.storage.reports" resname="settings.storage.reports">
+                <source>Reports</source>
+            </trans-unit>
+            <trans-unit id="settings.storage.reportsValue" resname="settings.storage.reportsValue">
+                <source>%1$d (%2$d open, %3$d resolved)</source>
+            </trans-unit>
+            <trans-unit id="settings.storage.screenshots" resname="settings.storage.screenshots">
+                <source>Screenshots</source>
+            </trans-unit>
+            <trans-unit id="settings.storage.screenshotsValue" resname="settings.storage.screenshotsValue">
+                <source>%1$d (%2$s)</source>
+            </trans-unit>
+            <trans-unit id="settings.storage.deliveries" resname="settings.storage.deliveries">
+                <source>Delivery attempts</source>
+            </trans-unit>
+            <trans-unit id="settings.storage.oldest" resname="settings.storage.oldest">
+                <source>Oldest report</source>
+            </trans-unit>
+            <trans-unit id="settings.storage.orphans" resname="settings.storage.orphans">
+                <source>Orphaned entries</source>
+            </trans-unit>
+            <trans-unit id="settings.storage.orphansValue" resname="settings.storage.orphansValue">
+                <source>Screenshots: %1$d, delivery attempts: %2$d (their report no longer exists)</source>
+            </trans-unit>
+            <trans-unit id="settings.storage.location" resname="settings.storage.location">
+                <source>Reports are stored in the table tx_contextreporter_report, screenshots in tx_contextreporter_attachment and the delivery history in tx_contextreporter_delivery. No files are written. Deleting a report also deletes its screenshot and delivery history.</source>
+            </trans-unit>
+            <trans-unit id="settings.cleanup.title" resname="settings.cleanup.title">
+                <source>Cleanup</source>
+            </trans-unit>
+            <trans-unit id="settings.cleanup.subtitle" resname="settings.cleanup.subtitle">
+                <source>Applies the saved retention</source>
+            </trans-unit>
+            <trans-unit id="settings.cleanup.keepForever" resname="settings.cleanup.keepForever">
+                <source>Reports are kept forever, so the cleanup removes no reports. To remove old reports, choose a retention and save the settings.</source>
+            </trans-unit>
+            <trans-unit id="settings.cleanup.policy" resname="settings.cleanup.policy">
+                <source>Reports are kept for %1$d days. The cleanup removes reports created before %2$s.</source>
+            </trans-unit>
+            <trans-unit id="settings.cleanup.reports" resname="settings.cleanup.reports">
+                <source>Reports to remove</source>
+            </trans-unit>
+            <trans-unit id="settings.cleanup.reportsValue" resname="settings.cleanup.reportsValue">
+                <source>%1$d (%2$d of them open)</source>
+            </trans-unit>
+            <trans-unit id="settings.cleanup.screenshots" resname="settings.cleanup.screenshots">
+                <source>Screenshots to remove</source>
+            </trans-unit>
+            <trans-unit id="settings.cleanup.deliveries" resname="settings.cleanup.deliveries">
+                <source>Delivery attempts to remove</source>
+            </trans-unit>
+            <trans-unit id="settings.cleanup.orphans" resname="settings.cleanup.orphans">
+                <source>The cleanup also removes entries whose report no longer exists (screenshots: %1$d, delivery attempts: %2$d).</source>
+            </trans-unit>
+            <trans-unit id="settings.cleanup.nothing" resname="settings.cleanup.nothing">
+                <source>There is nothing to remove.</source>
+            </trans-unit>
+            <trans-unit id="settings.cleanup.cli" resname="settings.cleanup.cli">
+                <source>The same cleanup is available on the command line, e.g. for cron jobs:</source>
+            </trans-unit>
+            <trans-unit id="settings.cleanup.button" resname="settings.cleanup.button">
+                <source>Remove old reports (%d)…</source>
+            </trans-unit>
+            <trans-unit id="settings.cleanup.buttonOrphans" resname="settings.cleanup.buttonOrphans">
+                <source>Remove orphaned entries…</source>
+            </trans-unit>
+            <trans-unit id="settings.cleanup.confirm.title" resname="settings.cleanup.confirm.title">
+                <source>Remove data permanently?</source>
+            </trans-unit>
+            <trans-unit id="settings.cleanup.confirm.message" resname="settings.cleanup.confirm.message">
+                <source>All reports created before %2$s (%1$d in total) will be deleted together with their screenshots and delivery history. This cannot be undone.</source>
+            </trans-unit>
+            <trans-unit id="settings.cleanup.confirm.messageOrphans" resname="settings.cleanup.confirm.messageOrphans">
+                <source>Screenshots and delivery attempts without a report will be deleted. This cannot be undone.</source>
+            </trans-unit>
+            <trans-unit id="settings.cleanup.confirm.ok" resname="settings.cleanup.confirm.ok">
+                <source>Remove</source>
+            </trans-unit>
+            <trans-unit id="settings.cleanup.done" resname="settings.cleanup.done">
+                <source>Cleanup finished. Removed reports: %1$d, removed orphaned entries: %2$d.</source>
+            </trans-unit>
+            <trans-unit id="settings.cleanup.changed" resname="settings.cleanup.changed">
+                <source>The retention has changed in the meantime. Check the preview and try again.</source>
+            </trans-unit>
+            <trans-unit id="settings.email.intro" resname="settings.email.intro">
+                <source>New reports are sent through the mail configuration of TYPO3.</source>
+            </trans-unit>
+            <trans-unit id="settings.email.enabled" resname="settings.email.enabled">
+                <source>Send reports by email</source>
+            </trans-unit>
+            <trans-unit id="settings.email.enabled.description" resname="settings.email.enabled.description">
+                <source>Every new report is sent to the recipients as a plain text email.</source>
+            </trans-unit>
+            <trans-unit id="settings.email.recipients" resname="settings.email.recipients">
+                <source>Recipients</source>
+            </trans-unit>
+            <trans-unit id="settings.email.recipients.description" resname="settings.email.recipients.description">
+                <source>Up to 20 email addresses, separated by commas or line breaks.</source>
+            </trans-unit>
+            <trans-unit id="settings.email.senderAddress" resname="settings.email.senderAddress">
+                <source>Sender address</source>
+            </trans-unit>
+            <trans-unit id="settings.email.senderAddress.description" resname="settings.email.senderAddress.description">
+                <source>When empty, the TYPO3 default sender is used (%s).</source>
+            </trans-unit>
+            <trans-unit id="settings.email.senderName" resname="settings.email.senderName">
+                <source>Sender name</source>
+            </trans-unit>
+            <trans-unit id="settings.email.senderName.description" resname="settings.email.senderName.description">
+                <source>Used together with the sender address.</source>
+            </trans-unit>
+            <trans-unit id="settings.email.subject" resname="settings.email.subject">
+                <source>Subject</source>
+            </trans-unit>
+            <trans-unit id="settings.email.subject.description" resname="settings.email.subject.description">
+                <source>Markers such as {project.name}, {report.title} and {report.id} are replaced.</source>
+            </trans-unit>
+            <trans-unit id="settings.email.bodyTemplate" resname="settings.email.bodyTemplate">
+                <source>Text template</source>
+            </trans-unit>
+            <trans-unit id="settings.email.bodyTemplate.description" resname="settings.email.bodyTemplate.description">
+                <source>A .txt file with markers below Resources/Private/ of an extension, e.g. EXT:my_sitepackage/Resources/Private/Templates/Email/ContextReport.txt.</source>
+            </trans-unit>
+            <trans-unit id="settings.email.attachScreenshot" resname="settings.email.attachScreenshot">
+                <source>Attach the screenshot</source>
+            </trans-unit>
+            <trans-unit id="settings.email.attachScreenshot.description" resname="settings.email.attachScreenshot.description">
+                <source>Attached as PNG or JPEG file when the report has one.</source>
+            </trans-unit>
+            <trans-unit id="settings.email.attachJson" resname="settings.email.attachJson">
+                <source>Attach the JSON report</source>
+            </trans-unit>
+            <trans-unit id="settings.email.attachJson.description" resname="settings.email.attachJson.description">
+                <source>The machine-readable report (context-reporter.report.v1), without the screenshot.</source>
+            </trans-unit>
+            <trans-unit id="settings.email.replyToReporter" resname="settings.email.replyToReporter">
+                <source>Replies go to the reporter</source>
+            </trans-unit>
+            <trans-unit id="settings.email.replyToReporter.description" resname="settings.email.replyToReporter.description">
+                <source>Sets the reporter as Reply-To. Requires "Email address" in the privacy settings.</source>
+            </trans-unit>
+            <trans-unit id="settings.webhook.intro" resname="settings.webhook.intro">
+                <source>New reports are posted as JSON to an endpoint, e.g. n8n, Make, Zapier or your own service.</source>
+            </trans-unit>
+            <trans-unit id="settings.webhook.enabled" resname="settings.webhook.enabled">
+                <source>Send reports to a webhook</source>
+            </trans-unit>
+            <trans-unit id="settings.webhook.enabled.description" resname="settings.webhook.enabled.description">
+                <source>Every new report is posted with the event "report.created".</source>
+            </trans-unit>
+            <trans-unit id="settings.webhook.url" resname="settings.webhook.url">
+                <source>Endpoint URL</source>
+            </trans-unit>
+            <trans-unit id="settings.webhook.url.description" resname="settings.webhook.url.description">
+                <source>An https URL, or %env(NAME)% to read it from an environment variable. A stored URL is not shown again, because webhook URLs often contain access tokens.</source>
+            </trans-unit>
+            <trans-unit id="settings.webhook.url.remove" resname="settings.webhook.url.remove">
+                <source>Remove the stored endpoint</source>
+            </trans-unit>
+            <trans-unit id="settings.webhook.secret" resname="settings.webhook.secret">
+                <source>Signing secret</source>
+            </trans-unit>
+            <trans-unit id="settings.webhook.secret.description" resname="settings.webhook.secret.description">
+                <source>Signs every delivery with HMAC-SHA256 in the header X-Context-Reporter-Signature, so the receiver can verify it. A value or %env(NAME)%.</source>
+            </trans-unit>
+            <trans-unit id="settings.webhook.authHeaderName" resname="settings.webhook.authHeaderName">
+                <source>Authentication header</source>
+            </trans-unit>
+            <trans-unit id="settings.webhook.authHeaderName.description" resname="settings.webhook.authHeaderName.description">
+                <source>The name of the header that carries the value below, e.g. Authorization or X-Api-Key.</source>
+            </trans-unit>
+            <trans-unit id="settings.webhook.authHeaderValue" resname="settings.webhook.authHeaderValue">
+                <source>Authentication header value</source>
+            </trans-unit>
+            <trans-unit id="settings.webhook.authHeaderValue.description" resname="settings.webhook.authHeaderValue.description">
+                <source>For example "Bearer …". A value or %env(NAME)%. The header is only sent when a value is set.</source>
+            </trans-unit>
+            <trans-unit id="settings.webhook.timeout" resname="settings.webhook.timeout">
+                <source>Timeout (seconds)</source>
+            </trans-unit>
+            <trans-unit id="settings.webhook.timeout.description" resname="settings.webhook.timeout.description">
+                <source>Between 1 and 30 seconds.</source>
+            </trans-unit>
+            <trans-unit id="settings.webhook.includeScreenshot" resname="settings.webhook.includeScreenshot">
+                <source>Include the screenshot</source>
+            </trans-unit>
+            <trans-unit id="settings.webhook.includeScreenshot.description" resname="settings.webhook.includeScreenshot.description">
+                <source>Embeds the screenshot base64-encoded in the JSON payload.</source>
+            </trans-unit>
+            <trans-unit id="settings.webhook.allowInsecureHttp" resname="settings.webhook.allowInsecureHttp">
+                <source>Allow unencrypted http endpoints</source>
+            </trans-unit>
+            <trans-unit id="settings.webhook.allowInsecureHttp.description" resname="settings.webhook.allowInsecureHttp.description">
+                <source>For local tests only: reports and secrets are then sent unencrypted.</source>
+            </trans-unit>
+            <trans-unit id="settings.secret.state.notConfigured" resname="settings.secret.state.notConfigured">
+                <source>Not configured</source>
+            </trans-unit>
+            <trans-unit id="settings.secret.state.configured" resname="settings.secret.state.configured">
+                <source>Configured</source>
+            </trans-unit>
+            <trans-unit id="settings.secret.state.environment" resname="settings.secret.state.environment">
+                <source>Configured via environment (%s)</source>
+            </trans-unit>
+            <trans-unit id="settings.secret.state.environmentUnavailable" resname="settings.secret.state.environmentUnavailable">
+                <source>Environment variable %s is not set or not valid</source>
+            </trans-unit>
+            <trans-unit id="settings.secret.state.invalid" resname="settings.secret.state.invalid">
+                <source>Configured, but not valid</source>
+            </trans-unit>
+            <trans-unit id="settings.secret.placeholderKeep" resname="settings.secret.placeholderKeep">
+                <source>Leave empty to keep the current value</source>
+            </trans-unit>
+            <trans-unit id="settings.secret.placeholderNew" resname="settings.secret.placeholderNew">
+                <source>Value or %env(NAME)%</source>
+            </trans-unit>
+            <trans-unit id="settings.secret.remove" resname="settings.secret.remove">
+                <source>Remove the stored value</source>
+            </trans-unit>
+            <trans-unit id="settings.status.title" resname="settings.status.title">
+                <source>Status</source>
+            </trans-unit>
+            <trans-unit id="settings.status.subtitle" resname="settings.status.subtitle">
+                <source>Based on the saved settings</source>
+            </trans-unit>
+            <trans-unit id="settings.status.ready" resname="settings.status.ready">
+                <source>Ready</source>
+            </trans-unit>
+            <trans-unit id="settings.status.notReady" resname="settings.status.notReady">
+                <source>Not ready</source>
+            </trans-unit>
+            <trans-unit id="settings.status.off" resname="settings.status.off">
+                <source>Off</source>
+            </trans-unit>
+            <trans-unit id="settings.status.none" resname="settings.status.none">
+                <source>None</source>
+            </trans-unit>
+            <trans-unit id="settings.status.included" resname="settings.status.included">
+                <source>included</source>
+            </trans-unit>
+            <trans-unit id="settings.status.notIncluded" resname="settings.status.notIncluded">
+                <source>not included</source>
+            </trans-unit>
+            <trans-unit id="settings.status.severity.danger" resname="settings.status.severity.danger">
+                <source>Problem</source>
+            </trans-unit>
+            <trans-unit id="settings.status.severity.warning" resname="settings.status.severity.warning">
+                <source>Warning</source>
+            </trans-unit>
+            <trans-unit id="settings.status.severity.info" resname="settings.status.severity.info">
+                <source>Note</source>
+            </trans-unit>
+            <trans-unit id="settings.status.email.recipients" resname="settings.status.email.recipients">
+                <source>Recipients</source>
+            </trans-unit>
+            <trans-unit id="settings.status.email.sender" resname="settings.status.email.sender">
+                <source>Sender</source>
+            </trans-unit>
+            <trans-unit id="settings.status.email.senderTypo3" resname="settings.status.email.senderTypo3">
+                <source>%s (TYPO3 default)</source>
+            </trans-unit>
+            <trans-unit id="settings.status.email.transport" resname="settings.status.email.transport">
+                <source>Mail transport</source>
+            </trans-unit>
+            <trans-unit id="settings.status.email.attachments" resname="settings.status.email.attachments">
+                <source>Attachments</source>
+            </trans-unit>
+            <trans-unit id="settings.status.email.transportNote" resname="settings.status.email.transportNote">
+                <source>The mail transport is configured in the TYPO3 system configuration ($GLOBALS['TYPO3_CONF_VARS']['MAIL']). Credentials are never shown.</source>
+            </trans-unit>
+            <trans-unit id="settings.status.attachment.screenshot" resname="settings.status.attachment.screenshot">
+                <source>Screenshot</source>
+            </trans-unit>
+            <trans-unit id="settings.status.attachment.json" resname="settings.status.attachment.json">
+                <source>JSON report</source>
+            </trans-unit>
+            <trans-unit id="settings.status.attachment.none" resname="settings.status.attachment.none">
+                <source>None</source>
+            </trans-unit>
+            <trans-unit id="settings.status.transport.smtp" resname="settings.status.transport.smtp">
+                <source>SMTP %s</source>
+            </trans-unit>
+            <trans-unit id="settings.status.transport.sendmail" resname="settings.status.transport.sendmail">
+                <source>sendmail (%s)</source>
+            </trans-unit>
+            <trans-unit id="settings.status.transport.mbox" resname="settings.status.transport.mbox">
+                <source>mbox file</source>
+            </trans-unit>
+            <trans-unit id="settings.status.transport.null" resname="settings.status.transport.null">
+                <source>null (emails are discarded)</source>
+            </trans-unit>
+            <trans-unit id="settings.status.transport.dsn" resname="settings.status.transport.dsn">
+                <source>DSN %s</source>
+            </trans-unit>
+            <trans-unit id="settings.status.transport.custom" resname="settings.status.transport.custom">
+                <source>Custom transport %s</source>
+            </trans-unit>
+            <trans-unit id="settings.status.transport.authentication" resname="settings.status.transport.authentication">
+                <source>with authentication</source>
+            </trans-unit>
+            <trans-unit id="settings.status.transport.encrypted" resname="settings.status.transport.encrypted">
+                <source>encrypted</source>
+            </trans-unit>
+            <trans-unit id="settings.status.email.disabled" resname="settings.status.email.disabled">
+                <source>Email delivery is switched off: reports are not sent by email.</source>
+            </trans-unit>
+            <trans-unit id="settings.status.email.noRecipients" resname="settings.status.email.noRecipients">
+                <source>No recipients are configured.</source>
+            </trans-unit>
+            <trans-unit id="settings.status.email.nullTransport" resname="settings.status.email.nullTransport">
+                <source>The TYPO3 mail transport is "null": all emails are discarded.</source>
+            </trans-unit>
+            <trans-unit id="settings.status.email.mbox" resname="settings.status.email.mbox">
+                <source>The TYPO3 mail transport is "mbox": emails are written to a file on the server instead of being sent.</source>
+            </trans-unit>
+            <trans-unit id="settings.status.email.spool" resname="settings.status.email.spool">
+                <source>Emails are queued (spool "%s") and only sent when the console command "mailer:spool:send" runs.</source>
+            </trans-unit>
+            <trans-unit id="settings.status.email.localCatcher" resname="settings.status.email.localCatcher">
+                <source>The mail transport points to a local mail catcher such as Mailpit: emails do not reach real mailboxes.</source>
+            </trans-unit>
+            <trans-unit id="settings.status.email.ddev" resname="settings.status.email.ddev">
+                <source>This is a DDEV project: emails are captured by Mailpit and do not reach real mailboxes.</source>
+            </trans-unit>
+            <trans-unit id="settings.status.email.defaultSender" resname="settings.status.email.defaultSender">
+                <source>No sender address is set here or in the TYPO3 mail settings, so TYPO3 uses "%s". Mail servers may reject it.</source>
+            </trans-unit>
+            <trans-unit id="settings.status.email.senderInvalid" resname="settings.status.email.senderInvalid">
+                <source>The configured sender address is not valid, so TYPO3 uses "%s".</source>
+            </trans-unit>
+            <trans-unit id="settings.status.webhook.endpoint" resname="settings.status.webhook.endpoint">
+                <source>Endpoint</source>
+            </trans-unit>
+            <trans-unit id="settings.status.webhook.signature" resname="settings.status.webhook.signature">
+                <source>Signature (HMAC-SHA256)</source>
+            </trans-unit>
+            <trans-unit id="settings.status.webhook.authentication" resname="settings.status.webhook.authentication">
+                <source>Authentication header</source>
+            </trans-unit>
+            <trans-unit id="settings.status.webhook.options" resname="settings.status.webhook.options">
+                <source>Options</source>
+            </trans-unit>
+            <trans-unit id="settings.status.webhook.optionsValue" resname="settings.status.webhook.optionsValue">
+                <source>Timeout %1$d s, screenshot %2$s, redirects are not followed</source>
+            </trans-unit>
+            <trans-unit id="settings.status.webhook.secretsNote" resname="settings.status.webhook.secretsNote">
+                <source>Endpoint paths and secret values are never shown.</source>
+            </trans-unit>
+            <trans-unit id="settings.status.webhook.disabled" resname="settings.status.webhook.disabled">
+                <source>Webhook delivery is switched off: reports are not sent to the endpoint.</source>
+            </trans-unit>
+            <trans-unit id="settings.status.webhook.noEndpoint" resname="settings.status.webhook.noEndpoint">
+                <source>No endpoint is configured.</source>
+            </trans-unit>
+            <trans-unit id="settings.status.webhook.endpointEnvironment" resname="settings.status.webhook.endpointEnvironment">
+                <source>The endpoint refers to the environment variable %s, which is not set or does not contain a valid URL.</source>
+            </trans-unit>
+            <trans-unit id="settings.status.webhook.endpointInvalid" resname="settings.status.webhook.endpointInvalid">
+                <source>The configured endpoint is not a valid URL. An https URL is required unless unencrypted endpoints are allowed.</source>
+            </trans-unit>
+            <trans-unit id="settings.status.webhook.insecure" resname="settings.status.webhook.insecure">
+                <source>The endpoint uses unencrypted http.</source>
+            </trans-unit>
+            <trans-unit id="settings.status.webhook.authEnvironment" resname="settings.status.webhook.authEnvironment">
+                <source>The authentication header value refers to the environment variable %s, which is not set or contains line breaks. The header is not sent.</source>
+            </trans-unit>
+            <trans-unit id="settings.status.webhook.authInvalid" resname="settings.status.webhook.authInvalid">
+                <source>The authentication header name or value is not valid. The header is not sent.</source>
+            </trans-unit>
+            <trans-unit id="settings.status.webhook.secretEnvironment" resname="settings.status.webhook.secretEnvironment">
+                <source>The signing secret refers to the environment variable %s, which is not set. Deliveries are sent unsigned.</source>
+            </trans-unit>
+            <trans-unit id="settings.status.webhook.unsigned" resname="settings.status.webhook.unsigned">
+                <source>Deliveries are not signed. Set a signing secret so the receiver can verify them.</source>
+            </trans-unit>
+            <trans-unit id="settings.test.email" resname="settings.test.email">
+                <source>Send test email</source>
+            </trans-unit>
+            <trans-unit id="settings.test.emailHint" resname="settings.test.emailHint">
+                <source>Sends a short message without report data to the saved recipients, also while email delivery is switched off.</source>
+            </trans-unit>
+            <trans-unit id="settings.test.emailUnavailable" resname="settings.test.emailUnavailable">
+                <source>Save at least one recipient to send a test email.</source>
+            </trans-unit>
+            <trans-unit id="settings.test.emailSucceeded" resname="settings.test.emailSucceeded">
+                <source>Test email handed over to the mail transport</source>
+            </trans-unit>
+            <trans-unit id="settings.test.emailSucceededDetail" resname="settings.test.emailSucceededDetail">
+                <source>Recipients: %s. If the email does not arrive, check the notes of the status panel, the mail server log and the spam folder.</source>
+            </trans-unit>
+            <trans-unit id="settings.test.emailFailed" resname="settings.test.emailFailed">
+                <source>The test email could not be sent</source>
+            </trans-unit>
+            <trans-unit id="settings.test.webhook" resname="settings.test.webhook">
+                <source>Send test webhook</source>
+            </trans-unit>
+            <trans-unit id="settings.test.webhookHint" resname="settings.test.webhookHint">
+                <source>Posts the event "test" without report data to the saved endpoint, also while webhook delivery is switched off. Tests are not added to the delivery history.</source>
+            </trans-unit>
+            <trans-unit id="settings.test.webhookUnavailable" resname="settings.test.webhookUnavailable">
+                <source>Save a usable endpoint to send a test webhook.</source>
+            </trans-unit>
+            <trans-unit id="settings.test.webhookSucceeded" resname="settings.test.webhookSucceeded">
+                <source>The endpoint accepted the test webhook</source>
+            </trans-unit>
+            <trans-unit id="settings.test.webhookSucceededDetail" resname="settings.test.webhookSucceededDetail">
+                <source>Response: %s</source>
+            </trans-unit>
+            <trans-unit id="settings.test.webhookFailed" resname="settings.test.webhookFailed">
+                <source>The test webhook failed</source>
+            </trans-unit>
+            <trans-unit id="settings.error.projectName" resname="settings.error.projectName">
+                <source>Use at most 100 characters without line breaks.</source>
+            </trans-unit>
+            <trans-unit id="settings.error.projectIdentifier" resname="settings.error.projectIdentifier">
+                <source>Use up to 64 letters, digits, dots, hyphens or underscores, starting with a letter or digit.</source>
+            </trans-unit>
+            <trans-unit id="settings.error.environment" resname="settings.error.environment">
+                <source>Choose an environment or enter a name with at most 50 characters.</source>
+            </trans-unit>
+            <trans-unit id="settings.error.maxScreenshotSizeKb" resname="settings.error.maxScreenshotSizeKb">
+                <source>Enter a number between 100 and 15360.</source>
+            </trans-unit>
+            <trans-unit id="settings.error.maxReportsPerUserPerHour" resname="settings.error.maxReportsPerUserPerHour">
+                <source>Enter a number between 0 and 1000.</source>
+            </trans-unit>
+            <trans-unit id="settings.error.retentionDays" resname="settings.error.retentionDays">
+                <source>Choose a retention or enter a number of days between 1 and 3650.</source>
+            </trans-unit>
+            <trans-unit id="settings.error.recipients" resname="settings.error.recipients">
+                <source>Enter valid email addresses, separated by commas or line breaks.</source>
+            </trans-unit>
+            <trans-unit id="settings.error.recipientsRequired" resname="settings.error.recipientsRequired">
+                <source>Enter at least one recipient to send reports by email.</source>
+            </trans-unit>
+            <trans-unit id="settings.error.recipientsTooMany" resname="settings.error.recipientsTooMany">
+                <source>Enter at most 20 recipients.</source>
+            </trans-unit>
+            <trans-unit id="settings.error.senderAddress" resname="settings.error.senderAddress">
+                <source>Enter a valid email address or leave the field empty.</source>
+            </trans-unit>
+            <trans-unit id="settings.error.senderName" resname="settings.error.senderName">
+                <source>Use at most 100 characters without line breaks.</source>
+            </trans-unit>
+            <trans-unit id="settings.error.subject" resname="settings.error.subject">
+                <source>Use at most 255 characters without line breaks.</source>
+            </trans-unit>
+            <trans-unit id="settings.error.bodyTemplate" resname="settings.error.bodyTemplate">
+                <source>Use an existing .txt file below Resources/Private/ of an extension, e.g. EXT:my_sitepackage/Resources/Private/Templates/Email/ContextReport.txt.</source>
+            </trans-unit>
+            <trans-unit id="settings.error.url" resname="settings.error.url">
+                <source>Enter an https URL (http only if unencrypted endpoints are allowed) or %env(NAME)%.</source>
+            </trans-unit>
+            <trans-unit id="settings.error.urlRequired" resname="settings.error.urlRequired">
+                <source>Enter an endpoint to send reports to a webhook.</source>
+            </trans-unit>
+            <trans-unit id="settings.error.secret" resname="settings.error.secret">
+                <source>The secret must not contain line breaks and may have at most 1000 characters.</source>
+            </trans-unit>
+            <trans-unit id="settings.error.authHeaderName" resname="settings.error.authHeaderName">
+                <source>Enter a valid header name, e.g. Authorization or X-Api-Key.</source>
+            </trans-unit>
+            <trans-unit id="settings.error.authHeaderValue" resname="settings.error.authHeaderValue">
+                <source>The value must not contain line breaks and may have at most 1000 characters.</source>
+            </trans-unit>
+            <trans-unit id="settings.error.timeout" resname="settings.error.timeout">
+                <source>Enter a number between 1 and 30.</source>
+            </trans-unit>
+        </body>
+    </file>
+</xliff>

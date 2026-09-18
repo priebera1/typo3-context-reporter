@@ -1,0 +1,120 @@
+name: Bug report
+description: Report a reproducible bug in TYPO3 Context Reporter.
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before submitting, please search existing issues to avoid duplicates.
+        Reports contain page titles, record labels, file names and backend URLs.
+        Do not include real reports, screenshots with personal data, webhook URLs or secrets.
+
+  - type: input
+    id: extension-version
+    attributes:
+      label: Context Reporter version
+      placeholder: "e.g. 0.1.0"
+    validations:
+      required: true
+
+  - type: input
+    id: typo3-version
+    attributes:
+      label: TYPO3 version
+      placeholder: "e.g. 13.4.35 or 14.3.7"
+    validations:
+      required: true
+
+  - type: input
+    id: php-version
+    attributes:
+      label: PHP version
+      placeholder: "e.g. 8.2.29, 8.3.25 or 8.4.12"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: database
+    attributes:
+      label: Database
+      options:
+        - MariaDB
+        - MySQL
+        - PostgreSQL
+        - SQLite
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: installation-mode
+    attributes:
+      label: Installation mode
+      options:
+        - Composer
+        - Classic mode (Extension Manager)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where does the bug occur?
+      options:
+        - Report dialog
+        - Screenshot capture or editor
+        - Entry point (toolbar, context menu, record list, Page module, file list, editing form)
+        - Collected context
+        - Email delivery
+        - Webhook delivery
+        - Report history (System › Context Reports)
+        - Settings
+        - Retention or cleanup command
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser (if relevant)
+      placeholder: "e.g. Chrome 128, Firefox 130"
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to...
+        2. Click...
+        3. See...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs, error messages or screenshots (optional)
+      description: Remove personal data, secrets and client details first.
+
+  - type: checkboxes
+    id: data-check
+    attributes:
+      label: Data confirmation
+      options:
+        - label: I have removed personal data, secrets, webhook URLs and client details from this report.
+          required: true

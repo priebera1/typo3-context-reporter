@@ -1,0 +1,315 @@
+<html
+    xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
+    xmlns:core="http://typo3.org/ns/TYPO3/CMS/Core/ViewHelpers"
+    data-namespace-typo3-fluid="true"
+>
+<f:layout name="Module" />
+
+<f:section name="Content">
+    <f:asset.css identifier="context-reporter" href="EXT:context_reporter/Resources/Public/Css/context-reporter.css" />
+    <f:asset.module identifier="@typo3/backend/modal.js" />
+    <f:variable name="ll" value="LLL:EXT:context_reporter/Resources/Private/Language/locallang_module.xlf:" />
+    <f:variable name="createdAt"><f:format.date format="Y-m-d H:i">{report.createdAt}</f:format.date></f:variable>
+
+    <div class="cr-page-header cr-report-header">
+        <div class="cr-report-header__main">
+            <h1 class="cr-report-header__title">{report.title}</h1>
+            <p class="cr-report-header__meta cr-muted">
+                <span class="cr-identifier">{report.identifier}</span>
+                <span><f:translate key="{ll}show.createdAt" arguments="{0: createdAt}" /></span>
+                <span><f:translate key="{ll}show.source" arguments="{0: sourceLabel}" /></span>
+            </p>
+        </div>
+        <div class="cr-report-header__status">
+            <div class="cr-report-header__badges">
+                <span class="badge badge-{reviewClass}" title="{f:translate(key: '{ll}column.review')}">{reviewLabel}</span>
+                <span class="badge badge-{stateClass}" title="{f:translate(key: '{ll}column.delivery')}">{stateLabel}</span>
+            </div>
+            <f:if condition="{resolved}">
+                <f:then>
+                    <p class="cr-report-header__review cr-muted">
+                        <f:variable name="resolvedAt"><f:format.date format="Y-m-d H:i">{report.resolvedAt}</f:format.date></f:variable>
+                        <f:if condition="{resolvedBy}">
+                            <f:then><f:translate key="{ll}show.resolvedBy" arguments="{0: resolvedAt, 1: resolvedBy}" /></f:then>
+                            <f:else><f:translate key="{ll}show.resolvedAt" arguments="{0: resolvedAt}" /></f:else>
+                        </f:if>
+                    </p>
+                    <form action="{reopenUrl}" method="post">
+                        <input type="hidden" name="report" value="{report.identifier}">
+                        <button type="submit" class="btn btn-default btn-sm">
+                            <core:icon identifier="actions-undo" size="small" />
+                            <f:translate key="{ll}show.reopen" />
+                        </button>
+                    </form>
+                </f:then>
+                <f:else>
+                    <form action="{resolveUrl}" method="post">
+                        <input type="hidden" name="report" value="{report.identifier}">
+                        <button type="submit" class="btn btn-success btn-sm">
+                            <core:icon identifier="actions-check" size="small" />
+                            <f:translate key="{ll}show.resolve" />
+                        </button>
+                    </form>
+                </f:else>
+            </f:if>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="{f:if(condition: screenshotUrl, then: 'col-lg-5', else: 'col-12')}">
+            <section class="card cr-card cr-subject" aria-labelledby="cr-subject-heading">
+                <div class="card-header">
+                    <div class="card-header-body">
+                        <h2 class="card-title" id="cr-subject-heading"><f:translate key="{ll}show.subject" /></h2>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="cr-object cr-object--large">
+                        <span class="cr-object__icon">
+                            <core:icon identifier="{subject.iconIdentifier}" size="medium" />
+                        </span>
+                        <span class="cr-object__body">
+                            <span class="cr-object__type">{subject.typeLabel}</span>
+                            <span class="cr-object__title">{subject.title}</span>
+                            <f:if condition="{subject.identifier}">
+                                <span class="cr-object__identity"><span class="cr-identifier">{subject.identifier}</span></span>
+                            </f:if>
+                        </span>
+                    </div>
+                    <f:if condition="{subject.facts}">
+                        <dl class="cr-facts">
+                            <f:for each="{subject.facts}" as="fact">
+                                <div class="cr-facts__item">
+                                    <dt>{fact.label}</dt>
+                                    <dd>{fact.value}</dd>
+                                </div>
+                            </f:for>
+                        </dl>
+                    </f:if>
+                    <f:if condition="{subjectUrl} || {metadataUrl} || {frontendUrl}">
+                        <div class="cr-actions">
+                            <f:if condition="{subjectUrl}">
+                                <a class="btn btn-default" href="{subjectUrl}">
+                                    <core:icon identifier="{subjectUrlIcon}" size="small" />
+                                    <f:translate key="{ll}show.openSubject" />
+                                </a>
+                            </f:if>
+                            <f:if condition="{metadataUrl}">
+                                <a class="btn btn-default" href="{metadataUrl}">
+                                    <core:icon identifier="actions-document-edit" size="small" />
+                                    <f:translate key="{ll}show.openMetadata" />
+                                </a>
+                            </f:if>
+                            <f:if condition="{frontendUrl}">
+                                <a class="btn btn-default" href="{frontendUrl}" target="_blank" rel="noopener noreferrer">
+                                    <core:icon identifier="actions-view-page" size="small" />
+                                    <f:translate key="{ll}show.openFrontend" />
+                                </a>
+                            </f:if>
+                        </div>
+                    </f:if>
+                    <f:if condition="!{screenshotUrl}">
+                        <p class="cr-muted cr-subject__note"><f:translate key="{ll}show.noScreenshot" /></p>
+                    </f:if>
+                </div>
+            </section>
+        </div>
+
+        <f:if condition="{screenshotUrl}">
+            <div class="col-lg-7">
+                <section class="card cr-card cr-screenshot-card" aria-labelledby="cr-screenshot-heading">
+                    <div class="card-header">
+                        <div class="card-header-body">
+                            <h2 class="card-title" id="cr-screenshot-heading"><f:translate key="{ll}show.screenshot" /></h2>
+                            <span class="card-subtitle">{report.screenshot.width} × {report.screenshot.height} px · {screenshotSize}</span>
+                        </div>
+                        <div class="card-header-actions">
+                            <a class="btn btn-default btn-sm" href="{screenshotDownloadUrl}">
+                                <core:icon identifier="actions-download" size="small" />
+                                <f:translate key="{ll}show.downloadScreenshot" />
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <a class="cr-screenshot-card__link" href="{screenshotUrl}" target="_blank" rel="noopener">
+                            <img
+                                class="cr-screenshot-preview"
+                                src="{screenshotUrl}"
+                                width="{report.screenshot.width}"
+                                height="{report.screenshot.height}"
+                                alt="{f:translate(key: '{ll}show.screenshotAlt', arguments: {0: report.identifier})}"
+                                loading="lazy"
+                            >
+                        </a>
+                    </div>
+                </section>
+            </div>
+        </f:if>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-7">
+            <section class="card cr-card" aria-labelledby="cr-description-heading">
+                <div class="card-header">
+                    <div class="card-header-body">
+                        <h2 class="card-title" id="cr-description-heading"><f:translate key="{ll}show.description" /></h2>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <f:if condition="{report.description}">
+                        <f:then><p class="cr-description">{report.description}</p></f:then>
+                        <f:else><p class="cr-muted"><f:translate key="{ll}show.noDescription" /></p></f:else>
+                    </f:if>
+                </div>
+            </section>
+        </div>
+
+        <div class="col-lg-5">
+            <section class="card cr-card" aria-labelledby="cr-reporter-heading">
+                <div class="card-header">
+                    <div class="card-header-body">
+                        <h2 class="card-title" id="cr-reporter-heading"><f:translate key="{ll}show.reporter" /></h2>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <f:if condition="{reporter}">
+                        <f:then>
+                            <p class="cr-reporter">
+                                <core:icon identifier="actions-user" size="small" />
+                                <span>{reporter.label}</span>
+                                <f:if condition="{reporter.deleted}">
+                                    <span class="badge badge-warning"><f:translate key="{ll}show.reporterDeleted" /></span>
+                                </f:if>
+                            </p>
+                        </f:then>
+                        <f:else>
+                            <p class="cr-muted"><f:translate key="{ll}show.reporterUnknown" /></p>
+                        </f:else>
+                    </f:if>
+                    <p class="cr-muted cr-small"><f:translate key="{ll}show.reporterNote" /></p>
+                </div>
+            </section>
+
+            <section class="card cr-card" aria-labelledby="cr-deliveries-heading">
+                <div class="card-header">
+                    <div class="card-header-body">
+                        <h2 class="card-title" id="cr-deliveries-heading"><f:translate key="{ll}show.deliveries" /></h2>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <f:if condition="{attempts}">
+                        <f:then>
+                            <ol class="cr-deliveries">
+                                <f:for each="{attempts}" as="item">
+                                    <li class="cr-delivery">
+                                        <div class="cr-delivery__head">
+                                            <strong>{item.label}</strong>
+                                            <f:if condition="{item.successful}">
+                                                <f:then><span class="badge badge-success"><f:translate key="{ll}delivery.succeeded" /></span></f:then>
+                                                <f:else><span class="badge badge-danger"><f:translate key="{ll}delivery.failed" /></span></f:else>
+                                            </f:if>
+                                            <time class="cr-muted cr-delivery__time" datetime="{f:format.date(date: item.attempt.createdAt, format: 'c')}"><f:format.date format="Y-m-d H:i:s">{item.attempt.createdAt}</f:format.date></time>
+                                        </div>
+                                        <p class="cr-delivery__details cr-muted">
+                                            <span><f:translate key="{ll}delivery.attempt" arguments="{0: item.attempt.attempt}" /></span>
+                                            <f:if condition="{item.attempt.target}"><span>{item.attempt.target}</span></f:if>
+                                            <f:if condition="{item.attempt.responseCode}"><span>HTTP {item.attempt.responseCode}</span></f:if>
+                                            <f:if condition="{item.triggeredBy}"><span><f:translate key="{ll}delivery.triggeredBy" arguments="{0: item.triggeredBy}" /></span></f:if>
+                                        </p>
+                                        <f:if condition="{item.externalReference}">
+                                            <p class="cr-delivery__reference">
+                                                <f:translate key="{ll}delivery.reference" />
+                                                <f:if condition="{item.externalUrl}">
+                                                    <f:then><a href="{item.externalUrl}" target="_blank" rel="noopener noreferrer">{item.externalReference}</a></f:then>
+                                                    <f:else>{item.externalReference}</f:else>
+                                                </f:if>
+                                            </p>
+                                        </f:if>
+                                        <f:if condition="{item.message} && !{item.successful}">
+                                            <p class="cr-delivery__message">{item.message}</p>
+                                        </f:if>
+                                        <f:if condition="{item.canRetry}">
+                                            <form action="{retryUrl}" method="post" class="cr-delivery__retry">
+                                                <input type="hidden" name="report" value="{report.identifier}">
+                                                <input type="hidden" name="destination" value="{item.attempt.destination}">
+                                                <button type="submit" class="btn btn-default btn-sm">
+                                                    <core:icon identifier="actions-refresh" size="small" />
+                                                    <f:translate key="{ll}delivery.retry" />
+                                                </button>
+                                            </form>
+                                        </f:if>
+                                    </li>
+                                </f:for>
+                            </ol>
+                        </f:then>
+                        <f:else>
+                            <p class="cr-muted"><f:translate key="{ll}delivery.none" /></p>
+                        </f:else>
+                    </f:if>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <section class="card cr-card cr-technical-details" aria-labelledby="cr-technical-heading">
+        <details>
+        <summary class="card-header">
+            <span class="card-header-body">
+                <span class="card-title" id="cr-technical-heading"><f:translate key="{ll}show.technical" /></span>
+                <span class="card-subtitle"><f:translate key="{ll}show.technicalHint" /></span>
+            </span>
+        </summary>
+        <div class="card-body">
+            <p class="cr-technical-details__summary">{report.document.summary}</p>
+            <div class="cr-technical-grid">
+                <f:for each="{sections}" as="section">
+                    <section class="cr-technical-section">
+                        <h3 class="cr-technical-section__title">{section.title}</h3>
+                        <table class="table table-sm cr-context-table">
+                            <tbody>
+                                <f:for each="{section.rows}" as="value" key="rowLabel">
+                                    <tr>
+                                        <th scope="row">{rowLabel}</th>
+                                        <td>{value}</td>
+                                    </tr>
+                                </f:for>
+                            </tbody>
+                        </table>
+                    </section>
+                </f:for>
+            </div>
+            <details class="cr-raw-json">
+                <summary><f:translate key="{ll}show.json" /></summary>
+                <pre class="cr-technical__json"><code>{json}</code></pre>
+            </details>
+        </div>
+        </details>
+    </section>
+
+    <section class="card cr-card cr-danger-zone" aria-labelledby="cr-delete-heading">
+        <div class="card-body">
+            <div class="cr-danger-zone__text">
+                <h2 class="cr-danger-zone__title" id="cr-delete-heading"><f:translate key="{ll}show.delete" /></h2>
+                <p class="cr-muted"><f:translate key="{ll}show.deleteInfo" /></p>
+            </div>
+            <f:comment>type="button": the form is only submitted after the confirmation (data-target-form)</f:comment>
+            <form id="cr-delete-form" action="{deleteUrl}" method="post">
+                <input type="hidden" name="report" value="{report.identifier}">
+                <button
+                    type="button"
+                    class="btn btn-danger t3js-modal-trigger"
+                    data-target-form="cr-delete-form"
+                    data-title="{f:translate(key: '{ll}show.deleteConfirm.title')}"
+                    data-content="{f:translate(key: '{ll}show.deleteConfirm.message', arguments: {0: report.identifier})}"
+                    data-severity="error"
+                    data-button-ok-text="{f:translate(key: '{ll}show.deleteConfirm.ok')}"
+                    data-button-close-text="{f:translate(key: '{ll}show.deleteConfirm.cancel')}"
+                >
+                    <core:icon identifier="actions-delete" size="small" />
+                    <f:translate key="{ll}show.delete" />
+                </button>
+            </form>
+        </div>
+    </section>
+</f:section>
+</html>

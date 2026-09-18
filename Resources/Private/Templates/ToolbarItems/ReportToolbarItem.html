@@ -1,0 +1,20 @@
+<html
+    xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
+    xmlns:core="http://typo3.org/ns/TYPO3/CMS/Core/ViewHelpers"
+    data-namespace-typo3-fluid="true"
+>
+<f:asset.module identifier="@priebera/context-reporter/report-trigger.js"/>
+<f:asset.module identifier="@priebera/context-reporter/report-dialog.js"/>
+<button
+    type="button"
+    class="toolbar-item-link"
+    data-context-reporter-trigger="toolbar"
+    title="{f:translate(key: 'LLL:EXT:context_reporter/Resources/Private/Language/locallang.xlf:toolbar.description')}"
+    aria-haspopup="dialog"
+>
+    <f:render partial="ToolbarItems/ToolbarItem" arguments="{
+        title: 'LLL:EXT:context_reporter/Resources/Private/Language/locallang.xlf:toolbar.title',
+        icon: '{core:icon(identifier: \'context-reporter-report\', size: \'small\', alternativeMarkupIdentifier: \'inline\')}'
+    }" />
+</button>
+</html>

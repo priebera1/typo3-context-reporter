@@ -1,0 +1,46 @@
+name: Feature or UX feedback
+description: Suggest an improvement to TYPO3 Context Reporter.
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Context Reporter attaches the TYPO3 context to problem reports and delivers them to the tools you already use.
+        It is deliberately not a ticket system: boards, assignments, priorities, comments, SLAs and native
+        connectors to individual ticket systems are out of scope. Use the webhook for integrations.
+
+  - type: dropdown
+    id: audience
+    attributes:
+      label: Who would benefit most?
+      options:
+        - Editors who report problems
+        - Developers or support teams who receive reports
+        - Administrators who configure the extension
+        - All users
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve?
+      description: Describe the situation where Context Reporter falls short or is unclear.
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Suggested solution (optional)
+
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Current workaround (if any)
+
+  - type: input
+    id: extension-version
+    attributes:
+      label: Context Reporter version you are using
+      placeholder: "e.g. 0.1.0"
