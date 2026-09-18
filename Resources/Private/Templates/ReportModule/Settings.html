@@ -1,0 +1,365 @@
+<html
+    xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
+    xmlns:core="http://typo3.org/ns/TYPO3/CMS/Core/ViewHelpers"
+    data-namespace-typo3-fluid="true"
+>
+<f:layout name="Module" />
+
+<f:section name="Content">
+    <f:asset.css identifier="context-reporter" href="EXT:context_reporter/Resources/Public/Css/context-reporter.css" />
+    <f:asset.module identifier="@typo3/backend/modal.js" />
+    <f:variable name="ll" value="LLL:EXT:context_reporter/Resources/Private/Language/locallang_module.xlf:" />
+    <f:comment>
+        Severity of f:be.infobox, as the integer value of ContextualFeedbackSeverity.
+        TYPO3 v13 only accepts the integer, and the InfoboxViewHelper::STATE_* constants
+        it documents are deprecated as of TYPO3 v14.
+    </f:comment>
+    <f:variable name="severityInfo" value="-1" />
+    <f:variable name="severityWarning" value="1" />
+
+    <div class="cr-page-header cr-settings-header">
+        <div>
+            <h1><f:translate key="{ll}settings.heading" /></h1>
+            <p class="cr-muted"><f:translate key="{ll}settings.intro" /></p>
+        </div>
+        <p class="cr-settings-header__meta cr-muted">
+            <f:if condition="{lastChange.time}">
+                <f:then>
+                    <f:variable name="savedAt"><f:format.date format="Y-m-d H:i">{lastChange.time}</f:format.date></f:variable>
+                    <f:if condition="{lastChange.user}">
+                        <f:then><f:translate key="{ll}settings.lastSaved" arguments="{0: savedAt, 1: lastChange.user}" /></f:then>
+                        <f:else><f:translate key="{ll}settings.lastSavedAt" arguments="{0: savedAt}" /></f:else>
+                    </f:if>
+                </f:then>
+                <f:else><f:translate key="{ll}settings.neverSaved" /></f:else>
+            </f:if>
+        </p>
+    </div>
+
+    <f:if condition="{legacyConfiguration}">
+        <f:then>
+            <f:be.infobox title="{f:translate(key: '{ll}settings.legacy.title')}" state="{severityWarning}">
+                <p><f:translate key="{ll}settings.legacy.message" /></p>
+            </f:be.infobox>
+        </f:then>
+        <f:else if="{overriddenPaths}">
+            <f:be.infobox title="{f:translate(key: '{ll}settings.system.title')}" state="{severityInfo}">
+                <p><f:translate key="{ll}settings.system.message" arguments="{0: overriddenPaths}" /></p>
+            </f:be.infobox>
+        </f:else>
+    </f:if>
+
+    <nav class="cr-settings-tabs" aria-label="{f:translate(key: '{ll}settings.tabs')}">
+        <ul class="nav nav-tabs">
+            <f:for each="{tabs}" as="tab">
+                <li class="nav-item">
+                    <a class="nav-link{f:if(condition: tab.active, then: ' active')}" href="{tab.url}" aria-current="{f:if(condition: tab.active, then: 'page', else: 'false')}">{tab.label}</a>
+                </li>
+            </f:for>
+        </ul>
+    </nav>
+
+    <div class="cr-settings">
+        <f:switch expression="{activeTab}">
+            <f:case value="email">
+                <div class="row">
+                    <div class="col-lg-7"><f:render section="Form" arguments="{_all}" /></div>
+                    <div class="col-lg-5"><f:render section="EmailStatus" arguments="{_all}" /></div>
+                </div>
+            </f:case>
+            <f:case value="webhook">
+                <div class="row">
+                    <div class="col-lg-7"><f:render section="Form" arguments="{_all}" /></div>
+                    <div class="col-lg-5"><f:render section="WebhookStatus" arguments="{_all}" /></div>
+                </div>
+            </f:case>
+            <f:case value="privacy">
+                <div class="row">
+                    <div class="col-lg-7"><f:render section="Form" arguments="{_all}" /></div>
+                    <div class="col-lg-5"><f:render section="PrivacyInfo" arguments="{_all}" /></div>
+                </div>
+            </f:case>
+            <f:case value="reporting">
+                <div class="row">
+                    <div class="col-lg-7"><f:render section="Form" arguments="{_all}" /></div>
+                    <div class="col-lg-5"><f:render section="Storage" arguments="{_all}" /></div>
+                </div>
+            </f:case>
+            <f:defaultCase>
+                <div class="row">
+                    <div class="col-lg-7"><f:render section="Form" arguments="{_all}" /></div>
+                </div>
+            </f:defaultCase>
+        </f:switch>
+    </div>
+</f:section>
+
+<f:section name="Form">
+    <f:comment>Validated on the server, which explains errors next to the fields; hidden custom fields must not block saving</f:comment>
+    <form action="{saveUrl}" method="post" class="cr-settings-form" aria-labelledby="cr-settings-form-title" novalidate>
+        <input type="hidden" name="tab" value="{activeTab}">
+        <section class="card cr-card">
+            <div class="card-header">
+                <div class="card-header-body">
+                    <h2 class="card-title" id="cr-settings-form-title"><f:translate key="{ll}settings.tab.{activeTab}" /></h2>
+                    <span class="card-subtitle"><f:translate key="{ll}settings.{activeTab}.intro" /></span>
+                </div>
+            </div>
+            <div class="card-body">
+                <f:for each="{fields}" as="field">
+                    <f:render partial="Settings/Field" arguments="{field: field, ll: ll}" />
+                </f:for>
+            </div>
+            <div class="card-footer">
+                <button type="submit" class="btn btn-primary">
+                    <core:icon identifier="actions-document-save" size="small" />
+                    <f:translate key="{ll}settings.save" />
+                </button>
+            </div>
+        </section>
+    </form>
+</f:section>
+
+<f:section name="StatusHeader">
+    <div class="card-header">
+        <div class="card-header-body">
+            <h2 class="card-title" id="cr-settings-status-title"><f:translate key="{ll}settings.status.title" /></h2>
+            <span class="card-subtitle"><f:translate key="{ll}settings.status.subtitle" /></span>
+        </div>
+        <div class="card-header-actions">
+            <span class="badge badge-{status.class}">{status.label}</span>
+        </div>
+    </div>
+</f:section>
+
+<f:section name="StatusMessages">
+    <f:if condition="{status.messages}">
+        <ul class="cr-status-messages">
+            <f:for each="{status.messages}" as="message">
+                <li class="cr-status-message cr-status-message--{message.severity}">
+                    <f:switch expression="{message.severity}">
+                        <f:case value="danger"><core:icon identifier="actions-exclamation-circle" size="small" /><span class="visually-hidden"><f:translate key="{ll}settings.status.severity.danger" />: </span></f:case>
+                        <f:case value="warning"><core:icon identifier="actions-exclamation-triangle" size="small" /><span class="visually-hidden"><f:translate key="{ll}settings.status.severity.warning" />: </span></f:case>
+                        <f:defaultCase><core:icon identifier="actions-info-circle-alt" size="small" /><span class="visually-hidden"><f:translate key="{ll}settings.status.severity.info" />: </span></f:defaultCase>
+                    </f:switch>
+                    <span>{message.text}</span>
+                </li>
+            </f:for>
+        </ul>
+    </f:if>
+</f:section>
+
+<f:section name="EmailStatus">
+    <section class="card cr-card cr-settings-status" aria-labelledby="cr-settings-status-title">
+        <f:render section="StatusHeader" arguments="{_all}" />
+        <div class="card-body">
+            <f:render section="StatusMessages" arguments="{_all}" />
+            <dl class="cr-facts cr-facts--stacked">
+                <div class="cr-facts__item">
+                    <dt><f:translate key="{ll}settings.status.email.recipients" /></dt>
+                    <dd>
+                        <f:if condition="{email.recipients}">
+                            <f:then><f:for each="{email.recipients}" as="recipient" iteration="iterator"><span class="cr-identifier">{recipient}</span>{f:if(condition: iterator.isLast, else: ', ')}</f:for></f:then>
+                            <f:else><f:translate key="{ll}settings.status.none" /></f:else>
+                        </f:if>
+                    </dd>
+                </div>
+                <div class="cr-facts__item">
+                    <dt><f:translate key="{ll}settings.status.email.sender" /></dt>
+                    <dd>{sender}</dd>
+                </div>
+                <div class="cr-facts__item">
+                    <dt><f:translate key="{ll}settings.status.email.transport" /></dt>
+                    <dd>{transport}</dd>
+                </div>
+                <div class="cr-facts__item">
+                    <dt><f:translate key="{ll}settings.status.email.attachments" /></dt>
+                    <dd>{attachments}</dd>
+                </div>
+            </dl>
+            <p class="cr-muted cr-small"><f:translate key="{ll}settings.status.email.transportNote" /></p>
+        </div>
+        <div class="card-footer">
+            <form action="{testUrl}" method="post">
+                <button type="submit" class="btn btn-default" {f:if(condition: canTest, else: 'disabled')} aria-describedby="cr-settings-test-hint">
+                    <core:icon identifier="actions-envelope" size="small" />
+                    <f:translate key="{ll}settings.test.email" />
+                </button>
+            </form>
+            <p class="cr-muted cr-small" id="cr-settings-test-hint">
+                <f:if condition="{canTest}">
+                    <f:then><f:translate key="{ll}settings.test.emailHint" /></f:then>
+                    <f:else><f:translate key="{ll}settings.test.emailUnavailable" /></f:else>
+                </f:if>
+            </p>
+        </div>
+    </section>
+</f:section>
+
+<f:section name="WebhookStatus">
+    <section class="card cr-card cr-settings-status" aria-labelledby="cr-settings-status-title">
+        <f:render section="StatusHeader" arguments="{_all}" />
+        <div class="card-body">
+            <f:render section="StatusMessages" arguments="{_all}" />
+            <dl class="cr-facts cr-facts--stacked">
+                <div class="cr-facts__item">
+                    <dt><f:translate key="{ll}settings.status.webhook.endpoint" /></dt>
+                    <dd>{endpoint}</dd>
+                </div>
+                <div class="cr-facts__item">
+                    <dt><f:translate key="{ll}settings.status.webhook.signature" /></dt>
+                    <dd>{signature}</dd>
+                </div>
+                <div class="cr-facts__item">
+                    <dt><f:translate key="{ll}settings.status.webhook.authentication" /></dt>
+                    <dd>{authentication}</dd>
+                </div>
+                <div class="cr-facts__item">
+                    <dt><f:translate key="{ll}settings.status.webhook.options" /></dt>
+                    <dd>{options}</dd>
+                </div>
+            </dl>
+            <p class="cr-muted cr-small"><f:translate key="{ll}settings.status.webhook.secretsNote" /></p>
+        </div>
+        <div class="card-footer">
+            <form action="{testUrl}" method="post">
+                <button type="submit" class="btn btn-default" {f:if(condition: canTest, else: 'disabled')} aria-describedby="cr-settings-test-hint">
+                    <core:icon identifier="actions-play" size="small" />
+                    <f:translate key="{ll}settings.test.webhook" />
+                </button>
+            </form>
+            <p class="cr-muted cr-small" id="cr-settings-test-hint">
+                <f:if condition="{canTest}">
+                    <f:then><f:translate key="{ll}settings.test.webhookHint" /></f:then>
+                    <f:else><f:translate key="{ll}settings.test.webhookUnavailable" /></f:else>
+                </f:if>
+            </p>
+        </div>
+    </section>
+</f:section>
+
+<f:section name="PrivacyInfo">
+    <section class="card cr-card" aria-labelledby="cr-settings-privacy-title">
+        <div class="card-header">
+            <div class="card-header-body">
+                <h2 class="card-title" id="cr-settings-privacy-title"><f:translate key="{ll}settings.privacy.summary.title" /></h2>
+                <span class="card-subtitle"><f:translate key="{ll}settings.privacy.summary.subtitle" /></span>
+            </div>
+        </div>
+        <div class="card-body">
+            <h3 class="cr-settings-subheading"><f:translate key="{ll}settings.privacy.always.title" /></h3>
+            <p><f:translate key="{ll}settings.privacy.always.text" /></p>
+            <h3 class="cr-settings-subheading"><f:translate key="{ll}settings.privacy.never.title" /></h3>
+            <p><f:translate key="{ll}settings.privacy.never.text" /></p>
+            <p class="cr-muted cr-small"><f:translate key="{ll}settings.privacy.preview" /></p>
+        </div>
+    </section>
+</f:section>
+
+<f:section name="Storage">
+    <section class="card cr-card" aria-labelledby="cr-settings-storage-title">
+        <div class="card-header">
+            <div class="card-header-body">
+                <h2 class="card-title" id="cr-settings-storage-title"><f:translate key="{ll}settings.storage.title" /></h2>
+                <span class="card-subtitle"><f:translate key="{ll}settings.storage.subtitle" /></span>
+            </div>
+        </div>
+        <div class="card-body">
+            <dl class="cr-facts cr-facts--stacked">
+                <div class="cr-facts__item">
+                    <dt><f:translate key="{ll}settings.storage.reports" /></dt>
+                    <dd><f:translate key="{ll}settings.storage.reportsValue" arguments="{0: statistics.reports, 1: statistics.openReports, 2: statistics.resolvedReports}" /></dd>
+                </div>
+                <div class="cr-facts__item">
+                    <dt><f:translate key="{ll}settings.storage.screenshots" /></dt>
+                    <dd><f:translate key="{ll}settings.storage.screenshotsValue" arguments="{0: statistics.screenshots, 1: screenshotSize}" /></dd>
+                </div>
+                <div class="cr-facts__item">
+                    <dt><f:translate key="{ll}settings.storage.deliveries" /></dt>
+                    <dd>{statistics.deliveries}</dd>
+                </div>
+                <div class="cr-facts__item">
+                    <dt><f:translate key="{ll}settings.storage.oldest" /></dt>
+                    <dd>
+                        <f:if condition="{statistics.oldestReport}">
+                            <f:then><f:format.date format="Y-m-d H:i">{statistics.oldestReport}</f:format.date></f:then>
+                            <f:else><f:translate key="{ll}settings.status.none" /></f:else>
+                        </f:if>
+                    </dd>
+                </div>
+                <f:if condition="{statistics.orphanedAttachments} || {statistics.orphanedDeliveries}">
+                    <div class="cr-facts__item">
+                        <dt><f:translate key="{ll}settings.storage.orphans" /></dt>
+                        <dd><f:translate key="{ll}settings.storage.orphansValue" arguments="{0: statistics.orphanedAttachments, 1: statistics.orphanedDeliveries}" /></dd>
+                    </div>
+                </f:if>
+            </dl>
+            <p class="cr-muted cr-small"><f:translate key="{ll}settings.storage.location" /></p>
+        </div>
+    </section>
+
+    <section class="card cr-card" aria-labelledby="cr-settings-cleanup-title">
+        <div class="card-header">
+            <div class="card-header-body">
+                <h2 class="card-title" id="cr-settings-cleanup-title"><f:translate key="{ll}settings.cleanup.title" /></h2>
+                <span class="card-subtitle"><f:translate key="{ll}settings.cleanup.subtitle" /></span>
+            </div>
+        </div>
+        <div class="card-body">
+            <f:if condition="{preview.cutoff}">
+                <f:then>
+                    <p><f:translate key="{ll}settings.cleanup.policy" arguments="{0: preview.days, 1: previewCutoff}" /></p>
+                    <dl class="cr-facts cr-facts--stacked">
+                        <div class="cr-facts__item">
+                            <dt><f:translate key="{ll}settings.cleanup.reports" /></dt>
+                            <dd><f:translate key="{ll}settings.cleanup.reportsValue" arguments="{0: preview.reports, 1: preview.openReports}" /></dd>
+                        </div>
+                        <div class="cr-facts__item">
+                            <dt><f:translate key="{ll}settings.cleanup.screenshots" /></dt>
+                            <dd><f:translate key="{ll}settings.storage.screenshotsValue" arguments="{0: preview.screenshots, 1: previewSize}" /></dd>
+                        </div>
+                        <div class="cr-facts__item">
+                            <dt><f:translate key="{ll}settings.cleanup.deliveries" /></dt>
+                            <dd>{preview.deliveries}</dd>
+                        </div>
+                    </dl>
+                </f:then>
+                <f:else>
+                    <p><f:translate key="{ll}settings.cleanup.keepForever" /></p>
+                </f:else>
+            </f:if>
+            <f:if condition="{previewOrphans}">
+                <p><f:translate key="{ll}settings.cleanup.orphans" arguments="{0: preview.orphanedAttachments, 1: preview.orphanedDeliveries}" /></p>
+            </f:if>
+            <f:if condition="!{preview.reports} && !{previewOrphans}">
+                <p class="cr-muted"><f:translate key="{ll}settings.cleanup.nothing" /></p>
+            </f:if>
+            <p class="cr-muted cr-small"><f:translate key="{ll}settings.cleanup.cli" /> <code>vendor/bin/typo3 context-reporter:cleanup --dry-run</code></p>
+        </div>
+        <f:if condition="{preview.reports} || {previewOrphans}">
+            <div class="card-footer">
+                <f:comment>type="button": the form is only submitted after the confirmation (data-target-form)</f:comment>
+                <form id="cr-cleanup-form" action="{cleanupUrl}" method="post">
+                    <input type="hidden" name="days" value="{preview.days}">
+                    <button
+                        type="button"
+                        class="btn btn-danger t3js-modal-trigger"
+                        data-target-form="cr-cleanup-form"
+                        data-title="{f:translate(key: '{ll}settings.cleanup.confirm.title')}"
+                        data-content="{cleanupConfirmation}"
+                        data-severity="error"
+                        data-button-ok-text="{f:translate(key: '{ll}settings.cleanup.confirm.ok')}"
+                        data-button-close-text="{f:translate(key: '{ll}show.deleteConfirm.cancel')}"
+                    >
+                        <core:icon identifier="actions-delete" size="small" />
+                        <f:if condition="{preview.reports}">
+                            <f:then><f:translate key="{ll}settings.cleanup.button" arguments="{0: preview.reports}" /></f:then>
+                            <f:else><f:translate key="{ll}settings.cleanup.buttonOrphans" /></f:else>
+                        </f:if>
+                    </button>
+                </form>
+            </div>
+        </f:if>
+    </section>
+</f:section>
+</html>

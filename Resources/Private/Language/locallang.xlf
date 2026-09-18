@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+    <file source-language="en" datatype="plaintext" original="EXT:context_reporter/Resources/Private/Language/locallang.xlf" date="2026-09-16T12:00:00Z" product-name="context_reporter">
+        <header/>
+        <body>
+            <trans-unit id="toolbar.title" resname="toolbar.title">
+                <source>Report a problem</source>
+            </trans-unit>
+            <trans-unit id="toolbar.description" resname="toolbar.description">
+                <source>Report a problem with what you are working on. The TYPO3 context is attached automatically.</source>
+            </trans-unit>
+            <trans-unit id="contextMenu.reportPage" resname="contextMenu.reportPage">
+                <source>Report a problem with this page</source>
+            </trans-unit>
+            <trans-unit id="contextMenu.reportRecord" resname="contextMenu.reportRecord">
+                <source>Report a problem with this record</source>
+            </trans-unit>
+            <trans-unit id="contextMenu.reportFile" resname="contextMenu.reportFile">
+                <source>Report a problem with this file</source>
+            </trans-unit>
+            <trans-unit id="contextMenu.reportFolder" resname="contextMenu.reportFolder">
+                <source>Report a problem with this folder</source>
+            </trans-unit>
+            <trans-unit id="action.reportRecord" resname="action.reportRecord">
+                <source>Report problem with this record</source>
+            </trans-unit>
+            <trans-unit id="action.reportPage" resname="action.reportPage">
+                <source>Report problem with this page</source>
+            </trans-unit>
+            <trans-unit id="action.reportFile" resname="action.reportFile">
+                <source>Report problem with this file</source>
+            </trans-unit>
+            <trans-unit id="action.reportFolder" resname="action.reportFolder">
+                <source>Report problem with this folder</source>
+            </trans-unit>
+            <trans-unit id="recordEditor.button" resname="recordEditor.button">
+                <source>Report problem</source>
+            </trans-unit>
+            <trans-unit id="recordEditor.button.title" resname="recordEditor.button.title">
+                <source>Report a problem with this record</source>
+            </trans-unit>
+            <trans-unit id="destination.email" resname="destination.email">
+                <source>Email</source>
+            </trans-unit>
+            <trans-unit id="destination.webhook" resname="destination.webhook">
+                <source>Webhook</source>
+            </trans-unit>
+            <trans-unit id="destination.download" resname="destination.download">
+                <source>Download</source>
+            </trans-unit>
+            <trans-unit id="error.accessDenied" resname="error.accessDenied">
+                <source>You are not allowed to create reports.</source>
+            </trans-unit>
+            <trans-unit id="error.invalidRequest" resname="error.invalidRequest">
+                <source>The request could not be processed. Please reload the page and try again.</source>
+            </trans-unit>
+            <trans-unit id="error.subjectNotAvailable" resname="error.subjectNotAvailable">
+                <source>The selected page, record, file or folder is not available to you.</source>
+            </trans-unit>
+            <trans-unit id="error.draftInvalid" resname="error.draftInvalid">
+                <source>The report form has expired. Please close the dialog and open it again.</source>
+            </trans-unit>
+            <trans-unit id="error.titleMissing" resname="error.titleMissing">
+                <source>Please enter a short title.</source>
+            </trans-unit>
+            <trans-unit id="error.titleTooLong" resname="error.titleTooLong">
+                <source>The title is too long.</source>
+            </trans-unit>
+            <trans-unit id="error.descriptionTooLong" resname="error.descriptionTooLong">
+                <source>The description is too long.</source>
+            </trans-unit>
+            <trans-unit id="error.invalidEncoding" resname="error.invalidEncoding">
+                <source>The text contains invalid characters.</source>
+            </trans-unit>
+            <trans-unit id="error.screenshot.empty" resname="error.screenshot.empty">
+                <source>The screenshot is empty.</source>
+            </trans-unit>
+            <trans-unit id="error.screenshot.tooLarge" resname="error.screenshot.tooLarge">
+                <source>The screenshot is too large.</source>
+            </trans-unit>
+            <trans-unit id="error.screenshot.format" resname="error.screenshot.format">
+                <source>The screenshot must be a PNG or JPEG image.</source>
+            </trans-unit>
+            <trans-unit id="error.screenshot.dimensions" resname="error.screenshot.dimensions">
+                <source>The screenshot dimensions are not supported.</source>
+            </trans-unit>
+            <trans-unit id="error.screenshot.uploadFailed" resname="error.screenshot.uploadFailed">
+                <source>The screenshot could not be uploaded.</source>
+            </trans-unit>
+            <trans-unit id="error.rateLimited" resname="error.rateLimited">
+                <source>You have sent many reports in a short time. Please wait a while before sending more.</source>
+            </trans-unit>
+            <trans-unit id="error.requestTooLarge" resname="error.requestTooLarge">
+                <source>The report is too large to be uploaded. Please use a smaller screenshot.</source>
+            </trans-unit>
+            <trans-unit id="error.unexpected" resname="error.unexpected">
+                <source>Something went wrong. Please try again.</source>
+            </trans-unit>
+            <trans-unit id="subject.kind.page" resname="subject.kind.page">
+                <source>Page</source>
+            </trans-unit>
+            <trans-unit id="subject.kind.file" resname="subject.kind.file">
+                <source>File</source>
+            </trans-unit>
+            <trans-unit id="subject.kind.folder" resname="subject.kind.folder">
+                <source>Folder</source>
+            </trans-unit>
+            <trans-unit id="subject.kind.module" resname="subject.kind.module">
+                <source>Backend module</source>
+            </trans-unit>
+            <trans-unit id="subject.kind.backend" resname="subject.kind.backend">
+                <source>Backend view</source>
+            </trans-unit>
+            <trans-unit id="subject.untitled" resname="subject.untitled">
+                <source>[No title]</source>
+            </trans-unit>
+            <trans-unit id="subject.newRecord" resname="subject.newRecord">
+                <source>New record</source>
+            </trans-unit>
+            <trans-unit id="subject.uid" resname="subject.uid">
+                <source>UID %s</source>
+            </trans-unit>
+            <trans-unit id="subject.fact.page" resname="subject.fact.page">
+                <source>Page</source>
+            </trans-unit>
+            <trans-unit id="subject.fact.site" resname="subject.fact.site">
+                <source>Site</source>
+            </trans-unit>
+            <trans-unit id="subject.fact.language" resname="subject.fact.language">
+                <source>Language</source>
+            </trans-unit>
+            <trans-unit id="subject.fact.workspace" resname="subject.fact.workspace">
+                <source>Workspace</source>
+            </trans-unit>
+            <trans-unit id="subject.fact.module" resname="subject.fact.module">
+                <source>Module</source>
+            </trans-unit>
+            <trans-unit id="subject.fact.storage" resname="subject.fact.storage">
+                <source>Storage</source>
+            </trans-unit>
+            <trans-unit id="subject.fact.folder" resname="subject.fact.folder">
+                <source>Folder</source>
+            </trans-unit>
+        </body>
+    </file>
+</xliff>

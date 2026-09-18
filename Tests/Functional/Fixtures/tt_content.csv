@@ -1,0 +1,7 @@
+"tt_content"
+,"uid","pid","CType","header","bodytext","colPos","sys_language_uid","l18n_parent","hidden","deleted"
+,10,2,"text","Hero teaser","Confidential body text that must never be reported",0,0,0,0,0
+,11,4,"text","Content on the other site","",0,0,0,0,0
+,12,2,"text","Hero Teaser DE","Vertraulicher Text",0,1,10,1,0
+,13,2,"html","","<div class=""secret"">Confidential markup</div>",0,0,0,0,0
+,14,2,"html","Quarterly accessibility review of the product detail page teaser with extended campaign copy for autumn","<p>Hidden body</p>",0,0,0,0,0

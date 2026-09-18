@@ -1,0 +1,133 @@
+parameters:
+  level: 8
+  tmpDir: ../.cache/phpstan
+  paths:
+    - ../Classes
+    - ../Configuration
+    - ../Tests
+    - ../ext_emconf.php
+  excludePaths:
+    analyseAndScan:
+      - ../Tests/Functional/Fixtures/*
+  treatPhpDocTypesAsCertain: false
+  ignoreErrors:
+    # ext_emconf.php is included by TYPO3 with $_EXTKEY in scope.
+    -
+      message: '#Variable \$_EXTKEY might not be defined#'
+      path: ../ext_emconf.php
+
+    # The extension supports TYPO3 13.4 and 14.3 and is analysed against both.
+    # The code below deliberately handles the API of the branch that is not
+    # installed, which the analysis of the installed branch reports as unknown
+    # or as redundant. reportUnmatched is off because exactly one of the two
+    # directions matches, depending on the installed TYPO3 version.
+
+    # ModifyButtonBarEvent::getRequest() exists as of TYPO3 v14 (Classes/Backend/ReportTriggerFactory.php).
+    -
+      message: '#^Call to function method_exists\(\) with TYPO3\\CMS\\Backend\\Template\\Components\\ModifyButtonBarEvent and .getRequest. will always evaluate to (true|false)\.$#'
+      path: ../Classes/Backend/ReportTriggerFactory.php
+      reportUnmatched: false
+    -
+      message: '#^Call to an undefined method TYPO3\\CMS\\Backend\\Template\\Components\\ModifyButtonBarEvent::getRequest\(\)\.$#'
+      path: ../Classes/Backend/ReportTriggerFactory.php
+      reportUnmatched: false
+
+    # ResourceFactory::getFolderObjectFromCombinedIdentifier() has no return type up to
+    # TYPO3 v13, so the defensive check is redundant only on v14.
+    -
+      identifier: instanceof.alwaysTrue
+      path: ../Classes/Context/Subject/FileAccess.php
+      reportUnmatched: false
+
+    # The record list and file list action API of the branch that is not installed
+    # (see the class comment of ListActionAdapter).
+    -
+      identifier: class.notFound
+      path: ../Classes/Backend/Compatibility/ListActionAdapter.php
+      reportUnmatched: false
+    -
+      identifier: method.notFound
+      path: ../Classes/Backend/Compatibility/ListActionAdapter.php
+      reportUnmatched: false
+    -
+      identifier: method.nonObject
+      path: ../Classes/Backend/Compatibility/ListActionAdapter.php
+      reportUnmatched: false
+    -
+      identifier: argument.type
+      path: ../Classes/Backend/Compatibility/ListActionAdapter.php
+      reportUnmatched: false
+    -
+      identifier: return.type
+      path: ../Classes/Backend/Compatibility/ListActionAdapter.php
+      reportUnmatched: false
+    -
+      identifier: nullsafe.neverNull
+      path: ../Classes/Backend/Compatibility/ListActionAdapter.php
+      reportUnmatched: false
+    -
+      identifier: function.alreadyNarrowedType
+      path: ../Classes/Backend/Compatibility/ListActionAdapter.php
+      reportUnmatched: false
+    -
+      identifier: function.impossibleType
+      path: ../Classes/Backend/Compatibility/ListActionAdapter.php
+      reportUnmatched: false
+    -
+      identifier: notIdentical.alwaysTrue
+      path: ../Classes/Backend/Compatibility/ListActionAdapter.php
+      reportUnmatched: false
+    -
+      identifier: identical.alwaysFalse
+      path: ../Classes/Backend/Compatibility/ListActionAdapter.php
+      reportUnmatched: false
+
+    # The tests build both event shapes for the installed branch (see ListActionEvents).
+    -
+      identifier: class.notFound
+      path: ../Tests/Functional/Backend/ListActionEvents.php
+      reportUnmatched: false
+    -
+      identifier: argument.type
+      path: ../Tests/Functional/Backend/ListActionEvents.php
+      reportUnmatched: false
+    -
+      identifier: method.notFound
+      path: ../Tests/Functional/Backend/ListActionEvents.php
+      reportUnmatched: false
+    -
+      identifier: arguments.count
+      path: ../Tests/Functional/Backend/ListActionEvents.php
+      reportUnmatched: false
+    -
+      identifier: staticMethod.notFound
+      path: ../Tests/Functional/Backend/ListActionEvents.php
+      reportUnmatched: false
+    -
+      identifier: method.nonObject
+      path: ../Tests/Functional/Backend/ListActionEvents.php
+      reportUnmatched: false
+    -
+      identifier: nullsafe.neverNull
+      path: ../Tests/Functional/Backend/ListActionEvents.php
+      reportUnmatched: false
+    -
+      identifier: function.alreadyNarrowedType
+      path: ../Tests/Functional/Backend/ListActionEvents.php
+      reportUnmatched: false
+    -
+      identifier: function.impossibleType
+      path: ../Tests/Functional/Backend/ListActionEvents.php
+      reportUnmatched: false
+    -
+      identifier: notIdentical.alwaysTrue
+      path: ../Tests/Functional/Backend/ListActionEvents.php
+      reportUnmatched: false
+    -
+      identifier: identical.alwaysFalse
+      path: ../Tests/Functional/Backend/ListActionEvents.php
+      reportUnmatched: false
+    -
+      identifier: return.type
+      path: ../Tests/Functional/Backend/ListActionEvents.php
+      reportUnmatched: false

@@ -1,0 +1,17 @@
+"sys_workspace"
+,"uid","pid","title","adminusers","members","deleted"
+,1,0,"Workspace A","","be_users_2",0
+,2,0,"Workspace B","","be_users_4",0
+"pages"
+,"uid","pid","title","slug","doktype","hidden","deleted","perms_userid","perms_groupid","perms_user","perms_group","perms_everybody","t3ver_oid","t3ver_wsid","t3ver_state","t3ver_stage"
+,40,1,"About draft A","/about",1,0,0,1,1,31,31,0,2,1,0,0
+,41,1,"About draft B secret","/about",1,0,0,1,1,31,31,0,2,2,0,0
+,42,2,"New page in A","/about/new-a",1,0,0,1,1,31,31,0,0,1,1,0
+,43,2,"New page in B secret","/about/new-b",1,0,0,1,1,31,31,0,0,2,1,0
+"tt_content"
+,"uid","pid","CType","header","bodytext","colPos","sys_language_uid","t3ver_oid","t3ver_wsid","t3ver_state","t3ver_stage"
+,30,2,"text","Hero teaser draft A","",0,0,10,1,0,0
+,31,2,"text","Hero teaser draft B secret","",0,0,10,2,0,0
+,32,2,"text","New content in A","",0,0,0,1,1,0
+,33,2,"text","New content in B secret","",0,0,0,2,1,0
+,34,42,"text","Content on new page in A","",0,0,0,1,1,0

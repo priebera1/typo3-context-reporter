@@ -1,0 +1,46 @@
+# Dependencies and tool caches
+/.Build/
+/.cache/
+/vendor/
+/node_modules/
+/.npm/
+/composer.lock
+/.php-cs-fixer.cache
+/.phpunit.cache/
+/.phpunit.result.cache
+
+# Generated documentation, test and browser artifacts
+/Documentation-GENERATED-temp/
+/coverage/
+/test-results/
+/playwright-report/
+/blob-report/
+/var/
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+
+# Local environments and databases
+/.env
+/.env.*
+/.ddev/
+*.sqlite
+*.sqlite3
+*.db
+
+# Internal development instructions and AI tool files
+/.cursor/
+/.aider*
+/.continue/
+
+# IDEs, editors and operating systems
+/.idea/
+/.fleet/
+/.vscode/
+/.zed/
+*.code-workspace
+*.swp
+*~
+.DS_Store
+Thumbs.db

@@ -1,0 +1,24 @@
+<!-- See https://docs.typo3.org/permalink/h2document:guides-xml for documentation on this file -->
+<guides
+    xmlns="https://www.phpdoc.org/guides"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://www.phpdoc.org/guides ../vendor/phpdocumentor/guides-cli/resources/schema/guides.xsd"
+    input-format="rst"
+    >
+    <project
+        title="Context Reporter"
+        copyright="since 2026 by Patrik Priebera and contributors"
+    />
+    <extension
+        class="\T3Docs\Typo3DocsTheme\DependencyInjection\Typo3DocsThemeExtension"
+        interlink-shortcode="priebera/typo3-context-reporter"
+        project-home="https://typo3.priebera.sk/context-reporter"
+        project-contact="mailto:support@priebera.sk"
+        project-repository="https://github.com/priebera1/typo3-context-reporter"
+        project-issues="https://github.com/priebera1/typo3-context-reporter/issues"
+        edit-on-github="priebera1/typo3-context-reporter"
+        edit-on-github-branch="main"
+        edit-on-github-directory="Documentation"
+        typo3-core-preferred="14.3"
+    />
+</guides>

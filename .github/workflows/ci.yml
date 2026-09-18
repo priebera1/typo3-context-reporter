@@ -1,0 +1,137 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  php:
+    name: TYPO3 ${{ matrix.typo3 }}, PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # TYPO3 13.4 and 14.3 both require PHP >= 8.2 and support 8.4
+        typo3: ['13', '14']
+        php: ['8.2', '8.3', '8.4']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache Composer downloads
+        uses: actions/cache@v4
+        with:
+          path: .cache/composer
+          key: composer-${{ matrix.typo3 }}-${{ matrix.php }}-${{ hashFiles('composer.json') }}
+          restore-keys: composer-${{ matrix.typo3 }}-${{ matrix.php }}-
+
+      - name: Install dependencies
+        run: Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php }} -s composer
+
+      - name: Validate composer.json
+        run: Build/Scripts/runTests.sh -p ${{ matrix.php }} -s composer -- validate --strict --no-check-lock
+
+      - name: Lint
+        run: Build/Scripts/runTests.sh -p ${{ matrix.php }} -s lint
+
+      - name: XLIFF files
+        run: Build/Scripts/runTests.sh -p ${{ matrix.php }} -s xlf
+
+      - name: Coding standards
+        run: Build/Scripts/runTests.sh -p ${{ matrix.php }} -s cs
+
+      - name: PHPStan
+        run: Build/Scripts/runTests.sh -p ${{ matrix.php }} -s stan
+
+      - name: Unit tests
+        run: Build/Scripts/runTests.sh -p ${{ matrix.php }} -s unit
+
+      - name: Functional tests (SQLite)
+        run: Build/Scripts/runTests.sh -p ${{ matrix.php }} -s functional
+
+  databases:
+    name: TYPO3 ${{ matrix.typo3 }}, ${{ matrix.dbms }} ${{ matrix.version }}, PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - typo3: '13'
+            php: '8.2'
+            dbms: mariadb
+            version: '10.11'
+          - typo3: '13'
+            php: '8.3'
+            dbms: mysql
+            version: '8.0'
+          - typo3: '14'
+            php: '8.2'
+            dbms: mariadb
+            version: '10.11'
+          - typo3: '14'
+            php: '8.4'
+            dbms: mysql
+            version: '8.0'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache Composer downloads
+        uses: actions/cache@v4
+        with:
+          path: .cache/composer
+          key: composer-${{ matrix.typo3 }}-${{ matrix.php }}-${{ hashFiles('composer.json') }}
+          restore-keys: composer-${{ matrix.typo3 }}-${{ matrix.php }}-
+
+      - name: Install dependencies
+        run: Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php }} -s composer
+
+      - name: Functional tests
+        run: Build/Scripts/runTests.sh -p ${{ matrix.php }} -s functional -d ${{ matrix.dbms }} -i ${{ matrix.version }}
+
+  javascript:
+    name: JavaScript
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Unit tests
+        run: npm run test:js
+
+      - name: Bundled Konva matches the pinned version
+        run: |
+          npm run build:konva
+          git diff --exit-code -- Resources/Public/JavaScript/contrib/konva.js
+
+  documentation:
+    name: Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Render documentation
+        run: |
+          docker run --rm --pull always -v "$(pwd)":/project \
+            ghcr.io/typo3-documentation/render-guides:latest \
+            --config=Documentation --no-progress --minimal-test --fail-on-log

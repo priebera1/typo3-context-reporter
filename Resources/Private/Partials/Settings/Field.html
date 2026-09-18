@@ -1,0 +1,191 @@
+<html
+    xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
+    xmlns:core="http://typo3.org/ns/TYPO3/CMS/Core/ViewHelpers"
+    data-namespace-typo3-fluid="true"
+>
+<f:variable name="describedBy">{field.id}-help{f:if(condition: field.error, then: ' {field.id}-error')}</f:variable>
+<f:switch expression="{field.type}">
+    <f:case value="heading">
+        <div class="cr-setting-heading">
+            <h3 class="cr-settings-subheading">{field.label}</h3>
+            <f:if condition="{field.description}"><p class="cr-muted">{field.description}</p></f:if>
+        </div>
+    </f:case>
+    <f:case value="switch">
+        <div class="form-group cr-setting">
+            <div class="form-check form-switch">
+                <input type="hidden" name="{field.inputName}" value="0" {f:if(condition: field.pinned, then: 'disabled')}>
+                <input
+                    type="checkbox"
+                    class="form-check-input"
+                    role="switch"
+                    id="{field.id}"
+                    name="{field.inputName}"
+                    value="1"
+                    aria-describedby="{describedBy}"
+                    {f:if(condition: field.checked, then: 'checked')}
+                    {f:if(condition: field.pinned, then: 'disabled')}
+                >
+                <label class="form-check-label" for="{field.id}">{field.label}</label>
+            </div>
+            <f:render section="Help" arguments="{field: field, ll: ll}" />
+        </div>
+    </f:case>
+    <f:case value="textarea">
+        <div class="form-group cr-setting">
+            <label class="form-label" for="{field.id}">{field.label}</label>
+            <textarea
+                class="form-control{f:if(condition: field.error, then: ' is-invalid')}"
+                id="{field.id}"
+                name="{field.inputName}"
+                rows="3"
+                aria-describedby="{describedBy}"
+                {f:if(condition: field.error, then: 'aria-invalid="true"')}
+                {f:if(condition: field.pinned, then: 'disabled')}
+            >{field.value}</textarea>
+            <f:render section="Help" arguments="{field: field, ll: ll}" />
+        </div>
+    </f:case>
+    <f:case value="number">
+        <div class="form-group cr-setting">
+            <label class="form-label" for="{field.id}">{field.label}</label>
+            <input
+                type="number"
+                class="form-control cr-setting__number{f:if(condition: field.error, then: ' is-invalid')}"
+                id="{field.id}"
+                name="{field.inputName}"
+                value="{field.value}"
+                min="{field.min}"
+                max="{field.max}"
+                step="1"
+                inputmode="numeric"
+                aria-describedby="{describedBy}"
+                {f:if(condition: field.error, then: 'aria-invalid="true"')}
+                {f:if(condition: field.pinned, then: 'disabled')}
+            >
+            <f:render section="Help" arguments="{field: field, ll: ll}" />
+        </div>
+    </f:case>
+    <f:case value="environment">
+        <div class="form-group cr-setting cr-setting--choice">
+            <label class="form-label" for="{field.id}">{field.label}</label>
+            <select class="form-select{f:if(condition: field.error, then: ' is-invalid')}" id="{field.id}" name="{field.inputName}" aria-describedby="{describedBy}" {f:if(condition: field.pinned, then: 'disabled')}>
+                <f:for each="{field.options}" as="option">
+                    <option value="{option.value}" {f:if(condition: option.selected, then: 'selected')}>{option.label}</option>
+                </f:for>
+            </select>
+            <div class="cr-setting__custom">
+                <label class="form-label" for="{field.custom.id}">{field.custom.label}</label>
+                <input
+                    type="text"
+                    class="form-control{f:if(condition: field.error, then: ' is-invalid')}"
+                    id="{field.custom.id}"
+                    name="{field.custom.inputName}"
+                    value="{field.custom.value}"
+                    maxlength="{field.custom.maxlength}"
+                    aria-describedby="{describedBy}"
+                    {f:if(condition: field.pinned, then: 'disabled')}
+                >
+            </div>
+            <f:render section="Help" arguments="{field: field, ll: ll}" />
+        </div>
+    </f:case>
+    <f:case value="retention">
+        <div class="form-group cr-setting cr-setting--choice">
+            <label class="form-label" for="{field.id}">{field.label}</label>
+            <select class="form-select{f:if(condition: field.error, then: ' is-invalid')}" id="{field.id}" name="{field.inputName}" aria-describedby="{describedBy}" {f:if(condition: field.pinned, then: 'disabled')}>
+                <f:for each="{field.options}" as="option">
+                    <option value="{option.value}" {f:if(condition: option.selected, then: 'selected')}>{option.label}</option>
+                </f:for>
+            </select>
+            <div class="cr-setting__custom">
+                <label class="form-label" for="{field.custom.id}">{field.custom.label}</label>
+                <input
+                    type="number"
+                    class="form-control cr-setting__number{f:if(condition: field.error, then: ' is-invalid')}"
+                    id="{field.custom.id}"
+                    name="{field.custom.inputName}"
+                    value="{field.custom.value}"
+                    min="{field.custom.min}"
+                    max="{field.custom.max}"
+                    step="1"
+                    inputmode="numeric"
+                    aria-describedby="{describedBy}"
+                    {f:if(condition: field.pinned, then: 'disabled')}
+                >
+            </div>
+            <f:render section="Help" arguments="{field: field, ll: ll}" />
+        </div>
+    </f:case>
+    <f:case value="secret">
+        <f:render section="Secret" arguments="{field: field, ll: ll, describedBy: describedBy}" />
+    </f:case>
+    <f:case value="endpoint">
+        <f:render section="Secret" arguments="{field: field, ll: ll, describedBy: describedBy}" />
+    </f:case>
+    <f:defaultCase>
+        <div class="form-group cr-setting">
+            <label class="form-label" for="{field.id}">{field.label}</label>
+            <input
+                type="{f:if(condition: '{field.type} == \'email\'', then: 'email', else: 'text')}"
+                class="form-control{f:if(condition: field.error, then: ' is-invalid')}"
+                id="{field.id}"
+                name="{field.inputName}"
+                value="{field.value}"
+                maxlength="{field.maxlength}"
+                placeholder="{field.placeholder}"
+                spellcheck="false"
+                aria-describedby="{describedBy}"
+                {f:if(condition: field.error, then: 'aria-invalid="true"')}
+                {f:if(condition: field.pinned, then: 'disabled')}
+            >
+            <f:render section="Help" arguments="{field: field, ll: ll}" />
+        </div>
+    </f:defaultCase>
+</f:switch>
+
+<f:section name="Secret">
+    <div class="form-group cr-setting cr-setting--secret">
+        <label class="form-label" for="{field.id}">{field.label}</label>
+        <p class="cr-setting__state">
+            <span class="badge badge-{field.stateClass}">{field.stateLabel}</span>
+            <f:if condition="{field.masked}"><span class="cr-identifier">{field.masked}</span></f:if>
+        </p>
+        <input
+            type="{field.inputType}"
+            class="form-control{f:if(condition: field.error, then: ' is-invalid')}"
+            id="{field.id}"
+            name="{field.inputName}"
+            value=""
+            maxlength="{field.maxlength}"
+            placeholder="{field.placeholder}"
+            autocomplete="{f:if(condition: '{field.inputType} == \'password\'', then: 'new-password', else: 'off')}"
+            spellcheck="false"
+            data-1p-ignore="true"
+            data-lpignore="true"
+            aria-describedby="{describedBy}"
+            {f:if(condition: field.error, then: 'aria-invalid="true"')}
+            {f:if(condition: field.pinned, then: 'disabled')}
+        >
+        <f:if condition="{field.canRemove}">
+            <div class="form-check cr-setting__remove">
+                <input type="checkbox" class="form-check-input" id="{field.removeId}" name="{field.removeName}" value="1">
+                <label class="form-check-label" for="{field.removeId}">{field.removeLabel}</label>
+            </div>
+        </f:if>
+        <f:render section="Help" arguments="{field: field, ll: ll}" />
+    </div>
+</f:section>
+
+<f:section name="Help">
+    <f:if condition="{field.error}">
+        <div class="invalid-feedback d-block" id="{field.id}-error">{field.error}</div>
+    </f:if>
+    <div class="form-text" id="{field.id}-help">
+        <f:if condition="{field.pinned}">
+            <span class="cr-setting__pinned"><core:icon identifier="actions-lock" size="small" /> <f:translate key="{ll}settings.pinned" /></span>
+        </f:if>
+        {field.description}
+    </div>
+</f:section>
+</html>

@@ -1,0 +1,41 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  _instanceof:
+    Priebera\ContextReporter\Context\ContextCollectorInterface:
+      tags:
+        - name: context_reporter.context_collector
+
+    Priebera\ContextReporter\Delivery\DestinationInterface:
+      tags:
+        - name: context_reporter.destination
+
+  Priebera\ContextReporter\:
+    resource: '../Classes/*'
+    exclude:
+      # Value objects, enums, exceptions and static helpers are not services
+      - '../Classes/Configuration/{EmailSettings,ExtensionSettings,ReporterPrivacySettings,WebhookSettings}.php'
+      - '../Classes/Context/{CollectionRequest,CollectionScope,ReportTarget}.php'
+      - '../Classes/Context/Location/BackendLocation.php'
+      - '../Classes/Context/Routing/ResolvedRoute.php'
+      - '../Classes/Context/Subject/{ResolvedSubject,SubjectNotAvailableException}.php'
+      - '../Classes/Delivery/{DeliveryId,DeliveryNotPossibleException,DeliveryOutcome,DeliveryRequest,DestinationSummary,SafeErrorMessage}.php'
+      - '../Classes/Delivery/Email/MailTransportDescription.php'
+      - '../Classes/Delivery/Webhook/WebhookSignature.php'
+      - '../Classes/Domain/*.php'
+      - '../Classes/Presentation/SubjectPresentation.php'
+      - '../Classes/Retention/{CleanupPreview,CleanupResult,StorageStatistics}.php'
+      - '../Classes/Report/{InvalidReportInputException,InvalidScreenshotException,PreparedReport,RateLimitExceededException,ReportInputNormalizer,ReportSubmission,Screenshot,SubmissionResult}.php'
+      - '../Classes/Security/InvalidDraftTokenException.php'
+      - '../Classes/Settings/{EmailStatus,SecretState,SettingsFormResult,StatusMessage,WebhookStatus}.php'
+
+  Priebera\ContextReporter\Context\ContextDocumentBuilder:
+    arguments:
+      $collectors: !tagged_iterator context_reporter.context_collector
+
+  Priebera\ContextReporter\Delivery\DestinationRegistry:
+    arguments:
+      $destinations: !tagged_iterator context_reporter.destination
