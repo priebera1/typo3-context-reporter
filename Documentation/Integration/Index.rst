@@ -123,7 +123,7 @@ The webhook sends an HTTP ``POST`` request with a JSON body.
 
     POST /your/endpoint HTTP/1.1
     Content-Type: application/json; charset=utf-8
-    User-Agent: TYPO3-Context-Reporter/0.1.0
+    User-Agent: TYPO3-Context-Reporter/0.1.1
     X-Context-Reporter-Event: report.created
     X-Context-Reporter-Report: CR-CR91-A84Z-DA59
     X-Context-Reporter-Delivery: 7dd6d20a-ee21-4107-be2e-5767269320d2
@@ -198,7 +198,7 @@ set. The authentication header is only sent when
           }
         ],
         "links": { "report": "https://www.example.com/typo3/module/system/context-reports/show?report=CR-CR91-A84Z-DA59" },
-        "generator": { "name": "TYPO3 Context Reporter", "package": "priebera/typo3-context-reporter", "version": "0.1.0" }
+        "generator": { "name": "TYPO3 Context Reporter", "package": "priebera/typo3-context-reporter", "version": "0.1.1" }
       }
     }
 
@@ -240,7 +240,7 @@ and not create a ticket.
         "project": { "name": "Example", "identifier": "example", "environment": "Production" },
         "reportSchema": "context-reporter.report.v1"
       },
-      "generator": { "name": "TYPO3 Context Reporter", "package": "priebera/typo3-context-reporter", "version": "0.1.0" }
+      "generator": { "name": "TYPO3 Context Reporter", "package": "priebera/typo3-context-reporter", "version": "0.1.1" }
     }
 
 Check ``X-Context-Reporter-Event`` (``report.created`` or ``test``) before

@@ -3,6 +3,17 @@
 All notable changes to this project are documented in this file. The project
 follows [semantic versioning](https://semver.org/).
 
+## [0.1.1] - 2026-09-23
+
+Metadata release. Code, database schema, configuration and the report format
+are unchanged.
+
+### Changed
+
+* The extension title is now "Context Reporter", without a subtitle.
+* The extension state is now `stable`, based on the validation of 0.1.0 on TYPO3 13.4 LTS and TYPO3 14.3. The known limitations are unchanged: classic mode (Extension Manager) has not been verified and PostgreSQL has not been tested.
+* The Composer package description no longer uses the former subtitle.
+
 ## [0.1.0] - 2026-09-18
 
 First public release.

@@ -1,6 +1,6 @@
 {
     "name": "priebera/typo3-context-reporter",
-    "description": "Object-aware support reports for the TYPO3 backend: editors report a problem where it happens, and the page, record, file, site, language, workspace and system context is attached automatically.",
+    "description": "Support and bug reports for the TYPO3 backend: editors report a problem where it happens, and the page, record, file, site, language, workspace and system context is attached automatically.",
     "type": "typo3-cms-extension",
     "license": "GPL-2.0-or-later",
     "homepage": "https://typo3.priebera.sk/context-reporter",
@@ -77,7 +77,7 @@
     "extra": {
         "typo3/cms": {
             "extension-key": "context_reporter",
-            "version": "0.1.0",
+            "version": "0.1.1",
             "web-dir": ".Build/public",
             "Package": {
                 "providesPackages": {}
