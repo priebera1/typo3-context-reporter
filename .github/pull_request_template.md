@@ -19,7 +19,7 @@ Closes #
 ## Testing
 
 - [ ] `Build/Scripts/runTests.sh -s unit` and `-s functional` pass on TYPO3 13.4 and 14.3 (`-t 13` / `-t 14` with the composer suite)
-- [ ] The checks pass on PHP 8.2, 8.3 and 8.4 (or CI shows them green)
+- [ ] The checks pass on PHP 8.2, 8.3, 8.4 and 8.5 (or CI shows them green)
 - [ ] `Build/Scripts/runTests.sh -s stan`, `-s cs` and `-s xlf` pass
 - [ ] `npm run test:js` passes
 - [ ] Manually tested in TYPO3 13.4 (describe how below)

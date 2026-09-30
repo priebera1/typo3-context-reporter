@@ -85,7 +85,9 @@ Editing form
 
 Site, language, workspace
     Site identifier, base and root page; language ID, title and locale;
-    workspace ID and title.
+    workspace ID and title. For a page, the language is the one the reporter
+    is looking at in the Page module, the Preview module or another module
+    with the page tree, see :ref:`usage-language`.
 
 Backend
     Module, route and backend language. Tokens and return URLs are removed.

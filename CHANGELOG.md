@@ -3,6 +3,25 @@
 All notable changes to this project are documented in this file. The project
 follows [semantic versioning](https://semver.org/).
 
+## [0.1.2] - 2026-09-30
+
+### Fixed
+
+* Reports about a page use the language the reporter is looking at. On TYPO3 14.3, reports from the Page module always named the default language; on both TYPO3 versions, the language selected in the Preview module and in page modules of other extensions, such as the Visual Editor, was ignored. The frontend URL of the report now points to the selected translation.
+* Reports about a page translation, for example from its editing form, name the language of the translation instead of the default language.
+* A selected language is only used when the page is translated into it and the reporter may use it; otherwise the report names the default language, as the Page module shows it. When several translations are shown side by side, the report uses the default language, like the Preview module of TYPO3 14.
+
+### Added
+
+* A ready-to-import n8n workflow (`Documentation/Integration/N8n`) that verifies the webhook signature, creates a GitLab issue, returns its reference to the reporter and does not create a second issue when a delivery is repeated. The documentation also describes the setup for Jira.
+* Documentation on reporting frontend problems from the Page and Preview module.
+
+### Compatibility
+
+* PHP 8.5 is supported, on TYPO3 13.4 LTS and TYPO3 14.3 LTS.
+* Classic mode (the ZIP file from the TYPO3 Extension Repository, installed in the Extension Manager) has been verified on TYPO3 13.4 and TYPO3 14.3. Switch off the automatic installation of the Extension Manager before uploading the ZIP file; see the installation guide.
+* PostgreSQL has not been tested.
+
 ## [0.1.1] - 2026-09-23
 
 Metadata release. Code, database schema, configuration and the report format

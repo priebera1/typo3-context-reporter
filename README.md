@@ -1,16 +1,17 @@
 # TYPO3 Context Reporter
 
-![TYPO3 13.4 LTS | 14.3](https://img.shields.io/badge/TYPO3-13.4%20LTS%20%7C%2014.3-orange.svg)
-![PHP 8.2 | 8.3 | 8.4](https://img.shields.io/badge/PHP-8.2%20%7C%208.3%20%7C%208.4-blue.svg)
+![TYPO3 13.4 LTS | 14.3 LTS](https://img.shields.io/badge/TYPO3-13.4%20LTS%20%7C%2014.3%20LTS-orange.svg)
+![PHP 8.2 | 8.3 | 8.4 | 8.5](https://img.shields.io/badge/PHP-8.2%20%7C%208.3%20%7C%208.4%20%7C%208.5-blue.svg)
 ![License](https://img.shields.io/badge/License-GPL--2.0--or--later-green.svg)
 
 Object-aware problem reports for the TYPO3 backend.
 
-Editors report a problem where it happens. The report automatically carries
-the TYPO3 context a developer or support team needs: the page, record and
-content type, file or folder, site, language, workspace and backend module,
-plus the TYPO3, PHP and browser versions. An optional screenshot is annotated
-and redacted in the editor's browser.
+Editors report a problem where it happens, without looking up page IDs,
+record UIDs, languages or workspaces. The report automatically carries the
+TYPO3 context a developer or support team needs: the page, record and content
+type, file or folder, site, language, workspace and backend module, plus the
+TYPO3, PHP and browser versions. An optional screenshot is annotated and
+redacted in the editor's browser.
 
 > The screenshot shows what the user sees. The TYPO3 context tells the
 > developer what the problem actually belongs to.
@@ -33,7 +34,9 @@ workflow.
 - **Report where the problem is:** backend toolbar, context menu of pages, records, files and folders, record list, Page module, file list and the record editing form.
 - **Object-aware context:** page, record and content type, editing form, file, folder and storage, site, language, workspace, backend module, system and browser. Only allowlisted metadata is collected, and the dialog shows everything before it is sent.
 - **Screenshots, edited locally:** screen capture, upload or paste; rectangle, arrow, freehand, text and opaque redaction. Annotations are flattened before upload.
+- **Frontend problems, too:** report a page from the Page or Preview module in the language the editor is looking at; the report links the frontend URL of that language.
 - **Delivery:** email through the TYPO3 mail API, a signed webhook (HMAC-SHA256) for n8n, Make, Zapier or your own API, and downloads as JSON or Markdown.
+- **Ready for GitLab and Jira:** an importable n8n workflow verifies the signature, creates a GitLab issue and shows its number to the reporter; the documentation covers Jira as well.
 - **Report history:** System › Context Reports with filters, open/resolved state, delivery history, manual retry, Copy (summary, Markdown, JSON, link) and Download.
 - **Settings, privacy and retention:** configurable reporter identity and browser details, reports kept forever by default or cleaned up after a number of days (also on the command line).
 - **English and German** backend labels.
@@ -44,11 +47,11 @@ workflow.
 
 | Context Reporter | TYPO3 | PHP |
 | --- | --- | --- |
-| 0.1 | 13.4 LTS, 14.3 | 8.2, 8.3, 8.4 |
+| 0.1 | 13.4 LTS, 14.3 LTS | 8.2, 8.3, 8.4, 8.5 |
 
-Tested with MariaDB 10.11, MySQL 8.0 and SQLite. Composer mode is the tested
-and recommended installation method; classic mode (Extension Manager) has not
-been verified yet.
+Tested with MariaDB 10.11, MySQL 8.0 and SQLite. Composer mode is recommended;
+classic mode (ZIP from the TYPO3 Extension Repository, installed in the
+Extension Manager) is supported as well.
 
 ## Installation
 
@@ -56,6 +59,10 @@ been verified yet.
 composer require priebera/typo3-context-reporter
 vendor/bin/typo3 extension:setup
 ```
+
+For classic mode, see [Installation](Documentation/Installation/Index.rst):
+switch off the automatic installation of the Extension Manager before
+uploading the ZIP, then activate the extension.
 
 ## Quick start
 
@@ -67,6 +74,11 @@ Without a destination, reports are stored in the report history and can be
 downloaded. See the [documentation](Documentation/Index.rst) for all settings,
 the email markers, the webhook protocol with signature verification, storage
 and retention, permissions and troubleshooting.
+
+To turn reports into GitLab issues, import the
+[n8n workflow](Documentation/Integration/N8n/context-reporter-gitlab.json) and
+follow the [n8n guide](Documentation/Integration/N8n/Index.rst), which also
+covers Jira.
 
 ## Privacy and security
 

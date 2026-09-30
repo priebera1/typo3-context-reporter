@@ -55,8 +55,9 @@ Entry points
 
     *   -   :guilabel:`Report a problem` in the backend toolbar
         -   Detected from the current view: the record open in the editing
-            form, the page selected in a page module, the folder open in the
-            file list, or otherwise the backend module
+            form, the page selected in a module with the page tree (in the
+            language shown there), the folder open in the file list, or
+            otherwise the backend module
 
     *   -   Report action of a row in :guilabel:`Web > List`
         -   The page or record of the row
@@ -84,6 +85,56 @@ tooltip and accessible label read, for example,
 In a workspace, the dialog shows the record as it is in the current
 workspace, for example the title of a changed draft. The report refers to
 the live UID of the record. Records of other workspaces cannot be reported.
+
+..  _usage-language:
+
+Language
+--------
+
+Records and page translations are reported in their own language. A page is
+reported in the language the reporter is looking at in the Page module, the
+Preview module (:guilabel:`Web > View` in TYPO3 13.4,
+:guilabel:`Content > Preview` in TYPO3 14.3) or another module with the page
+tree that keeps the language selection the same way, for example the
+Visual Editor. The frontend URL in the report points to that language.
+
+*   When several languages are shown side by side, the report uses the one
+    selected translation, or the default language if more than one
+    translation is selected. The Preview module of TYPO3 14 decides the
+    same way.
+*   If the page is not translated into the selected language, or the
+    reporter may not edit that language, the report uses the default
+    language, like the Page module does.
+*   A page reported from a module without page tree uses the default
+    language.
+
+..  _usage-frontend:
+
+Reporting frontend problems
+===========================
+
+Context Reporter has no button on the website itself. Report what you see in
+the frontend from the backend:
+
+#.  Open the page in the Preview module or the Page module and choose the
+    language in which the problem appears.
+#.  Click :guilabel:`Report a problem` in the backend toolbar. The report
+    refers to the page and the language, and links the frontend URL of that
+    translation.
+#.  Add a screenshot. :guilabel:`Capture screen` captures the browser tab,
+    including the preview. For the page as visitors see it, take a
+    screenshot of the frontend with your operating system and paste or
+    upload it.
+#.  Describe which part of the page is wrong.
+
+Keep in mind:
+
+*   The report refers to the page, not to a content element of the preview.
+    Name the element in the description, or report it through its
+    :guilabel:`⋮` menu in the Page module.
+*   The device size simulated by the Preview module is not part of the
+    report. The browser details contain the size of the backend window.
+*   In a workspace, the report refers to the reporter's current workspace.
 
 ..  _usage-screenshot:
 

@@ -1,0 +1,579 @@
+{
+  "name": "Context Reporter → GitLab issue",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "context-reporter",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "id": "fdabb260-a64a-5b89-a4f7-74e2290f7b2f",
+      "name": "Context Reporter webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "b68c8e5c-ce7a-5dcb-bce4-2f8816a36691"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Reads the signature header and the unparsed request body. The signature is\n// HMAC-SHA256 over \"<timestamp>.<raw body>\"; the next node computes it with the\n// secret from the Crypto credential, \"Check signature\" compares both.\nconst MAX_AGE_SECONDS = 300;\n\nconst request = $input.first().json;\nconst header = String(request.headers['x-context-reporter-signature'] ?? '');\nconst match = /^t=(\\d{1,12}),v1=([a-f0-9]{64})$/.exec(header);\n\nlet rawBody = '';\ntry {\n  rawBody = (await this.helpers.getBinaryDataBuffer(0, 'data')).toString('utf8');\n} catch (error) {\n  rawBody = '';\n}\n\nlet reason = '';\nif (!match) {\n  reason = 'missing or malformed signature';\n} else if (Math.abs(Date.now() / 1000 - Number(match[1])) > MAX_AGE_SECONDS) {\n  reason = 'signature expired';\n} else if (rawBody === '') {\n  reason = 'empty body (enable \"Raw Body\" in the webhook node)';\n}\n\nreturn [{\n  json: {\n    reason,\n    timestamp: match ? match[1] : '',\n    signature: match ? match[2] : '',\n    // Always a value, the Crypto node requires one\n    signedPayload: reason === '' ? `${match[1]}.${rawBody}` : '-',\n  },\n}];\n"
+      },
+      "id": "d172f00d-dd63-5d6d-868d-9e17e64e62a6",
+      "name": "Read signature",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "action": "hmac",
+        "type": "SHA256",
+        "value": "={{ $json.signedPayload }}",
+        "dataPropertyName": "expectedSignature",
+        "encoding": "hex"
+      },
+      "id": "a16ad674-4d9b-51a5-b46d-a3589e162e46",
+      "name": "HMAC-SHA256",
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 2,
+      "position": [
+        440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Compares the signatures in constant time and decides what to do:\n// \"rejected\", \"test\" (Send test webhook), \"report\" (report.created) or \"ignored\".\n// Only the verified body is used; headers other than the signature are not signed.\nconst item = $input.first().json;\n\nfunction equalInConstantTime(a, b) {\n  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) {\n    return false;\n  }\n  let difference = 0;\n  for (let i = 0; i < a.length; i++) {\n    difference |= a.charCodeAt(i) ^ b.charCodeAt(i);\n  }\n  return difference === 0;\n}\n\nlet decision = 'rejected';\nlet reason = item.reason;\nlet report = null;\n\nif (reason === '' && !equalInConstantTime(item.expectedSignature, item.signature)) {\n  reason = 'invalid signature';\n}\nif (reason === '') {\n  let body = null;\n  try {\n    body = JSON.parse(item.signedPayload.slice(item.timestamp.length + 1));\n  } catch (error) {\n    reason = 'invalid JSON';\n  }\n  if (body !== null) {\n    if (body.event === 'test') {\n      decision = 'test';\n    } else if (body.event === 'report.created' && body.report && typeof body.report.id === 'string') {\n      decision = 'report';\n      report = body.report;\n      // Screenshots are not needed below and would only fill the execution data\n      for (const attachment of report.attachments ?? []) {\n        delete attachment.contentBase64;\n      }\n    } else {\n      decision = 'ignored';\n    }\n  }\n}\n\nreturn [{ json: { decision, reason, report } }];\n"
+      },
+      "id": "8bc1b95c-a0cd-5820-8a15-df8c1953ae0f",
+      "name": "Check signature",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "0ebbd49e-0308-5c49-a4e8-43027eb334a5",
+                    "leftValue": "={{ $json.decision }}",
+                    "rightValue": "rejected",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Rejected"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "9fe152e6-1381-5416-a039-b5cfeaa014c5",
+                    "leftValue": "={{ $json.decision }}",
+                    "rightValue": "test",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Test"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "c9df9f05-9fa3-550d-81bb-6e8e6b6d0161",
+                    "leftValue": "={{ $json.decision }}",
+                    "rightValue": "report",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Report"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "Other event"
+        }
+      },
+      "id": "21b799ce-5a4a-52fb-bde3-f61e8f411e95",
+      "name": "Route",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        880,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ error: 'Rejected: ' + $json.reason }) }}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "id": "2e3e0d97-7533-5012-aeab-a2b983159a90",
+      "name": "Respond: rejected",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1120,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"ok\": true}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "6d051361-80c7-527d-a749-c1fa04d17baf",
+      "name": "Respond: test",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1120,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"ok\": true, \"ignored\": true}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "c881b5de-9ad4-5629-84cc-34b87e834c8a",
+      "name": "Respond: other event",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1120,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "14b78dbb-9687-50d5-ac40-5f422ca43dbc",
+              "name": "gitlabNamespace",
+              "value": "your-group",
+              "type": "string"
+            },
+            {
+              "id": "1766e160-acc1-55eb-9ad6-9d1ccbefd656",
+              "name": "gitlabProject",
+              "value": "your-project",
+              "type": "string"
+            },
+            {
+              "id": "52adf1d2-b7cd-5808-a07e-95b485891244",
+              "name": "issueLabel",
+              "value": "context-reporter",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "23f76e93-c8d7-55b4-b93b-899407f6d8f8",
+      "name": "GitLab settings",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1120,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Builds the issue from the verified report. Everything people typed or named\n// (title, description, page titles, record labels) is shown as code, so it\n// cannot mention users, add links or images, or change the issue layout.\nconst report = $input.first().json.report;\nconst context = report.context ?? {};\n\nfunction code(value) {\n  const text = String(value ?? '').replace(/\\s+/g, ' ').trim();\n  if (text === '') {\n    return '';\n  }\n  const fence = '`'.repeat(Math.max(1, ...(text.match(/`+/g) ?? ['']).map((run) => run.length + 1)));\n  return `${fence} ${text} ${fence}`;\n}\n\nfunction block(value) {\n  const text = String(value ?? '').trim();\n  const fence = '`'.repeat(Math.max(3, ...(text.match(/`+/g) ?? ['']).map((run) => run.length + 1)));\n  return `${fence}text\\n${text}\\n${fence}`;\n}\n\n// Links generated by TYPO3 (report, backend and frontend URLs)\nfunction link(label, url) {\n  if (typeof url !== 'string' || !/^https?:\\/\\//i.test(url)) {\n    return '';\n  }\n  let target = url;\n  try {\n    target = encodeURI(decodeURI(url));\n  } catch (error) {\n    return '';\n  }\n  return `[${label}](${target.replace(/[()]/g, (c) => '%' + c.charCodeAt(0).toString(16).toUpperCase())})`;\n}\n\nconst subject = report.subject ?? {};\nconst page = context.page ?? {};\nconst lines = [];\nconst add = (label, value) => {\n  if (value !== '') {\n    // A pipe would end the table cell, also inside code\n    lines.push(`| ${label} | ${value.replace(/\\|/g, '\\\\|')} |`);\n  }\n};\nconst subjectId = subject.table && subject.uid ? `${subject.table}:${subject.uid}` : (subject.identifier ?? '');\nadd('Report', code(report.id));\nadd('Object', [code(subject.typeLabel), code(subject.label), code(subjectId)].filter((part) => part !== '').join(' '));\nadd('Page', page.uid ? `${code(page.title)} ${code('[' + page.uid + ']')}` : '');\nadd('Site', code(context.site?.identifier));\nadd('Language', code(context.language?.title ?? context.language?.id));\nadd('Workspace', code(context.workspace?.title));\nadd('Module', code([context.backend?.module?.group, context.backend?.module?.title].filter(Boolean).join(' › ')));\nadd('Reporter', code(report.reporter?.name ?? report.reporter?.username));\nadd('TYPO3 / PHP', code([report.system?.typo3Version, report.system?.phpVersion].filter(Boolean).join(' / ')));\nadd('Browser', code(report.browser?.summary));\nadd('Created', code(report.createdAt));\n\nconst links = [\n  link('Report in TYPO3', report.links?.report),\n  link('Open in TYPO3', subject.backendUrl),\n  link('Open page', page.frontendUrl),\n].filter((part) => part !== '');\n\nconst screenshot = (report.attachments ?? []).some((attachment) => attachment.type === 'screenshot')\n  ? '\\nA screenshot is attached to the report in TYPO3.\\n'\n  : '';\n\nconst description = [\n  '### Description',\n  block(report.description || '(no description)'),\n  '',\n  '### TYPO3 context',\n  code(report.summary),\n  '',\n  '| | |',\n  '|---|---|',\n  ...lines,\n  '',\n  links.join(' · '),\n  screenshot,\n  // Found by \"Find existing issue\", so a repeated delivery does not create a second issue\n  `<!-- context-reporter:${report.id} -->`,\n].join('\\n');\n\n// Plain text for systems without Markdown, e.g. Jira\nconst plainText = [\n  report.description || '(no description)',\n  '',\n  report.summary ?? '',\n  `Report: ${report.id}`,\n  report.links?.report ? `Report in TYPO3: ${report.links.report}` : '',\n  page.frontendUrl ? `Page: ${page.frontendUrl}` : '',\n].filter((line, index) => index < 2 || line !== '').join('\\n');\n\nreturn [{\n  json: {\n    reportId: report.id,\n    title: String(report.title ?? report.id).replace(/\\s+/g, ' ').trim().slice(0, 250),\n    description,\n    plainText,\n  },\n}];\n"
+      },
+      "id": "7cd9e149-cbd2-5142-8f60-47cef6d851ed",
+      "name": "Build issue",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1340,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "repository",
+        "operation": "getIssues",
+        "owner": "={{ $('GitLab settings').first().json.gitlabNamespace }}",
+        "repository": "={{ $('GitLab settings').first().json.gitlabProject }}",
+        "limit": 1,
+        "getRepositoryIssuesFilters": {
+          "search": "=context-reporter:{{ $json.reportId }}"
+        }
+      },
+      "id": "c70c94ac-2b31-5fa6-94be-c224c97eeb6e",
+      "name": "Find existing issue",
+      "type": "n8n-nodes-base.gitlab",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        340
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ee3b0e03-aa20-5024-83e9-a3caddca29b6",
+              "leftValue": "={{ $json.iid }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "baeef975-c0af-5a47-ba71-fe9dc0448b00",
+      "name": "Issue exists?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1780,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ reference: $json.references?.full ?? ('#' + $json.iid), url: $json.web_url }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "4c2f8e54-545b-58dc-9861-fd957a8ab331",
+      "name": "Respond: existing issue",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2000,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "issue",
+        "operation": "create",
+        "owner": "={{ $('GitLab settings').first().json.gitlabNamespace }}",
+        "repository": "={{ $('GitLab settings').first().json.gitlabProject }}",
+        "title": "={{ $('Build issue').first().json.title }}",
+        "body": "={{ $('Build issue').first().json.description }}",
+        "labels": [
+          {
+            "label": "={{ $('GitLab settings').first().json.issueLabel }}"
+          }
+        ],
+        "assignee_ids": []
+      },
+      "id": "a9980b29-dc41-5fcf-9cfa-d1b9a03ad7c5",
+      "name": "Create issue",
+      "type": "n8n-nodes-base.gitlab",
+      "typeVersion": 1,
+      "position": [
+        2000,
+        380
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ reference: $json.references?.full ?? ('#' + $json.iid), url: $json.web_url }) }}",
+        "options": {
+          "responseCode": 201
+        }
+      },
+      "id": "1f10ecc2-dfba-5b82-b882-59291788b7f9",
+      "name": "Respond: issue created",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2220,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"error\": \"The GitLab issue could not be created. See the failed execution in n8n.\"}",
+        "options": {
+          "responseCode": 502
+        }
+      },
+      "id": "a5a8719e-c140-52ac-bfde-9b832ed7d885",
+      "name": "Respond: GitLab error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2220,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "errorMessage": "GitLab request failed, see the output of the GitLab node."
+      },
+      "id": "3a2e3edb-6f0a-5119-b5dd-d71a867dc52c",
+      "name": "Stop: GitLab failed",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        2440,
+        520
+      ]
+    }
+  ],
+  "connections": {
+    "Context Reporter webhook": {
+      "main": [
+        [
+          {
+            "node": "Read signature",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read signature": {
+      "main": [
+        [
+          {
+            "node": "HMAC-SHA256",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HMAC-SHA256": {
+      "main": [
+        [
+          {
+            "node": "Check signature",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check signature": {
+      "main": [
+        [
+          {
+            "node": "Route",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route": {
+      "main": [
+        [
+          {
+            "node": "Respond: rejected",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond: test",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "GitLab settings",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond: other event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GitLab settings": {
+      "main": [
+        [
+          {
+            "node": "Build issue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build issue": {
+      "main": [
+        [
+          {
+            "node": "Find existing issue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find existing issue": {
+      "main": [
+        [
+          {
+            "node": "Issue exists?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond: GitLab error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Issue exists?": {
+      "main": [
+        [
+          {
+            "node": "Respond: existing issue",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create issue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create issue": {
+      "main": [
+        [
+          {
+            "node": "Respond: issue created",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond: GitLab error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond: GitLab error": {
+      "main": [
+        [
+          {
+            "node": "Stop: GitLab failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

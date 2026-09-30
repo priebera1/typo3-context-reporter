@@ -18,10 +18,10 @@ Requirements
         -   Supported
 
     *   -   TYPO3
-        -   13.4 LTS and 14.3
+        -   13.4 LTS and 14.3 LTS
 
     *   -   PHP
-        -   8.2, 8.3 and 8.4
+        -   8.2, 8.3, 8.4 and 8.5
 
     *   -   Required TYPO3 system extensions
         -   ``typo3/cms-core``, ``typo3/cms-backend``, ``typo3/cms-filelist``
@@ -62,11 +62,32 @@ report action to the default list of primary file list actions, see
 Classic mode
 ------------
 
-Composer mode is the tested and recommended installation method. Classic mode
-(installation without Composer, through :guilabel:`Admin Tools > Extensions`)
-has not been verified yet. If you use it, create the tables with
-:guilabel:`Admin Tools > Maintenance > Analyze Database Structure` after the
-installation.
+Composer mode is recommended. In classic mode (installation without
+Composer), install the ZIP file from the
+`TYPO3 Extension Repository <https://extensions.typo3.org/extension/context_reporter>`__:
+
+#.  Open :guilabel:`Admin Tools > Settings > Extension Configuration`
+    (:guilabel:`System > Settings` in TYPO3 14), open
+    :guilabel:`extensionmanager` and switch off :guilabel:`Install extensions
+    automatically after download from TER or file upload`.
+#.  Open :guilabel:`Admin Tools > Extensions` (:guilabel:`System >
+    Extensions` in TYPO3 14), choose :guilabel:`Upload Extension` and upload
+    the ZIP file, for example :file:`context_reporter_0.1.2.zip`. Keep the
+    file name: the Extension Manager reads the extension key from it.
+#.  Click :guilabel:`Activate` next to :guilabel:`Context Reporter` (and
+    confirm in TYPO3 14). The activation creates the database tables.
+
+With the automatic installation switched on, the Extension Manager of
+TYPO3 13.4 and 14.3 activates an uploaded extension in the same request and
+fails with "Extension context_reporter is not available" when the extension
+was not installed before. This happens with every newly uploaded extension,
+not only with Context Reporter. The uploaded files are removed again, so
+switch the option off and upload the file once more.
+
+Alternatively, extract the ZIP file to
+:file:`typo3conf/ext/context_reporter/` and activate the extension in the
+Extension Manager or with
+``typo3/sysext/core/bin/typo3 extension:activate context_reporter``.
 
 ..  _installation-first-steps:
 

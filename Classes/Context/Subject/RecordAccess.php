@@ -7,7 +7,12 @@ namespace Priebera\ContextReporter\Context\Subject;
 use Priebera\ContextReporter\Context\Tca\TcaInspector;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
+use TYPO3\CMS\Core\Database\Connection;
+use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
+use TYPO3\CMS\Core\Database\Query\Restriction\WorkspaceRestriction;
 use TYPO3\CMS\Core\Type\Bitmask\Permission;
+use TYPO3\CMS\Core\Versioning\VersionState;
 
 /**
  * Read access checks for pages and records, built on the public permission
@@ -46,6 +51,7 @@ final readonly class RecordAccess
     public function __construct(
         private TcaInspector $tca,
         private FileAccess $fileAccess,
+        private ConnectionPool $connectionPool,
     ) {}
 
     /**
@@ -64,6 +70,42 @@ final readonly class RecordAccess
             return null;
         }
         return $page;
+    }
+
+    /**
+     * Whether the page is translated into the language in the user's current
+     * workspace. Hidden translations count, as they do in the Page module.
+     */
+    public function hasPageTranslation(int $pageUid, int $languageId, BackendUserAuthentication $backendUser): bool
+    {
+        $languageField = $this->tca->getLanguageField('pages');
+        $parentField = $this->tca->getTranslationSourceField('pages');
+        if ($pageUid <= 0 || $languageId <= 0 || $languageField === '' || $parentField === '') {
+            return false;
+        }
+        $workspace = (int)$backendUser->workspace;
+        $queryBuilder = $this->connectionPool->getQueryBuilderForTable('pages');
+        $queryBuilder->getRestrictions()
+            ->removeAll()
+            ->add(new DeletedRestriction())
+            ->add(new WorkspaceRestriction($workspace));
+        $rows = $queryBuilder
+            ->select('*')
+            ->from('pages')
+            ->where(
+                $queryBuilder->expr()->eq($parentField, $queryBuilder->createNamedParameter($pageUid, Connection::PARAM_INT)),
+                $queryBuilder->expr()->eq($languageField, $queryBuilder->createNamedParameter($languageId, Connection::PARAM_INT)),
+            )
+            ->executeQuery()
+            ->fetchAllAssociative();
+        foreach ($rows as $row) {
+            BackendUtility::workspaceOL('pages', $row, $workspace);
+            // A translation deleted in the workspace is gone for the user
+            if (is_array($row) && VersionState::tryFrom((int)($row['t3ver_state'] ?? 0)) !== VersionState::DELETE_PLACEHOLDER) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

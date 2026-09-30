@@ -3,7 +3,7 @@
 # Runs the extension's quality checks in a disposable container based on the
 # official TYPO3 core testing images, so the host PHP version does not matter.
 #
-# Usage: Build/Scripts/runTests.sh [-t <13|14>] [-p <8.2|8.3|8.4>] [-s <suite>] [-d <dbms>] [-i <version>] [-- <extra arguments>]
+# Usage: Build/Scripts/runTests.sh [-t <13|14>] [-p <8.2|8.3|8.4|8.5>] [-s <suite>] [-d <dbms>] [-i <version>] [-- <extra arguments>]
 #
 # Suites:
 #   composer    composer install/update for the selected TYPO3 branch, or any
@@ -18,7 +18,7 @@
 #
 # TYPO3 branch (-t):
 #   13          TYPO3 13.4 LTS (default)
-#   14          TYPO3 14.3
+#   14          TYPO3 14.3 LTS
 #   The branch only matters for the composer suite: it resolves the tree to
 #   that branch. Every other suite runs against whatever is in .Build/vendor.
 #
@@ -58,9 +58,9 @@ if [[ "${1:-}" == "--" ]]; then
 fi
 
 case "${PHP_VERSION}" in
-    8.2 | 8.3 | 8.4) ;;
+    8.2 | 8.3 | 8.4 | 8.5) ;;
     *)
-        echo "Unsupported PHP version ${PHP_VERSION}. Use 8.2, 8.3 or 8.4." >&2
+        echo "Unsupported PHP version ${PHP_VERSION}. Use 8.2, 8.3, 8.4 or 8.5." >&2
         exit 1
         ;;
 esac
