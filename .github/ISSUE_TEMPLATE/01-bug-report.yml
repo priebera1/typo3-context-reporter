@@ -29,7 +29,7 @@ body:
     id: php-version
     attributes:
       label: PHP version
-      placeholder: "e.g. 8.2.29, 8.3.25 or 8.4.12"
+      placeholder: "e.g. 8.3.25, 8.4.12 or 8.5.1"
     validations:
       required: true
 

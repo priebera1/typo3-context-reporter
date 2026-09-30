@@ -39,6 +39,32 @@ when the page, record, file or folder
 Report the problem from the toolbar instead: the report then refers to the
 backend view.
 
+..  _troubleshooting-language:
+
+The report shows the default language
+=====================================
+
+Pages are reported in the language selected in the Page module, the Preview
+module or another module with the page tree, see :ref:`usage-language`. The
+default language is used when
+
+*   several translations are shown side by side,
+*   the page is not translated into the selected language (in the current
+    workspace),
+*   the reporter may not edit the selected language, or
+*   the page was reported from a module without page tree.
+
+..  _troubleshooting-classic-upload:
+
+The Extension Manager says the extension is not available
+=========================================================
+
+In classic mode, the upload of the ZIP file ends with "Extension
+context_reporter is not available" when the Extension Manager installs
+uploaded extensions automatically. Switch off the automatic installation,
+upload the file again and activate the extension, see
+:ref:`installation-classic`.
+
 ..  _troubleshooting-email:
 
 Reports do not arrive by email
@@ -65,6 +91,7 @@ Webhook deliveries fail
 *   The delivery history shows the HTTP status code and the beginning of the
     response body.
 *   Slow endpoints fail after :confval:`setting-webhook-timeout` seconds.
+*   For the n8n workflow, see :ref:`integration-n8n-troubleshooting`.
 
 ..  _troubleshooting-screenshot:
 

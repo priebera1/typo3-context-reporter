@@ -35,15 +35,17 @@ Updating the extension
 the extension is used: until the database is updated, the report dialog and
 the report history can fail with a database error.
 
-In classic mode, update the extension in :guilabel:`Admin Tools >
-Extensions`, then analyze the database structure and flush the caches.
+In classic mode, upload the ZIP file of the new version in
+:guilabel:`Admin Tools > Extensions` (:guilabel:`System > Extensions` in
+TYPO3 14) with :guilabel:`Overwrite` checked, then analyze the database
+structure and flush the caches.
 
 ..  _upgrade-typo3:
 
 TYPO3 upgrades
 ==============
 
-Context Reporter supports TYPO3 13.4 LTS and TYPO3 14.3 with the same
+Context Reporter supports TYPO3 13.4 LTS and TYPO3 14.3 LTS with the same
 package, so an upgrade of TYPO3 from 13.4 to 14.3 needs no other version of
 the extension. Run the database update after the TYPO3 upgrade, as for every
 upgrade:

@@ -7,8 +7,19 @@ Known limitations
 =================
 
 TYPO3 versions
-    TYPO3 13.4 LTS and TYPO3 14.3 are supported. Older TYPO3 versions are
-    not, and TYPO3 14.0 to 14.2 have not been tested.
+    TYPO3 13.4 LTS and TYPO3 14.3 LTS are supported. Older TYPO3 versions
+    are not, and TYPO3 14.0 to 14.2 have not been tested.
+
+Frontend
+    There is no report button in the frontend. Frontend problems are
+    reported from the Page or Preview module, see :ref:`usage-frontend`.
+    Content elements shown in the preview are not identified; the report
+    refers to the page.
+
+Languages
+    A page is reported in one language. When several languages are shown
+    side by side, the report uses the default language unless exactly one
+    translation is selected, see :ref:`usage-language`.
 
 Field-level reporting
     Reports refer to pages, records, files, folders and backend views. The

@@ -22,17 +22,18 @@ Context Reporter
 ----
 
 Context Reporter adds object-aware problem reports to the TYPO3 backend.
-Editors report a problem where it happens, and the report automatically
-carries the TYPO3 context: page, record, content type, file or folder, site,
-language, workspace, backend module, system and browser. An optional
-screenshot is annotated and redacted in the editor's browser.
+Editors report a problem where it happens, without looking up page IDs,
+record UIDs or languages: the report automatically carries the TYPO3 context,
+that is page, record, content type, file or folder, site, language,
+workspace, backend module, system and browser. An optional screenshot is
+annotated and redacted in the editor's browser.
 
 The screenshot shows what the user sees. The TYPO3 context tells the
 developer what the problem actually belongs to.
 
 Reports are downloaded, emailed or sent to a webhook, so they end up in the
 tools a team already uses. Context Reporter is not a ticket system. It
-supports TYPO3 13.4 LTS and TYPO3 14.3.
+supports TYPO3 13.4 LTS and TYPO3 14.3 LTS.
 
 ----
 
@@ -64,7 +65,7 @@ supports TYPO3 13.4 LTS and TYPO3 14.3.
 
     ..  card:: :ref:`Installation <installation>`
 
-        Requirements and Composer installation.
+        Requirements, Composer and classic mode installation.
 
     ..  card:: :ref:`Configuration <configuration>`
 
@@ -78,8 +79,8 @@ supports TYPO3 13.4 LTS and TYPO3 14.3.
 
     ..  card:: :ref:`Integration <integration>`
 
-        Email markers, the webhook request, signature verification and
-        ticket references.
+        Email markers, the webhook request, signature verification, ticket
+        references, and an n8n workflow for GitLab and Jira.
 
     ..  card:: :ref:`Privacy and security <privacy-security>`
 

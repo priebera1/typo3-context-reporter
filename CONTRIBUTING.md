@@ -36,8 +36,8 @@ the webhook for integrations.
 
 | TYPO3 | PHP | Status |
 | --- | --- | --- |
-| 13.4 LTS | 8.2, 8.3, 8.4 | Supported |
-| 14.3 | 8.2, 8.3, 8.4 | Supported |
+| 13.4 LTS | 8.2, 8.3, 8.4, 8.5 | Supported |
+| 14.3 LTS | 8.2, 8.3, 8.4, 8.5 | Supported |
 
 One code base supports both TYPO3 versions. Keep both working: do not drop a
 TYPO3 13.4 code path because TYPO3 14 offers a cleaner API.
@@ -51,7 +51,7 @@ version of your machine does not matter. Dependencies are installed into
 ```bash
 Build/Scripts/runTests.sh -s composer                   # install dependencies for TYPO3 13.4 (default)
 Build/Scripts/runTests.sh -t 14 -s composer             # switch the dependencies to TYPO3 14.3
-Build/Scripts/runTests.sh -p 8.4 -t 14 -s composer      # the same for another PHP version
+Build/Scripts/runTests.sh -p 8.5 -t 14 -s composer      # the same for another PHP version
 Build/Scripts/runTests.sh -s unit                       # unit tests
 Build/Scripts/runTests.sh -s functional                 # functional tests (SQLite)
 Build/Scripts/runTests.sh -s functional -d mariadb      # functional tests on MariaDB 10.11 (-i for another version)
@@ -81,8 +81,8 @@ docker run --rm -v "$PWD":/project ghcr.io/typo3-documentation/render-guides:lat
 ```
 
 The GitHub workflow in `.github/workflows/ci.yml` runs these checks for TYPO3
-13.4 and 14.3 on PHP 8.2, 8.3 and 8.4, the functional tests also on MariaDB
-and MySQL. There is no automated browser test suite: backend UI changes are
+13.4 and 14.3 on PHP 8.2, 8.3, 8.4 and 8.5, the functional tests also on
+MariaDB and MySQL. There is no automated browser test suite: backend UI changes are
 verified manually in TYPO3 13.4 and 14.3. Describe how you tested them and add
 screenshots to the pull request.
 

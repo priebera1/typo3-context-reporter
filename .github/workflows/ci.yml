@@ -21,9 +21,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # TYPO3 13.4 and 14.3 both require PHP >= 8.2 and support 8.4
+        # TYPO3 13.4 and 14.3 both require PHP >= 8.2 and support 8.5
         typo3: ['13', '14']
-        php: ['8.2', '8.3', '8.4']
+        php: ['8.2', '8.3', '8.4', '8.5']
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -82,6 +82,14 @@ jobs:
             php: '8.4'
             dbms: mysql
             version: '8.0'
+          - typo3: '13'
+            php: '8.5'
+            dbms: mysql
+            version: '8.0'
+          - typo3: '14'
+            php: '8.5'
+            dbms: mariadb
+            version: '10.11'
     steps:
       - name: Checkout
         uses: actions/checkout@v4

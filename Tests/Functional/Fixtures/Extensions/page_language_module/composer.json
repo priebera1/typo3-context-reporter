@@ -1,0 +1,14 @@
+{
+    "name": "priebera/context-reporter-page-language-module",
+    "description": "Test fixture: a page tree module that keeps the selected languages in its module data, registered like EXT:visual_editor.",
+    "type": "typo3-cms-extension",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "typo3/cms-backend": "*"
+    },
+    "extra": {
+        "typo3/cms": {
+            "extension-key": "page_language_module"
+        }
+    }
+}
