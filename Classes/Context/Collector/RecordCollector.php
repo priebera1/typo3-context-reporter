@@ -7,10 +7,12 @@ namespace Priebera\ContextReporter\Context\Collector;
 use Priebera\ContextReporter\Backend\BackendLinkBuilder;
 use Priebera\ContextReporter\Context\CollectionScope;
 use Priebera\ContextReporter\Context\ContextCollectorInterface;
+use Priebera\ContextReporter\Context\Subject\FileAccess;
 use Priebera\ContextReporter\Context\Tca\TcaInspector;
 use Priebera\ContextReporter\Domain\SubjectType;
 use Symfony\Component\DependencyInjection\Attribute\AsTaggedItem;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 
 /**
  * Metadata of the record a report is about. Field values are never copied;
@@ -26,6 +28,7 @@ final readonly class RecordCollector implements ContextCollectorInterface
     public function __construct(
         private TcaInspector $tca,
         private BackendLinkBuilder $links,
+        private FileAccess $fileAccess,
     ) {}
 
     public function getSectionKey(): string
@@ -53,7 +56,7 @@ final readonly class RecordCollector implements ContextCollectorInterface
         $record = $subject->record;
         $data['uid'] = $subject->uid;
         $data['pid'] = (int)($record['pid'] ?? 0);
-        $label = $this->createLabel($table, $record);
+        $label = $this->mayUseLabel($table, $record, $scope->backendUser) ? $this->createLabel($table, $record) : '';
         if ($label !== '') {
             $data['label'] = $label;
         }
@@ -91,6 +94,19 @@ final readonly class RecordCollector implements ContextCollectorInterface
             $data['backendUrl'] = $backendUrl;
         }
         return $data;
+    }
+
+    /**
+     * File references are labelled with the name of their file (label field
+     * "uid_local"); references to files the reporter may not access, e.g. on
+     * a page they can edit, stay without label.
+     *
+     * @param array<string, mixed> $record
+     */
+    private function mayUseLabel(string $table, array $record, BackendUserAuthentication $backendUser): bool
+    {
+        return $table !== 'sys_file_reference'
+            || $this->fileAccess->findIndexedFile((int)($record['uid_local'] ?? 0), $backendUser) !== null;
     }
 
     /**

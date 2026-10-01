@@ -187,6 +187,134 @@
                 <source>Folder</source>
                 <target state="translated">Ordner</target>
             </trans-unit>
+            <trans-unit id="visibility.title" resname="visibility.title">
+                <source>Visibility settings</source>
+                <target state="translated">Sichtbarkeitseinstellungen</target>
+            </trans-unit>
+            <trans-unit id="visibility.note" resname="visibility.note">
+                <source>These are the settings stored in TYPO3. Templates, caches, extensions and other frontend logic can still change what the website shows.</source>
+                <target state="translated">Das sind die in TYPO3 gespeicherten Einstellungen. Templates, Caches, Erweiterungen und andere Frontend-Logik können trotzdem ändern, was die Website zeigt.</target>
+            </trans-unit>
+            <trans-unit id="visibility.hidden" resname="visibility.hidden">
+                <source>Hidden</source>
+                <target state="translated">Verborgen</target>
+            </trans-unit>
+            <trans-unit id="visibility.scheduled" resname="visibility.scheduled">
+                <source>Publishing starts on %s</source>
+                <target state="translated">Veröffentlichung ab %s</target>
+            </trans-unit>
+            <trans-unit id="visibility.expired" resname="visibility.expired">
+                <source>Publishing ended on %s</source>
+                <target state="translated">Veröffentlichung endete am %s</target>
+            </trans-unit>
+            <trans-unit id="visibility.accessRestricted" resname="visibility.accessRestricted">
+                <source>Frontend access: %s</source>
+                <target state="translated">Frontend-Zugriff: %s</target>
+            </trans-unit>
+            <trans-unit id="visibility.moreGroups" resname="visibility.moreGroups">
+                <source>%d more</source>
+                <target state="translated">%d weitere</target>
+            </trans-unit>
+            <trans-unit id="visibility.hiddenInMenu" resname="visibility.hiddenInMenu">
+                <source>Hidden in menus</source>
+                <target state="translated">In Menüs verborgen</target>
+            </trans-unit>
+            <trans-unit id="visibility.workspace.new" resname="visibility.workspace.new">
+                <source>New in this workspace, not on the live website yet</source>
+                <target state="translated">Neu in dieser Arbeitsumgebung, noch nicht auf der Live-Website</target>
+            </trans-unit>
+            <trans-unit id="visibility.workspace.changed" resname="visibility.workspace.changed">
+                <source>Changed in this workspace, the live website shows the published version</source>
+                <target state="translated">In dieser Arbeitsumgebung geändert, die Live-Website zeigt die veröffentlichte Version</target>
+            </trans-unit>
+            <trans-unit id="visibility.workspace.deleted" resname="visibility.workspace.deleted">
+                <source>Deleted in this workspace, still on the live website until published</source>
+                <target state="translated">In dieser Arbeitsumgebung gelöscht, bis zur Veröffentlichung noch auf der Live-Website</target>
+            </trans-unit>
+            <trans-unit id="visibility.page" resname="visibility.page">
+                <source>Page "%1$s": %2$s</source>
+                <target state="translated">Seite „%1$s“: %2$s</target>
+            </trans-unit>
+            <trans-unit id="visibility.parentPage" resname="visibility.parentPage">
+                <source>Parent page "%1$s", applies to its subpages: %2$s</source>
+                <target state="translated">Übergeordnete Seite „%1$s“, gilt für ihre Unterseiten: %2$s</target>
+            </trans-unit>
+            <trans-unit id="visibility.pageTranslation" resname="visibility.pageTranslation">
+                <source>Page translation %1$s: %2$s</source>
+                <target state="translated">Seitenübersetzung %1$s: %2$s</target>
+            </trans-unit>
+            <trans-unit id="visibility.translation" resname="visibility.translation">
+                <source>Translation %1$s: %2$s</source>
+                <target state="translated">Übersetzung %1$s: %2$s</target>
+            </trans-unit>
+            <trans-unit id="visibility.pageNotTranslated" resname="visibility.pageNotTranslated">
+                <source>Page not translated into: %s</source>
+                <target state="translated">Seite nicht übersetzt in: %s</target>
+            </trans-unit>
+            <trans-unit id="visibility.notTranslated" resname="visibility.notTranslated">
+                <source>Not translated into: %s</source>
+                <target state="translated">Nicht übersetzt in: %s</target>
+            </trans-unit>
+            <trans-unit id="visibility.languageDisabled" resname="visibility.languageDisabled">
+                <source>Disabled in the site configuration: %s</source>
+                <target state="translated">In der Site-Konfiguration deaktiviert: %s</target>
+            </trans-unit>
+            <trans-unit id="fileChecks.title" resname="fileChecks.title">
+                <source>File checks</source>
+                <target state="translated">Dateiprüfung</target>
+            </trans-unit>
+            <trans-unit id="fileChecks.note" resname="fileChecks.note">
+                <source>Based on the TYPO3 file index. Only a reported file is also looked up in its storage.</source>
+                <target state="translated">Grundlage ist der Dateiindex von TYPO3. Nur eine gemeldete Datei wird zusätzlich in ihrem Speicher gesucht.</target>
+            </trans-unit>
+            <trans-unit id="fileChecks.notInStorage" resname="fileChecks.notInStorage">
+                <source>Not found in its storage</source>
+                <target state="translated">Im Speicher nicht gefunden</target>
+            </trans-unit>
+            <trans-unit id="fileChecks.markedMissing" resname="fileChecks.markedMissing">
+                <source>Marked as missing</source>
+                <target state="translated">Als fehlend markiert</target>
+            </trans-unit>
+            <trans-unit id="fileChecks.markedMissingButFound" resname="fileChecks.markedMissingButFound">
+                <source>Marked as missing, but found in its storage</source>
+                <target state="translated">Als fehlend markiert, aber im Speicher vorhanden</target>
+            </trans-unit>
+            <trans-unit id="fileChecks.storageOffline" resname="fileChecks.storageOffline">
+                <source>Storage offline in the backend</source>
+                <target state="translated">Speicher im Backend offline</target>
+            </trans-unit>
+            <trans-unit id="fileChecks.empty" resname="fileChecks.empty">
+                <source>Empty file (0 bytes)</source>
+                <target state="translated">Leere Datei (0 Bytes)</target>
+            </trans-unit>
+            <trans-unit id="fileChecks.hidden" resname="fileChecks.hidden">
+                <source>Reference hidden</source>
+                <target state="translated">Referenz verborgen</target>
+            </trans-unit>
+            <trans-unit id="fileChecks.broken" resname="fileChecks.broken">
+                <source>Referenced file no longer exists</source>
+                <target state="translated">Referenzierte Datei existiert nicht mehr</target>
+            </trans-unit>
+            <trans-unit id="fileChecks.reference" resname="fileChecks.reference">
+                <source>%1$s: "%2$s" – %3$s</source>
+                <target state="translated">%1$s: „%2$s“ – %3$s</target>
+            </trans-unit>
+            <trans-unit id="fileChecks.brokenReference" resname="fileChecks.brokenReference">
+                <source>%1$s: %2$s</source>
+                <target state="translated">%1$s: %2$s</target>
+            </trans-unit>
+            <trans-unit id="fileChecks.problemsNotListed" resname="fileChecks.problemsNotListed">
+                <source>Further references with problems: %d</source>
+                <target state="translated">Weitere Referenzen mit Problemen: %d</target>
+            </trans-unit>
+            <trans-unit id="fileChecks.notChecked" resname="fileChecks.notChecked">
+                <source>Referenced files not checked (outside the accessible file mounts): %d</source>
+                <target state="translated">Nicht geprüfte referenzierte Dateien (außerhalb der zugänglichen Dateifreigaben): %d</target>
+            </trans-unit>
+            <trans-unit id="fileChecks.overLimit" resname="fileChecks.overLimit">
+                <source>References not checked (limit reached): %d</source>
+                <target state="translated">Nicht geprüfte Referenzen (Grenze erreicht): %d</target>
+            </trans-unit>
         </body>
     </file>
 </xliff>

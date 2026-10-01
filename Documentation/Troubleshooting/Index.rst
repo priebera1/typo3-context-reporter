@@ -54,6 +54,18 @@ default language is used when
 *   the reporter may not edit the selected language, or
 *   the page was reported from a module without page tree.
 
+..  _troubleshooting-visibility:
+
+The visibility settings do not match the website
+================================================
+
+The dialog lists the settings stored in TYPO3 when it opened, see
+:ref:`usage-visibility`. The website can differ because of cached pages,
+a reverse proxy or CDN, the template, extensions or the visitor's login.
+Restrictions of parent pages ("Extend to subpages") are only listed for
+reporters who may edit that field, and only up to the first parent page they
+can access.
+
 ..  _troubleshooting-classic-upload:
 
 The Extension Manager says the extension is not available

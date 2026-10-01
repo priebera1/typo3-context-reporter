@@ -93,6 +93,8 @@ final class ReportServiceTest extends AbstractContextReporterTestCase
         self::assertSame('Image selector is empty', $report->title);
         self::assertSame("Steps:\n1. Open the element", $report->description);
         self::assertSame($prepared->document->toArray(), $report->document->toArray());
+        // The visibility settings the reporter reviewed are part of the sealed context
+        self::assertSame(['reasons' => []], $report->document->getContextSection('visibility')['subject'] ?? null);
         self::assertSame(DeliveryState::Partial, $result->getDeliveryState());
 
         $stored = $this->get(ReportRepository::class)->findByIdentifier($report->identifier);
@@ -121,6 +123,7 @@ final class ReportServiceTest extends AbstractContextReporterTestCase
         self::assertTrue(WebhookSignature::verify($sent->getHeaderLine(WebhookSignature::HEADER), 'webhook-secret', $body));
         $envelope = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
         self::assertSame($report->identifier, $envelope['report']['id']);
+        self::assertSame($report->document->getContextSection('visibility'), $envelope['report']['context']['visibility']);
         self::assertSame(base64_encode((string)file_get_contents(self::SCREENSHOT)), $envelope['report']['attachments'][0]['contentBase64']);
         self::assertStringContainsString('/typo3/module/system/context-reports/show?report=' . $report->identifier, $envelope['report']['links']['report']);
 
@@ -138,6 +141,27 @@ final class ReportServiceTest extends AbstractContextReporterTestCase
 
         $this->expectException(DeliveryNotPossibleException::class);
         $this->get(DeliveryService::class)->retry($stored, 'webhook', self::ADMIN);
+    }
+
+    #[Test]
+    public function fileChecksAreSealedStoredAndDelivered(): void
+    {
+        $admin = $this->loginBackendUser(self::ADMIN);
+        $this->webhookResponses = [new Response(201, ['Content-Type' => 'application/json'], '{"reference":"SUP-8"}')];
+
+        // manual.pdf is marked as missing and not in the storage
+        $prepared = $this->prepare($admin, ['type' => 'file', 'uid' => self::FILE_MISSING]);
+        $checks = ['file' => ['storageCheck' => 'notFound', 'problems' => ['missing', 'notInStorage']]];
+        self::assertSame($checks, $prepared->document->getContextSection('fileChecks'));
+
+        $report = $this->get(ReportService::class)->submit(new ReportSubmission($prepared->draftToken, 'Manual cannot be downloaded', '', null, true), $admin)->report;
+
+        self::assertSame($checks, $this->get(ReportRepository::class)->findByIdentifier($report->identifier)?->document->getContextSection('fileChecks'));
+        // The text part of the email is quoted-printable
+        $mail = str_replace("\r\n", "\n", quoted_printable_decode((string)file_get_contents($this->mailbox)));
+        self::assertStringContainsString("File checks\n  Reported file: not found in its storage; marked as missing\n", $mail);
+        $envelope = json_decode((string)$this->webhookRequests[0]->getBody(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame($checks, $envelope['report']['context']['fileChecks']);
     }
 
     #[Test]

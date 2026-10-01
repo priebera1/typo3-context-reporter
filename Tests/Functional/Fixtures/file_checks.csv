@@ -1,0 +1,63 @@
+"sys_file_storage"
+,"uid","pid","name","driver","configuration","is_default","is_browsable","is_public","is_writable","is_online","auto_extract_metadata"
+,2,0,"Archive","Local","<?xml version=""1.0"" encoding=""utf-8"" standalone=""yes"" ?><T3FlexForms><data><sheet index=""sDEF""><language index=""lDEF""><field index=""basePath""><value index=""vDEF"">archive/</value></field><field index=""pathType""><value index=""vDEF"">relative</value></field><field index=""caseSensitive""><value index=""vDEF"">1</value></field></language></sheet></data></T3FlexForms>",0,1,1,1,0,0
+"sys_file"
+,"uid","pid","storage","type","identifier","identifier_hash","folder_hash","extension","mime_type","name","sha1","size","missing"
+,20,0,1,5,"/user_upload/empty.txt","6f757f38399bd3d8d80f32aa14b54de0d8a01edd","85b130b44ae1a7dae9348a42b3d4a68e5450fc44","txt","text/plain","empty.txt","",0,0
+,21,0,1,2,"/user_upload/gone.png","8cfe5d8054eb31f177c4accbd7de63cb616e3278","85b130b44ae1a7dae9348a42b3d4a68e5450fc44","png","image/png","gone.png","",120,0
+,22,0,1,2,"/user_upload/found.png","4f631bfd9804a549b47c885c658107a3d78ac264","85b130b44ae1a7dae9348a42b3d4a68e5450fc44","png","image/png","found.png","",99,1
+,23,0,2,2,"/offline.png","b7ddc074603cb44d713d09a2682ec47c85ee56e3","42099b4af021e53fd8fd4e056c2568d7c2e3ffa8","png","image/png","offline.png","",99,0
+,24,0,1,5,"/user_upload/unknown-size.txt","a30c75672296b73151bfdf2887a3d50cbcab1592","85b130b44ae1a7dae9348a42b3d4a68e5450fc44","txt","text/plain","unknown-size.txt","",0,0
+"sys_file_metadata"
+,"uid","pid","file","sys_language_uid","l10n_parent","title"
+,30,0,20,0,0,"Empty file"
+,31,0,20,1,30,"Leere Datei"
+,32,0,21,0,0,"Gone from the disk"
+,33,0,2,0,0,"Budget outside the mount"
+"be_groups"
+,"uid","pid","title","tables_select","tables_modify","db_mountpoints","groupMods","file_mountpoints","file_permissions","non_exclude_fields"
+,6,0,"File checkers","pages,tt_content,sys_file_reference,sys_file_metadata","pages,tt_content,sys_file_reference,sys_file_metadata","2","web_layout,web_list,media_management","1","readFolder,readFile","pages:media"
+,7,0,"Without file references","pages,tt_content","pages,tt_content","2","web_layout,web_list,media_management","1","readFolder,readFile","pages:media"
+,8,0,"Without page media","pages,tt_content,sys_file_reference","pages,tt_content,sys_file_reference","2","web_layout,web_list,media_management","1","readFolder,readFile",""
+"be_users"
+,"uid","pid","username","password","admin","usergroup","realName","email","lang","db_mountpoints","options","workspace_perms","disable","deleted"
+,8,0,"filechecker","$argon2i$v=19$m=65536,t=16,p=1$c29tZXNhbHQ$Kxt6ZxgHKVTLaRJGb0VBdGtYGYnTX0WNe4OHOfr5HDc",0,"6,1","Fiona Filechecker","fiona@example.com","de","",3,1,0,0
+,9,0,"noreferences","$argon2i$v=19$m=65536,t=16,p=1$c29tZXNhbHQ$Kxt6ZxgHKVTLaRJGb0VBdGtYGYnTX0WNe4OHOfr5HDc",0,"7,1","Nora Noreferences","nora@example.com","default","",3,1,0,0
+,10,0,"nomedia","$argon2i$v=19$m=65536,t=16,p=1$c29tZXNhbHQ$Kxt6ZxgHKVTLaRJGb0VBdGtYGYnTX0WNe4OHOfr5HDc",0,"8,1","Mia Nomedia","mia@example.com","default","",3,1,0,0
+"tt_content"
+,"uid","pid","CType","header","bodytext","colPos","sys_language_uid","l18n_parent"
+,60,2,"image","Gallery","",0,0,0
+,61,2,"image","Galerie","",0,1,60
+,62,2,"textmedia","Hidden media","",0,0,0
+,63,2,"text","Text with old images","",0,0,0
+,64,2,"textmedia","Many media","",0,0,0
+"sys_file_reference"
+,"uid","pid","uid_local","uid_foreign","tablenames","fieldname","sorting_foreign","hidden","deleted","sys_language_uid","t3ver_oid","t3ver_wsid","t3ver_state"
+,101,2,1,60,"tt_content","image",1,0,0,0,0,0,0
+,102,2,1,60,"tt_content","image",2,1,0,0,0,0,0
+,103,2,3,60,"tt_content","image",3,0,0,0,0,0,0
+,104,2,999,60,"tt_content","image",4,0,0,0,0,0,0
+,105,2,2,60,"tt_content","image",5,0,0,0,0,0,0
+,106,2,23,60,"tt_content","image",6,0,0,0,0,0,0
+,107,2,20,60,"tt_content","image",7,0,0,0,0,0,0
+,108,2,999,60,"tt_content","assets",1,0,0,0,0,0,0
+,109,2,999,60,"tt_content","image",8,0,1,0,0,0,0
+,110,2,998,61,"tt_content","image",1,0,0,1,0,0,0
+,111,2,1,62,"tt_content","assets",1,1,0,0,0,0,0
+,112,2,1,62,"tt_content","assets",2,1,0,0,0,0,0
+,113,2,1,62,"tt_content","assets",3,1,0,0,0,0,0
+,114,2,1,62,"tt_content","assets",4,1,0,0,0,0,0
+,115,2,1,62,"tt_content","assets",5,1,0,0,0,0,0
+,116,2,1,62,"tt_content","assets",6,1,0,0,0,0,0
+,117,2,1,62,"tt_content","assets",7,1,0,0,0,0,0
+,118,2,1,62,"tt_content","assets",8,1,0,0,0,0,0
+,119,2,1,62,"tt_content","assets",9,1,0,0,0,0,0
+,120,2,1,62,"tt_content","assets",10,1,0,0,0,0,0
+,121,2,1,62,"tt_content","assets",11,1,0,0,0,0,0
+,122,2,1,62,"tt_content","assets",12,1,0,0,0,0,0
+,123,2,999,63,"tt_content","image",1,0,0,0,0,0,0
+,124,2,999,63,"tt_content","assets",1,0,0,0,0,0,0
+,130,2,1,2,"pages","media",1,1,0,0,0,0,0
+,140,2,3,60,"tt_content","image",9,0,0,0,0,1,1
+,141,2,1,60,"tt_content","image",1,1,0,0,101,1,0
+,142,2,20,60,"tt_content","image",7,0,0,0,107,1,2

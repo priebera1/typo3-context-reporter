@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Priebera\ContextReporter\Context\Tca;
 
+use Priebera\ContextReporter\Context\Visibility\EnableFields;
+use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Localization\LanguageService;
 use TYPO3\CMS\Core\Localization\LanguageServiceFactory;
 
@@ -22,6 +24,7 @@ final class TcaInspector
 
     public function __construct(
         private readonly LanguageServiceFactory $languageServiceFactory,
+        private readonly ShowitemParser $showitemParser,
     ) {}
 
     public function hasTable(string $table): bool
@@ -65,6 +68,42 @@ final class TcaInspector
         return $fields;
     }
 
+    /**
+     * File fields (TCA type "file") the editing form shows for the type of
+     * the record. Fields of other types keep their references when the type
+     * changes; those are not shown and not returned.
+     *
+     * @param array<string, mixed> $row
+     * @return list<string>
+     */
+    public function getShownFileFields(string $table, array $row): array
+    {
+        if (!$this->hasTable($table)) {
+            return [];
+        }
+        try {
+            $type = (string)BackendUtility::getTCAtypeValue($table, $row);
+        } catch (\Throwable) {
+            return [];
+        }
+        $typeConfiguration = $GLOBALS['TCA'][$table]['types'][$type] ?? null;
+        $palettes = $GLOBALS['TCA'][$table]['palettes'] ?? [];
+        if (!is_array($typeConfiguration)) {
+            return [];
+        }
+        $fields = $this->showitemParser->getFields($typeConfiguration, is_array($palettes) ? $palettes : [], $row);
+        return array_values(array_filter(
+            $fields,
+            static fn(string $field): bool => ($GLOBALS['TCA'][$table]['columns'][$field]['config']['type'] ?? '') === 'file',
+        ));
+    }
+
+    public function getColumnLabel(string $table, string $field, ?LanguageService $languageService = null): string
+    {
+        $label = $GLOBALS['TCA'][$table]['columns'][$field]['label'] ?? '';
+        return $this->translate(is_string($label) ? $label : '', $languageService);
+    }
+
     public function getLanguageField(string $table): string
     {
         return $this->ctrlString($table, 'languageField');
@@ -77,8 +116,29 @@ final class TcaInspector
 
     public function getDisabledField(string $table): string
     {
-        $field = $GLOBALS['TCA'][$table]['ctrl']['enablecolumns']['disabled'] ?? '';
-        return is_string($field) ? $field : '';
+        return $this->getEnableColumn($table, 'disabled');
+    }
+
+    /**
+     * The visibility fields of "ctrl.enablecolumns" that exist as columns.
+     */
+    public function getEnableFields(string $table): EnableFields
+    {
+        return new EnableFields(
+            hidden: $this->getEnableColumn($table, 'disabled'),
+            startTime: $this->getEnableColumn($table, 'starttime'),
+            endTime: $this->getEnableColumn($table, 'endtime'),
+            frontendGroups: $this->getEnableColumn($table, 'fe_group'),
+        );
+    }
+
+    /**
+     * Whether backend users need an explicit permission for the field
+     * ("Allowed excludefields" of their groups).
+     */
+    public function isExcludeField(string $table, string $field): bool
+    {
+        return (bool)($GLOBALS['TCA'][$table]['columns'][$field]['exclude'] ?? false);
     }
 
     public function isReadOnly(string $table): bool
@@ -136,6 +196,12 @@ final class TcaInspector
             $languageService = $this->languageService;
         }
         return $languageService->sL($label);
+    }
+
+    private function getEnableColumn(string $table, string $key): string
+    {
+        $field = $GLOBALS['TCA'][$table]['ctrl']['enablecolumns'][$key] ?? '';
+        return is_string($field) && $this->hasColumn($table, $field) ? $field : '';
     }
 
     private function ctrlString(string $table, string $key): string

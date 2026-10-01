@@ -34,6 +34,8 @@ workflow.
 - **Report where the problem is:** backend toolbar, context menu of pages, records, files and folders, record list, Page module, file list and the record editing form.
 - **Object-aware context:** page, record and content type, editing form, file, folder and storage, site, language, workspace, backend module, system and browser. Only allowlisted metadata is collected, and the dialog shows everything before it is sent.
 - **Screenshots, edited locally:** screen capture, upload or paste; rectangle, arrow, freehand, text and opaque redaction. Annotations are flattened before upload.
+- **Why isn't it on the website?** For pages and records, the dialog lists the stored settings that keep them from visitors: hidden, start and end dates, frontend user groups, restrictions passed on by parent pages, hidden or missing translations and the workspace state. Facts only, no guesses about the rendered page.
+- **Missing images and downloads:** file checks list files that are marked as missing, gone from their storage, empty or in an offline storage, hidden file references and references to files that no longer exist. Files outside the reporter's file mounts are only counted.
 - **Frontend problems, too:** report a page from the Page or Preview module in the language the editor is looking at; the report links the frontend URL of that language.
 - **Delivery:** email through the TYPO3 mail API, a signed webhook (HMAC-SHA256) for n8n, Make, Zapier or your own API, and downloads as JSON or Markdown.
 - **Ready for GitLab and Jira:** an importable n8n workflow verifies the signature, creates a GitLab issue and shows its number to the reporter; the documentation covers Jira as well.
@@ -47,6 +49,7 @@ workflow.
 
 | Context Reporter | TYPO3 | PHP |
 | --- | --- | --- |
+| 0.2 | 13.4 LTS, 14.3 LTS | 8.2, 8.3, 8.4, 8.5 |
 | 0.1 | 13.4 LTS, 14.3 LTS | 8.2, 8.3, 8.4, 8.5 |
 
 Tested with MariaDB 10.11, MySQL 8.0 and SQLite. Composer mode is recommended;

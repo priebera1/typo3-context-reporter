@@ -1,0 +1,14 @@
+{
+    "name": "priebera/context-reporter-long-group-titles",
+    "description": "Test fixture: frontend user group titles longer than the 50 characters core allows, as an integrator can configure them.",
+    "type": "typo3-cms-extension",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "typo3/cms-frontend": "*"
+    },
+    "extra": {
+        "typo3/cms": {
+            "extension-key": "long_group_titles"
+        }
+    }
+}

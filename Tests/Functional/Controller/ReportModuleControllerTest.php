@@ -17,6 +17,7 @@ use Priebera\ContextReporter\Domain\ReviewState;
 use Priebera\ContextReporter\Report\ReportService;
 use Priebera\ContextReporter\Report\ReportSubmission;
 use Priebera\ContextReporter\Tests\Functional\AbstractContextReporterTestCase;
+use Priebera\ContextReporter\Tests\Unit\Fixtures\ReportFixture;
 use Psr\Http\Message\ResponseInterface;
 use TYPO3\CMS\Core\Information\Typo3Version;
 
@@ -135,6 +136,69 @@ final class ReportModuleControllerTest extends AbstractContextReporterTestCase
         self::assertStringContainsString('JSON (.json)', $html);
         self::assertStringNotContainsString('JSON with screenshot', $html);
         self::assertStringNotContainsString('format=screenshot', $html);
+    }
+
+    #[Test]
+    public function detailShowsVisibilityNoticesBelowTheReportedObject(): void
+    {
+        $this->loginBackendUser(self::ADMIN);
+        // The German translation [12] of the element is hidden
+        $identifier = $this->createReport('Teaser missing in German', ['source' => 'contextMenu', 'target' => ['type' => 'record', 'table' => 'tt_content', 'uid' => 10]]);
+
+        $html = $this->render('system_contextreports.show', ['report' => $identifier]);
+
+        $subject = $this->extractBetween($html, 'id="cr-subject-heading"', 'cr-description-heading');
+        self::assertStringContainsString('Visibility settings', $subject);
+        self::assertStringContainsString('<li>Translation Deutsch: Hidden</li>', $subject);
+        self::assertStringContainsString('These are the settings stored in TYPO3.', $subject);
+        $technical = $this->extractBetween($html, 'cr-technical-details', 'cr-danger-zone');
+        self::assertStringContainsString('Translation Deutsch [1]', $technical);
+    }
+
+    #[Test]
+    public function detailOfReportsWithoutVisibilityDataHasNoNotices(): void
+    {
+        $this->loginBackendUser(self::ADMIN);
+        // Stored before the visibility settings were collected
+        $report = $this->get(ReportRepository::class)->add(ReportFixture::report(withScreenshot: false));
+
+        $html = $this->render('system_contextreports.show', ['report' => $report->identifier]);
+
+        self::assertStringContainsString('Hero teaser', $html);
+        self::assertStringNotContainsString('cr-visibility', $html);
+        self::assertStringNotContainsString('Visibility settings', $html);
+    }
+
+    #[Test]
+    public function detailShowsFileChecksBelowTheReportedObject(): void
+    {
+        $this->loginBackendUser(self::ADMIN);
+        // manual.pdf is marked as missing and not in the storage
+        $identifier = $this->createReport('Manual cannot be downloaded', ['source' => 'contextMenu', 'target' => ['type' => 'file', 'uid' => self::FILE_MISSING]]);
+
+        $html = $this->render('system_contextreports.show', ['report' => $identifier]);
+
+        $subject = $this->extractBetween($html, 'id="cr-subject-heading"', 'cr-description-heading');
+        self::assertStringContainsString('id="cr-file-checks-heading"', $subject);
+        self::assertStringContainsString('<li>Not found in its storage</li>', $subject);
+        self::assertStringContainsString('Based on the TYPO3 file index.', $subject);
+        self::assertStringNotContainsString('cr-visibility', $subject);
+        $technical = $this->extractBetween($html, 'cr-technical-details', 'cr-danger-zone');
+        self::assertStringContainsString('not found in its storage; marked as missing', $technical);
+    }
+
+    #[Test]
+    public function detailOfReportsWithoutFileChecksHasNoFileNotices(): void
+    {
+        $this->loginBackendUser(self::ADMIN);
+        // Stored before the file checks were collected
+        $report = $this->get(ReportRepository::class)->add(ReportFixture::report(withScreenshot: false));
+
+        $html = $this->render('system_contextreports.show', ['report' => $report->identifier]);
+
+        self::assertStringContainsString('Hero teaser', $html);
+        self::assertStringNotContainsString('cr-file-checks', $html);
+        self::assertStringNotContainsString('File checks', $html);
     }
 
     #[Test]
