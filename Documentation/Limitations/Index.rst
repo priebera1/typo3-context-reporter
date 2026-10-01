@@ -16,6 +16,29 @@ Frontend
     Content elements shown in the preview are not identified; the report
     refers to the page.
 
+Visibility settings
+    The report lists stored settings (hidden, start and end time, frontend
+    user groups, "Hidden in menus", "Extend to subpages", translations and the
+    workspace state). It does not check the website: templates and
+    TypoScript, caches and CDNs, extensions with their own access rules,
+    the visitor's login, language fallbacks, mount points and shortcuts can
+    change what visitors see. Content in a column the page layout does not
+    show is not detected. The translation behaviour of pages ("Hide default
+    language of page", "Hide page if no translation for current language
+    exists") is not evaluated yet. Only connected translations are found,
+    not content created independently in a language (free mode). Parent
+    pages are read up to 20 levels and at most 30 languages are listed.
+
+File checks
+    Referenced files are checked with the file index of TYPO3: a file that
+    was removed from the storage without TYPO3 noticing counts as present
+    until the file index is updated, e.g. by the scheduler task "File
+    Abstraction Layer: Update storage index". Only a reported file is looked
+    up in its storage. File fields in FlexForms (plugin settings) and display
+    conditions of fields are not evaluated, and image processing, file
+    permissions of the web server and the frontend output are not checked. At
+    most 100 references are checked and 10 problems listed.
+
 Languages
     A page is reported in one language. When several languages are shown
     side by side, the report uses the default language unless exactly one

@@ -3,6 +3,25 @@
 All notable changes to this project are documented in this file. The project
 follows [semantic versioning](https://semver.org/).
 
+## [0.2.0] - 2026-10-01
+
+### Added
+
+* Visibility diagnostics. For a reported page or record, the report lists the stored TYPO3 settings that keep it from website visitors: hidden, a start date in the future or an end date in the past, frontend user groups (including "Hide at login" and "Show at any login") and "Hidden in menus". The same settings are listed for the page of a record, for parent pages that pass restrictions on with "Extend to subpages", and for translations, together with missing translations and site languages that are disabled. In a workspace, the report says whether the object is new, changed or deleted there. The data is in the new section `context.visibility`.
+* File checks. A reported file is checked for being marked as missing, not found in its storage, empty (0 bytes) or in a storage that is offline in the backend; only a reported file is looked up in its storage, and not while the storage is offline. For a reported page or record, the file references in the file fields its type shows are checked with the file index: hidden references, references to files that no longer exist, and files that are marked as missing, empty or in an offline storage. A report from the metadata of a file (Edit metadata) checks that file, and a reported file reference is checked like the references of a record. The data is in the new section `context.fileChecks`.
+* Short notices about both, in English and German, below the reported object in the report dialog and the report detail. They are only shown when there is something to point out. The technical details, the email body (`{context.details}`) and the Markdown export describe all collected facts; the JSON download and the webhook payload contain the sections as they are.
+
+### Security
+
+* The diagnostics stay within the reporter's access: parent pages only up to the first page the reporter cannot access, "Extend to subpages" only with permission for that field, translations only in the languages the reporter may use, only the reporter's current workspace, and file references only with permission to list file references and to edit the field. Files the reporter may not access are counted as not checked, without name, UID or storage.
+* A reported file reference whose file the reporter may not access no longer carries the name of that file as its label or in the summary.
+
+### Compatibility
+
+* The diagnostics describe stored TYPO3 settings and the file index, not the rendered website. Templates, TypoScript, caches, extensions, the visitor's login and image processing can still change what visitors see; see the limitations in the documentation.
+* The report format stays `context-reporter.report.v1`: `visibility` and `fileChecks` are new optional sections, and reports created before 0.2.0 have neither. The database schema is unchanged. Flush the caches after updating.
+* TYPO3 13.4 LTS and TYPO3 14.3 LTS, PHP 8.2, 8.3, 8.4 and 8.5. Tested with MariaDB 10.11, MySQL 8.0 and SQLite; PostgreSQL has not been tested.
+
 ## [0.1.2] - 2026-09-30
 
 ### Fixed

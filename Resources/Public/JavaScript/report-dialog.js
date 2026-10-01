@@ -16,6 +16,8 @@ import { collectBrowserInfo, collectLocation } from '@priebera/context-reporter/
 import { label } from '@priebera/context-reporter/labels.js';
 import { OPEN_EVENT } from '@priebera/context-reporter/report-request.js';
 import { buildResultView, describeResult } from '@priebera/context-reporter/report-result.js';
+import { buildVisibilityNotices } from '@priebera/context-reporter/visibility-notices.js';
+import { buildFileCheckNotices } from '@priebera/context-reporter/file-check-notices.js';
 import {
   ScreenshotError,
   canvasFromFile,
@@ -283,9 +285,11 @@ class ReportDialog {
 
   /**
    * The detected object as a compact card: type, name, identifier and where
-   * it lives. Raw identifiers, routes and URLs are in the technical data.
+   * it lives, followed by visibility notices if its stored settings keep it
+   * from website visitors and by file check notices if its files have
+   * problems. Raw identifiers, routes and URLs are in the technical data.
    *
-   * @param {{icon: string, typeLabel: string, title: string, identifier: string, location: string, meta: string}} presentation
+   * @param {{icon: string, typeLabel: string, title: string, identifier: string, location: string, meta: string, visibility?: Object|null, fileChecks?: Object|null}} presentation
    */
   renderSubject(presentation) {
     const titleId = uniqueId('cr-context-title');
@@ -309,6 +313,8 @@ class ReportDialog {
           presentation.meta ? h('p', { class: 'cr-context-card__meta' }, presentation.meta) : null,
         ),
       ),
+      buildVisibilityNotices(presentation.visibility),
+      buildFileCheckNotices(presentation.fileChecks),
       h('p', { class: 'cr-context__note' }, icon('actions-info-circle-alt'), label('subject.explanation')),
     );
   }

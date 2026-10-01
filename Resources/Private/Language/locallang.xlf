@@ -141,6 +141,102 @@
             <trans-unit id="subject.fact.folder" resname="subject.fact.folder">
                 <source>Folder</source>
             </trans-unit>
+            <trans-unit id="visibility.title" resname="visibility.title">
+                <source>Visibility settings</source>
+            </trans-unit>
+            <trans-unit id="visibility.note" resname="visibility.note">
+                <source>These are the settings stored in TYPO3. Templates, caches, extensions and other frontend logic can still change what the website shows.</source>
+            </trans-unit>
+            <trans-unit id="visibility.hidden" resname="visibility.hidden">
+                <source>Hidden</source>
+            </trans-unit>
+            <trans-unit id="visibility.scheduled" resname="visibility.scheduled">
+                <source>Publishing starts on %s</source>
+            </trans-unit>
+            <trans-unit id="visibility.expired" resname="visibility.expired">
+                <source>Publishing ended on %s</source>
+            </trans-unit>
+            <trans-unit id="visibility.accessRestricted" resname="visibility.accessRestricted">
+                <source>Frontend access: %s</source>
+            </trans-unit>
+            <trans-unit id="visibility.moreGroups" resname="visibility.moreGroups">
+                <source>%d more</source>
+            </trans-unit>
+            <trans-unit id="visibility.hiddenInMenu" resname="visibility.hiddenInMenu">
+                <source>Hidden in menus</source>
+            </trans-unit>
+            <trans-unit id="visibility.workspace.new" resname="visibility.workspace.new">
+                <source>New in this workspace, not on the live website yet</source>
+            </trans-unit>
+            <trans-unit id="visibility.workspace.changed" resname="visibility.workspace.changed">
+                <source>Changed in this workspace, the live website shows the published version</source>
+            </trans-unit>
+            <trans-unit id="visibility.workspace.deleted" resname="visibility.workspace.deleted">
+                <source>Deleted in this workspace, still on the live website until published</source>
+            </trans-unit>
+            <trans-unit id="visibility.page" resname="visibility.page">
+                <source>Page "%1$s": %2$s</source>
+            </trans-unit>
+            <trans-unit id="visibility.parentPage" resname="visibility.parentPage">
+                <source>Parent page "%1$s", applies to its subpages: %2$s</source>
+            </trans-unit>
+            <trans-unit id="visibility.pageTranslation" resname="visibility.pageTranslation">
+                <source>Page translation %1$s: %2$s</source>
+            </trans-unit>
+            <trans-unit id="visibility.translation" resname="visibility.translation">
+                <source>Translation %1$s: %2$s</source>
+            </trans-unit>
+            <trans-unit id="visibility.pageNotTranslated" resname="visibility.pageNotTranslated">
+                <source>Page not translated into: %s</source>
+            </trans-unit>
+            <trans-unit id="visibility.notTranslated" resname="visibility.notTranslated">
+                <source>Not translated into: %s</source>
+            </trans-unit>
+            <trans-unit id="visibility.languageDisabled" resname="visibility.languageDisabled">
+                <source>Disabled in the site configuration: %s</source>
+            </trans-unit>
+            <trans-unit id="fileChecks.title" resname="fileChecks.title">
+                <source>File checks</source>
+            </trans-unit>
+            <trans-unit id="fileChecks.note" resname="fileChecks.note">
+                <source>Based on the TYPO3 file index. Only a reported file is also looked up in its storage.</source>
+            </trans-unit>
+            <trans-unit id="fileChecks.notInStorage" resname="fileChecks.notInStorage">
+                <source>Not found in its storage</source>
+            </trans-unit>
+            <trans-unit id="fileChecks.markedMissing" resname="fileChecks.markedMissing">
+                <source>Marked as missing</source>
+            </trans-unit>
+            <trans-unit id="fileChecks.markedMissingButFound" resname="fileChecks.markedMissingButFound">
+                <source>Marked as missing, but found in its storage</source>
+            </trans-unit>
+            <trans-unit id="fileChecks.storageOffline" resname="fileChecks.storageOffline">
+                <source>Storage offline in the backend</source>
+            </trans-unit>
+            <trans-unit id="fileChecks.empty" resname="fileChecks.empty">
+                <source>Empty file (0 bytes)</source>
+            </trans-unit>
+            <trans-unit id="fileChecks.hidden" resname="fileChecks.hidden">
+                <source>Reference hidden</source>
+            </trans-unit>
+            <trans-unit id="fileChecks.broken" resname="fileChecks.broken">
+                <source>Referenced file no longer exists</source>
+            </trans-unit>
+            <trans-unit id="fileChecks.reference" resname="fileChecks.reference">
+                <source>%1$s: "%2$s" – %3$s</source>
+            </trans-unit>
+            <trans-unit id="fileChecks.brokenReference" resname="fileChecks.brokenReference">
+                <source>%1$s: %2$s</source>
+            </trans-unit>
+            <trans-unit id="fileChecks.problemsNotListed" resname="fileChecks.problemsNotListed">
+                <source>Further references with problems: %d</source>
+            </trans-unit>
+            <trans-unit id="fileChecks.notChecked" resname="fileChecks.notChecked">
+                <source>Referenced files not checked (outside the accessible file mounts): %d</source>
+            </trans-unit>
+            <trans-unit id="fileChecks.overLimit" resname="fileChecks.overLimit">
+                <source>References not checked (limit reached): %d</source>
+            </trans-unit>
         </body>
     </file>
 </xliff>

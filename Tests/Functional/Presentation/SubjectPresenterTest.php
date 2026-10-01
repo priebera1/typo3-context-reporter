@@ -255,8 +255,11 @@ final class SubjectPresenterTest extends AbstractContextReporterTestCase
 
         $data = $this->present(['source' => 'contextMenu', 'target' => ['type' => 'page', 'uid' => 2]])->toArray();
 
-        self::assertSame(['kind', 'icon', 'typeLabel', 'title', 'identifier', 'location', 'meta', 'facts'], array_keys($data));
+        self::assertSame(['kind', 'icon', 'typeLabel', 'title', 'identifier', 'location', 'meta', 'facts', 'visibility', 'fileChecks'], array_keys($data));
         self::assertSame('main · English · Live', $data['meta']);
+        // Visible page with a visible translation and without file problems: nothing to point out
+        self::assertNull($data['visibility']);
+        self::assertNull($data['fileChecks']);
     }
 
     /**

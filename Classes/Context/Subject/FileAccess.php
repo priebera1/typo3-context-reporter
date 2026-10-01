@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace Priebera\ContextReporter\Context\Subject;
 
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
+use TYPO3\CMS\Core\Database\Connection;
+use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Resource\ResourceStorage;
+use TYPO3\CMS\Core\Resource\Security\FileNameValidator;
 
 /**
  * Read access checks for files and folders (FAL), built on the public
@@ -22,6 +25,8 @@ final readonly class FileAccess
 {
     public function __construct(
         private ResourceFactory $resourceFactory,
+        private ConnectionPool $connectionPool,
+        private FileNameValidator $fileNameValidator,
     ) {}
 
     public function findFile(int $uid, BackendUserAuthentication $backendUser): ?File
@@ -42,6 +47,56 @@ final readonly class FileAccess
             return null;
         }
         return $file;
+    }
+
+    /**
+     * Read access to an indexed file without asking the storage driver, for
+     * files that are only referenced: the file storages of the user, their
+     * "read file" permission, the denied file extensions and the file mounts.
+     * findFile() additionally lets the storage look up the file and its
+     * permissions (ResourceStorage::checkFileActionPermission()).
+     */
+    public function findIndexedFile(int $uid, BackendUserAuthentication $backendUser): ?File
+    {
+        if ($uid <= 0) {
+            return null;
+        }
+        try {
+            $file = $this->resourceFactory->getFileObject($uid);
+            $storage = $file->getStorage();
+            if ($file->isDeleted()
+                || !$this->isAccessibleStorage($storage, $backendUser)
+                || !$storage->checkUserActionPermission('read', 'File')
+                || !$this->fileNameValidator->isValid($file->getName())
+                || !$storage->isWithinFileMountBoundaries($file)
+            ) {
+                return null;
+            }
+        } catch (\Exception) {
+            // Unknown storage or no permission
+            return null;
+        }
+        return $file;
+    }
+
+    /**
+     * Whether the file index knows the file, regardless of access. Only used
+     * to tell a reference to a file that no longer exists from a reference to
+     * a file the user may not access; nothing about the file is returned.
+     */
+    public function isIndexed(int $uid): bool
+    {
+        if ($uid <= 0) {
+            return false;
+        }
+        $queryBuilder = $this->connectionPool->getQueryBuilderForTable('sys_file');
+        $queryBuilder->getRestrictions()->removeAll();
+        return (int)$queryBuilder
+            ->count('uid')
+            ->from('sys_file')
+            ->where($queryBuilder->expr()->eq('uid', $queryBuilder->createNamedParameter($uid, Connection::PARAM_INT)))
+            ->executeQuery()
+            ->fetchOne() > 0;
     }
 
     /**

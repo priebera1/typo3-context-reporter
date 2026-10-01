@@ -33,6 +33,8 @@ final readonly class SubjectPresenter
         private ModuleProvider $moduleProvider,
         private IconFactory $iconFactory,
         private LanguageServiceFactory $languageServiceFactory,
+        private VisibilityNoticeBuilder $visibilityNotices,
+        private FileCheckNoticeBuilder $fileCheckNotices,
     ) {}
 
     public function present(ContextDocument $document): SubjectPresentation
@@ -70,6 +72,8 @@ final readonly class SubjectPresenter
             backendUrl: $this->string($page, 'backendUrl') ?: $this->string($subject, 'backendUrl'),
             frontendUrl: $this->string($page, 'frontendUrl'),
             listTitle: $this->shorten($this->string($page, 'title') ?: $this->string($subject, 'label')),
+            visibility: $this->visibilityNotices->build($document, $languageService),
+            fileChecks: $this->fileCheckNotices->build($document, $languageService),
         );
     }
 
@@ -129,6 +133,8 @@ final readonly class SubjectPresenter
             backendUrl: $this->string($record, 'backendUrl') ?: $this->string($subject, 'backendUrl'),
             frontendUrl: $this->string($page, 'frontendUrl'),
             listTitle: $this->shorten($title, $recordType),
+            visibility: $this->visibilityNotices->build($document, $languageService),
+            fileChecks: $this->fileCheckNotices->build($document, $languageService),
         );
     }
 
@@ -159,6 +165,7 @@ final readonly class SubjectPresenter
             facts: array_merge($facts, $this->contextFacts($document, $languageService)),
             backendUrl: $this->string($file, 'backendUrl') ?: $this->string($subject, 'backendUrl'),
             listTitle: $this->shorten($this->string($file, 'name') ?: $this->string($subject, 'label')),
+            fileChecks: $this->fileCheckNotices->build($document, $languageService),
         );
     }
 

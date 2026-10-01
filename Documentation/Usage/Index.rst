@@ -108,6 +108,69 @@ Visual Editor. The frontend URL in the report points to that language.
 *   A page reported from a module without page tree uses the default
     language.
 
+..  _usage-visibility:
+
+Visibility settings
+-------------------
+
+When a page or record does not appear on the website, the reason is often a
+setting in TYPO3. For pages and records, the report contains these settings,
+and the dialog and the report detail list the ones that keep the object from
+visitors below the reported object, for example:
+
+*   :guilabel:`Hidden`
+*   :guilabel:`Publishing starts on 2026-10-15 08:00` or
+    :guilabel:`Publishing ended on 2026-09-01 00:00`
+*   :guilabel:`Frontend access: Members, Hide at login`
+*   :guilabel:`Hidden in menus` (pages)
+*   :guilabel:`Page "About us": Hidden` for a record on that page
+*   :guilabel:`Parent page "Members area", applies to its subpages: Frontend
+    access: Members`: a parent page with :guilabel:`Extend to subpages` passes
+    its restrictions on. Only reporters who may edit that field see this.
+*   :guilabel:`Translation Deutsch: Hidden`,
+    :guilabel:`Not translated into: Français` or
+    :guilabel:`Page not translated into: Français`, for the languages the
+    reporter may use. New translations are hidden by default in TYPO3.
+*   :guilabel:`New in this workspace, not on the live website yet`, or
+    changed or deleted in the workspace
+
+The settings are evaluated when the dialog opens. They are the settings
+stored in TYPO3, not a check of the website: templates, caches, extensions
+and other frontend logic can still change what visitors see. The technical
+data contains everything, also settings that do not restrict anything, such
+as a future end date.
+
+..  _usage-file-checks:
+
+File checks
+-----------
+
+A missing image or download is often a file problem. For a reported file,
+and for the files of a reported page or record, the dialog and the report
+detail list problems TYPO3 knows about under :guilabel:`File checks`, for
+example:
+
+*   :guilabel:`Not found in its storage` or :guilabel:`Marked as missing, but
+    found in its storage` for a reported file: it is looked up in its storage
+    when the dialog opens.
+*   :guilabel:`Storage offline in the backend` and
+    :guilabel:`Empty file (0 bytes)`
+*   :guilabel:`Images: "team.jpg" – Reference hidden` or
+    :guilabel:`Images: "team.jpg" – Marked as missing` for a file reference
+    of the reported page or record
+*   :guilabel:`Images: Referenced file no longer exists` for a reference to a
+    file TYPO3 does not know any more
+*   :guilabel:`Referenced files not checked (outside the accessible file
+    mounts): 2`
+
+A report from the metadata of a file (:guilabel:`Edit metadata` in the file
+list) stays about the metadata, and its file is checked like a reported file.
+Only the file fields the editing form shows for the type of the record are
+checked, e.g. :guilabel:`Images` of an :guilabel:`Images Only` element but
+not old references of a former type. Referenced files are checked with the
+file index of TYPO3; their storage is not asked. Without problems, nothing is
+shown; the technical data still says how many references were checked.
+
 ..  _usage-frontend:
 
 Reporting frontend problems
@@ -126,6 +189,10 @@ the frontend from the backend:
     screenshot of the frontend with your operating system and paste or
     upload it.
 #.  Describe which part of the page is wrong.
+
+If the problem is that something does not appear at all, check the
+:ref:`visibility settings <usage-visibility>` and the
+:ref:`file checks <usage-file-checks>` the dialog lists first.
 
 Keep in mind:
 

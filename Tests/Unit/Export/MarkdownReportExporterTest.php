@@ -40,6 +40,30 @@ final class MarkdownReportExporterTest extends UnitTestCase
     }
 
     #[Test]
+    public function visibilitySettingsAreListedWithEscapedTitles(): void
+    {
+        $markdown = $this->export(ReportFixture::report(document: ReportFixture::documentWithVisibility()));
+
+        self::assertStringContainsString("### Visibility\n", $markdown);
+        self::assertStringContainsString('| Reported object | hidden; scheduled, starts 2026-10-15T08:00:00+02:00;', $markdown);
+        self::assertStringContainsString('Members \\| \\*VIP\\* &lt;b&gt; \\[2\\]', $markdown);
+        self::assertStringNotContainsString('<b>', $markdown);
+        self::assertStringContainsString('| Note | Stored TYPO3 settings.', $markdown);
+    }
+
+    #[Test]
+    public function fileChecksAreListedWithEscapedFileNames(): void
+    {
+        $markdown = $this->export(ReportFixture::report(document: ReportFixture::documentWithFileChecks()));
+
+        self::assertStringContainsString("### File checks\n", $markdown);
+        self::assertStringContainsString('| Images \\[image\\], reference 81 | "team \\| \\*final\\* &lt;b&gt;.jpg"', $markdown);
+        self::assertStringContainsString('reference hidden; marked as missing |', $markdown);
+        self::assertStringNotContainsString('<b>', $markdown);
+        self::assertStringContainsString('| Note | Based on the TYPO3 file index.', $markdown);
+    }
+
+    #[Test]
     public function userTextCannotCreateImagesLinksOrStructure(): void
     {
         $document = ReportFixture::document();

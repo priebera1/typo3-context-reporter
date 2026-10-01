@@ -86,6 +86,34 @@
                             </f:for>
                         </dl>
                     </f:if>
+                    <f:if condition="{subject.visibility}">
+                        <section class="cr-visibility" aria-labelledby="cr-visibility-heading">
+                            <h3 class="cr-visibility__title h6" id="cr-visibility-heading">
+                                <core:icon identifier="actions-eye" size="small" />
+                                {subject.visibility.title}
+                            </h3>
+                            <ul class="cr-visibility__list">
+                                <f:for each="{subject.visibility.notices}" as="notice">
+                                    <li>{notice}</li>
+                                </f:for>
+                            </ul>
+                            <p class="cr-visibility__note">{subject.visibility.note}</p>
+                        </section>
+                    </f:if>
+                    <f:if condition="{subject.fileChecks}">
+                        <section class="cr-file-checks" aria-labelledby="cr-file-checks-heading">
+                            <h3 class="cr-file-checks__title h6" id="cr-file-checks-heading">
+                                <core:icon identifier="actions-file" size="small" />
+                                {subject.fileChecks.title}
+                            </h3>
+                            <ul class="cr-file-checks__list">
+                                <f:for each="{subject.fileChecks.notices}" as="notice">
+                                    <li>{notice}</li>
+                                </f:for>
+                            </ul>
+                            <p class="cr-file-checks__note">{subject.fileChecks.note}</p>
+                        </section>
+                    </f:if>
                     <f:if condition="{subjectUrl} || {metadataUrl} || {frontendUrl}">
                         <div class="cr-actions">
                             <f:if condition="{subjectUrl}">

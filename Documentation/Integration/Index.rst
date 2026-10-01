@@ -123,7 +123,7 @@ The webhook sends an HTTP ``POST`` request with a JSON body.
 
     POST /your/endpoint HTTP/1.1
     Content-Type: application/json; charset=utf-8
-    User-Agent: TYPO3-Context-Reporter/0.1.2
+    User-Agent: TYPO3-Context-Reporter/0.2.0
     X-Context-Reporter-Event: report.created
     X-Context-Reporter-Report: CR-CR91-A84Z-DA59
     X-Context-Reporter-Delivery: 7dd6d20a-ee21-4107-be2e-5767269320d2
@@ -181,7 +181,24 @@ set. The authentication header is only sent when
           "formEngine": { "mode": "edit", "records": [{ "table": "tt_content", "uid": 2 }] },
           "site": { "identifier": "main", "base": "https://www.example.com/", "rootPageId": 1 },
           "language": { "id": 0, "title": "English", "locale": "en-US" },
-          "workspace": { "id": 0, "title": "Live" }
+          "workspace": { "id": 0, "title": "Live" },
+          "visibility": {
+            "evaluatedAt": "2026-09-16T15:30:15+02:00",
+            "subject": { "reasons": [] },
+            "page": { "uid": 2, "title": "About us", "reasons": [] },
+            "translations": [
+              { "languageId": 1, "title": "Deutsch", "page": { "exists": true, "reasons": [] }, "record": { "exists": true, "reasons": ["hidden"], "hidden": true } }
+            ]
+          },
+          "fileChecks": {
+            "references": {
+              "checked": 2,
+              "notChecked": 1,
+              "problems": [
+                { "field": "assets", "fieldLabel": "Media elements", "reference": 7, "file": { "uid": 12, "name": "team.jpg" }, "problems": ["hidden"] }
+              ]
+            }
+          }
         },
         "system": { "typo3Version": "14.3.7", "phpVersion": "8.3.33", "applicationContext": "Production" },
         "browser": { "summary": "Chrome 148 · macOS · 1440×900", "language": "en-US" },
@@ -198,7 +215,7 @@ set. The authentication header is only sent when
           }
         ],
         "links": { "report": "https://www.example.com/typo3/module/system/context-reports/show?report=CR-CR91-A84Z-DA59" },
-        "generator": { "name": "TYPO3 Context Reporter", "package": "priebera/typo3-context-reporter", "version": "0.1.2" }
+        "generator": { "name": "TYPO3 Context Reporter", "package": "priebera/typo3-context-reporter", "version": "0.2.0" }
       }
     }
 
@@ -214,6 +231,40 @@ Notes on the report document:
     apply, for example ``page``, ``record``, ``file``, ``folder``,
     ``storage``, ``formEngine``, ``site``, ``language``, ``workspace``,
     ``backend`` and ``recentErrors``.
+*   ``context.visibility`` (pages and records) lists the stored settings
+    that decide whether TYPO3 shows the object to website visitors, see
+    :ref:`usage-visibility`. ``subject``, ``page``, the entries of
+    ``parentPages.restricting`` and the ``page`` and ``record`` entries of
+    ``translations`` have ``reasons`` (``hidden``, ``scheduled``,
+    ``expired``, ``accessRestricted``) and the facts behind them:
+    ``hidden``, ``starttime`` and ``endtime`` (ISO 8601),
+    ``frontendGroups`` (``id`` and ``title``; ``-1`` hides the object for
+    logged-in visitors, ``-2`` shows it to logged-in visitors only),
+    ``frontendGroupsNotListed``, ``hiddenInMenu`` and ``workspaceState``
+    (``unchanged``, ``new``, ``changed``, ``deleted``; only in a workspace).
+    Translations have ``exists`` and, for disabled site languages,
+    ``enabled: false``. ``parentPages`` is only present if the reporter may
+    edit :guilabel:`Extend to subpages`; ``checkedUpToRoot`` is ``false`` when
+    parent pages outside the reporter's access were not read. These are
+    stored settings, not a check of the rendered website. Reports created
+    before version 0.2 have no ``visibility`` section.
+*   ``context.fileChecks`` lists file problems TYPO3 knows about, see
+    :ref:`usage-file-checks`. For a reported file, ``file`` has
+    ``storageCheck`` (``found``, ``notFound``, or ``notChecked`` when the
+    storage is offline or could not be asked) and ``problems``; for file
+    metadata, ``file`` also has the ``uid`` and ``name`` of the file it
+    describes. For a reported page or record, ``references`` covers the file
+    fields its type shows, for a reported file reference that reference: ``checked`` and ``notChecked`` count the references (files the
+    reporter may not read are only counted), ``problems`` lists at most ten
+    references with ``field``, ``fieldLabel``, ``reference`` (UID of the
+    file reference), ``file`` (``uid`` and ``name``; missing when the file no
+    longer exists) and their ``problems``; ``problemsNotListed`` and
+    ``overLimit`` (references beyond the first 100) follow when needed.
+    Problems are ``missing`` (marked as missing in the file index),
+    ``notInStorage`` (reported file only), ``storageOffline``, ``empty``,
+    ``hidden`` (file reference) and ``brokenReference``. The section is
+    omitted when nothing could be checked. Reports created before version 0.2
+    have no ``fileChecks`` section.
 *   New fields can be added in later versions. Receivers should ignore
     unknown fields.
 *   Backend links contain no tokens. Users who are not logged in are asked to
@@ -240,7 +291,7 @@ and not create a ticket.
         "project": { "name": "Example", "identifier": "example", "environment": "Production" },
         "reportSchema": "context-reporter.report.v1"
       },
-      "generator": { "name": "TYPO3 Context Reporter", "package": "priebera/typo3-context-reporter", "version": "0.1.2" }
+      "generator": { "name": "TYPO3 Context Reporter", "package": "priebera/typo3-context-reporter", "version": "0.2.0" }
     }
 
 Check ``X-Context-Reporter-Event`` (``report.created`` or ``test``) before

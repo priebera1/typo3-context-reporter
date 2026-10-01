@@ -28,10 +28,10 @@ The collectors do not read:
 *   the backend log, unless :confval:`setting-privacy-recentbackenderrors` is
     enabled
 
-Labels are data, too: page titles, record labels, file and folder names and
-the names of sites, languages and workspaces are part of the report, because
-they identify the object. Choose the destinations of the reports
-accordingly.
+Labels are data, too: page titles, record labels, file and folder names,
+frontend user group titles and the names of sites, languages and workspaces
+are part of the report, because they identify the object. Choose the
+destinations of the reports accordingly.
 
 What the reporter writes and what the screenshot shows is up to the
 reporter. The dialog asks reporters to redact confidential information before
@@ -39,6 +39,54 @@ they send a screenshot.
 
 Backend URLs are reduced to allowlisted parameters. CSRF tokens and return
 URLs are removed in the browser and again on the server.
+
+..  _privacy-visibility:
+
+Visibility settings
+-------------------
+
+For pages and records, reports contain the settings that decide whether
+TYPO3 shows them to website visitors, see :ref:`usage-visibility`:
+
+*   hidden, start and end time and the frontend user groups (with their
+    titles, at most ten groups of 100 characters each) of the object, its page,
+    parent pages and translations, and whether a page is hidden in menus;
+    TYPO3 shows these values to the reporter in the page tree and the Page
+    module anyway,
+*   :guilabel:`Extend to subpages` of parent pages only if the reporter may
+    edit that field (:guilabel:`Allowed excludefields`; administrators may);
+    otherwise inherited restrictions are left out of the report,
+*   parent pages only up to the first page the reporter cannot access; pages
+    above it are not read, and the report only notes that they were not
+    checked,
+*   translations only in the languages the reporter may use, and only the
+    reporter's current workspace.
+
+No other field values are read. Like all context, the settings are shown in
+the dialog and sealed before the report is sent.
+
+..  _privacy-file-checks:
+
+File checks
+-----------
+
+For a reported file and for the file references of a reported page or record,
+reports contain the file problems TYPO3 knows about, see
+:ref:`usage-file-checks`:
+
+*   the UID and name of a referenced file, only for files with a problem and
+    only if the reporter may read the file (file storages, file mounts and
+    file permissions of their groups); no paths, storage configuration or
+    file contents,
+*   files the reporter may not read only as a count (``notChecked``),
+    without name, UID or storage; a reported file reference, which TYPO3
+    labels with the name of its file, then has no label,
+*   references only if the reporter may list file references
+    (:guilabel:`Tables (listing)`) and edit the field, and only in the
+    reporter's current workspace.
+
+Like all context, the checks are shown in the dialog and sealed before the
+report is sent.
 
 ..  _privacy-recent-errors:
 

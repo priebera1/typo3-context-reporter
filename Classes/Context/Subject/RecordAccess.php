@@ -48,6 +48,8 @@ final readonly class RecordAccess
      */
     private const NO_NEW_RECORD_TABLES = ['sys_file_metadata'];
 
+    private const FILE_REFERENCE_TABLE = 'sys_file_reference';
+
     public function __construct(
         private TcaInspector $tca,
         private FileAccess $fileAccess,
@@ -78,34 +80,112 @@ final readonly class RecordAccess
      */
     public function hasPageTranslation(int $pageUid, int $languageId, BackendUserAuthentication $backendUser): bool
     {
-        $languageField = $this->tca->getLanguageField('pages');
-        $parentField = $this->tca->getTranslationSourceField('pages');
-        if ($pageUid <= 0 || $languageId <= 0 || $languageField === '' || $parentField === '') {
-            return false;
+        return $languageId > 0 && isset($this->findTranslations('pages', $pageUid, $backendUser)[$languageId]);
+    }
+
+    /**
+     * The translations of a record in the user's current workspace, keyed by
+     * language ID, as workspace overlaid rows. Hidden translations count, as
+     * they do in the Page module; translations deleted in the workspace do
+     * not. Translations on pages the user cannot access are left out.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function findTranslations(string $table, int $uid, BackendUserAuthentication $backendUser): array
+    {
+        $languageField = $this->tca->getLanguageField($table);
+        $parentField = $this->tca->getTranslationSourceField($table);
+        if ($uid <= 0 || $languageField === '' || $parentField === '' || ($table !== 'pages' && !$this->isAllowedTable($table, $backendUser))) {
+            return [];
         }
         $workspace = (int)$backendUser->workspace;
-        $queryBuilder = $this->connectionPool->getQueryBuilderForTable('pages');
+        $queryBuilder = $this->connectionPool->getQueryBuilderForTable($table);
         $queryBuilder->getRestrictions()
             ->removeAll()
             ->add(new DeletedRestriction())
             ->add(new WorkspaceRestriction($workspace));
         $rows = $queryBuilder
             ->select('*')
-            ->from('pages')
+            ->from($table)
             ->where(
-                $queryBuilder->expr()->eq($parentField, $queryBuilder->createNamedParameter($pageUid, Connection::PARAM_INT)),
-                $queryBuilder->expr()->eq($languageField, $queryBuilder->createNamedParameter($languageId, Connection::PARAM_INT)),
+                $queryBuilder->expr()->eq($parentField, $queryBuilder->createNamedParameter($uid, Connection::PARAM_INT)),
+                $queryBuilder->expr()->gt($languageField, $queryBuilder->createNamedParameter(0, Connection::PARAM_INT)),
             )
+            ->orderBy('uid')
             ->executeQuery()
             ->fetchAllAssociative();
+
+        $translations = [];
+        $allowedLocations = [];
         foreach ($rows as $row) {
-            BackendUtility::workspaceOL('pages', $row, $workspace);
+            BackendUtility::workspaceOL($table, $row, $workspace);
             // A translation deleted in the workspace is gone for the user
-            if (is_array($row) && VersionState::tryFrom((int)($row['t3ver_state'] ?? 0)) !== VersionState::DELETE_PLACEHOLDER) {
-                return true;
+            if (!is_array($row) || VersionState::tryFrom((int)($row['t3ver_state'] ?? 0)) === VersionState::DELETE_PLACEHOLDER) {
+                continue;
             }
+            $languageId = (int)($row[$languageField] ?? 0);
+            if ($languageId <= 0 || isset($translations[$languageId])) {
+                continue;
+            }
+            if ($table !== 'pages') {
+                $pid = (int)($row['pid'] ?? 0);
+                $allowedLocations[$pid] ??= $this->isAllowedLocation($table, $pid, $backendUser);
+                if (!$allowedLocations[$pid]) {
+                    continue;
+                }
+            }
+            $translations[$languageId] = $row;
         }
-        return false;
+        return $translations;
+    }
+
+    /**
+     * The file references of an accessible record in the given fields, as
+     * workspace overlaid rows of the user's current workspace, in the order
+     * of the fields and their sorting. References deleted in the workspace
+     * are left out, hidden references are included. Requires permission to
+     * list file references; the record itself must already be checked.
+     *
+     * @param list<string> $fields
+     * @return list<array<string, mixed>>
+     */
+    public function findFileReferences(string $table, int $uid, array $fields, BackendUserAuthentication $backendUser): array
+    {
+        if ($uid <= 0 || $fields === [] || !$this->isAllowedTable(self::FILE_REFERENCE_TABLE, $backendUser)) {
+            return [];
+        }
+        $workspace = (int)$backendUser->workspace;
+        $queryBuilder = $this->connectionPool->getQueryBuilderForTable(self::FILE_REFERENCE_TABLE);
+        $queryBuilder->getRestrictions()
+            ->removeAll()
+            ->add(new DeletedRestriction())
+            ->add(new WorkspaceRestriction($workspace));
+        $rows = $queryBuilder
+            ->select('*')
+            ->from(self::FILE_REFERENCE_TABLE)
+            ->where(
+                $queryBuilder->expr()->eq('uid_foreign', $queryBuilder->createNamedParameter($uid, Connection::PARAM_INT)),
+                $queryBuilder->expr()->eq('tablenames', $queryBuilder->createNamedParameter($table)),
+                $queryBuilder->expr()->in('fieldname', $queryBuilder->createNamedParameter($fields, Connection::PARAM_STR_ARRAY)),
+            )
+            ->orderBy('sorting_foreign')
+            ->addOrderBy('uid')
+            ->executeQuery()
+            ->fetchAllAssociative();
+
+        $references = [];
+        foreach ($rows as $row) {
+            BackendUtility::workspaceOL(self::FILE_REFERENCE_TABLE, $row, $workspace);
+            // A reference deleted in the workspace is gone for the user
+            if (!is_array($row) || VersionState::tryFrom((int)($row['t3ver_state'] ?? 0)) === VersionState::DELETE_PLACEHOLDER) {
+                continue;
+            }
+            $references[] = $row;
+        }
+        $fieldOrder = array_flip($fields);
+        // usort() is stable: the sorting within a field is kept
+        usort($references, static fn(array $a, array $b): int => ($fieldOrder[$a['fieldname'] ?? ''] ?? 0) <=> ($fieldOrder[$b['fieldname'] ?? ''] ?? 0));
+        return $references;
     }
 
     /**
@@ -204,6 +284,17 @@ final readonly class RecordAccess
             }
         }
         return $fileUids !== [];
+    }
+
+    /**
+     * The file a file metadata record describes: its own file, or the file of
+     * its default language record. Access is checked by findRecord().
+     *
+     * @param array<string, mixed> $metadata
+     */
+    public function getMetadataFileUid(array $metadata): int
+    {
+        return $this->getMetadataFileUids($metadata)[0] ?? 0;
     }
 
     /**

@@ -89,6 +89,15 @@ Site, language, workspace
     is looking at in the Page module, the Preview module or another module
     with the page tree, see :ref:`usage-language`.
 
+Visibility
+    For pages and records: the stored settings that decide whether TYPO3
+    shows them to website visitors, see :ref:`usage-visibility`.
+
+File checks
+    For a file: whether its storage has it, whether it is empty or marked as
+    missing. For pages and records: problems of the files their file fields
+    refer to, see :ref:`usage-file-checks`.
+
 Backend
     Module, route and backend language. Tokens and return URLs are removed.
 

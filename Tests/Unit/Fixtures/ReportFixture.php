@@ -105,6 +105,64 @@ final class ReportFixture
     }
 
     /**
+     * @return array<string, mixed>
+     */
+    public static function documentWithFileChecks(): array
+    {
+        $document = self::document();
+        $document['context']['fileChecks'] = [
+            'references' => [
+                'checked' => 3,
+                'notChecked' => 2,
+                'problems' => [
+                    ['field' => 'image', 'fieldLabel' => 'Images', 'reference' => 81, 'file' => ['uid' => 12, 'name' => 'team | *final* <b>.jpg'], 'problems' => ['hidden', 'missing']],
+                    ['field' => 'assets', 'fieldLabel' => 'Media', 'reference' => 83, 'problems' => ['brokenReference']],
+                ],
+                'problemsNotListed' => 1,
+                'overLimit' => 4,
+            ],
+        ];
+        return $document;
+    }
+
+    /**
+     * The record document with a "context.visibility" section, as added in 0.2.0.
+     *
+     * @return array<string, mixed>
+     */
+    public static function documentWithVisibility(): array
+    {
+        $document = self::document();
+        $document['context']['visibility'] = [
+            'evaluatedAt' => '2026-10-12T09:30:00+02:00',
+            'subject' => [
+                'reasons' => ['hidden', 'scheduled'],
+                'hidden' => true,
+                'starttime' => '2026-10-15T08:00:00+02:00',
+                'endtime' => '2026-12-31T23:59:00+01:00',
+                'workspaceState' => 'new',
+            ],
+            'page' => [
+                'uid' => 1,
+                'title' => 'Home',
+                'reasons' => ['accessRestricted'],
+                'frontendGroups' => [['id' => -1, 'title' => 'Hide at login'], ['id' => 2, 'title' => 'Members | *VIP* <b>']],
+                'frontendGroupsNotListed' => 2,
+                'hiddenInMenu' => true,
+            ],
+            'parentPages' => [
+                'checkedUpToRoot' => false,
+                'restricting' => [['uid' => 5, 'title' => 'Members area', 'reasons' => ['expired'], 'endtime' => '2026-01-01T00:00:00+01:00']],
+            ],
+            'translations' => [
+                ['languageId' => 1, 'title' => 'Deutsch', 'page' => ['exists' => true, 'reasons' => []], 'record' => ['exists' => true, 'reasons' => ['hidden'], 'hidden' => true]],
+                ['languageId' => 2, 'title' => 'Français', 'enabled' => false, 'page' => ['exists' => false], 'record' => ['exists' => false]],
+            ],
+        ];
+        return $document;
+    }
+
+    /**
      * A report about a file opened in the file list.
      *
      * @return array<string, mixed>

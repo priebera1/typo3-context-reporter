@@ -1,0 +1,44 @@
+"fe_groups"
+,"uid","pid","title"
+,1,0,"Members"
+,2,0,"Partners"
+,3,0,"Regional partner network for the northern sales territories including all associated retail outlets and service partners of the group"
+,4,0,"Group 4"
+,5,0,"Group 5"
+,6,0,"Group 6"
+,7,0,"Group 7"
+,8,0,"Group 8"
+,9,0,"Group 9"
+,10,0,"Group 10"
+,11,0,"Group 11"
+,12,0,"Group 12"
+,13,0,"Group 13"
+,14,0,"Group 14"
+"be_groups"
+,"uid","pid","title","tables_select","tables_modify","db_mountpoints","groupMods","non_exclude_fields","allowed_languages"
+,5,0,"Visibility editors","pages,tt_content","pages,tt_content","2,71","web_layout,web_list","pages:extendToSubpages","0,1"
+"be_users"
+,"uid","pid","username","password","admin","usergroup","realName","email","lang","db_mountpoints","options","workspace_perms","disable","deleted"
+,7,0,"vera","$argon2i$v=19$m=65536,t=16,p=1$c29tZXNhbHQ$Kxt6ZxgHKVTLaRJGb0VBdGtYGYnTX0WNe4OHOfr5HDc",0,"1,5","Vera Visibility","vera@example.com","default","",3,1,0,0
+"pages"
+,"uid","pid","title","slug","doktype","hidden","deleted","perms_userid","perms_groupid","perms_user","perms_group","perms_everybody","sys_language_uid","l10n_parent","starttime","endtime","fe_group","extendToSubpages","nav_hide"
+,20,2,"Members area","/about/members",1,0,0,1,1,31,31,0,0,0,0,0,"1",1,0
+,21,20,"Member news","/about/members/news",1,0,0,1,1,31,31,0,0,0,0,0,"",0,0
+,22,2,"Hidden section","/about/hidden",1,1,0,1,1,31,31,0,0,0,0,0,"",1,0
+,23,22,"Campaign","/about/hidden/campaign",1,0,0,1,1,31,31,0,0,0,0,0,"",0,0
+,24,2,"Coming soon","/about/coming-soon",1,0,0,1,1,31,31,0,0,0,1792049400,0,"-2",0,1
+,25,2,"Old offer","/about/old-offer",1,0,0,1,1,31,31,0,0,0,0,1790926200,"-1",0,0
+,26,2,"Demnächst","/about/demnaechst",1,1,0,1,1,31,31,0,1,24,0,0,"",0,0
+,70,1,"Private branch","/private",1,1,0,1,1,31,31,0,0,0,0,0,"2",1,0
+,71,70,"Shared","/private/shared",1,0,0,1,1,31,31,0,0,0,0,0,"",0,0
+"tt_content"
+,"uid","pid","CType","header","bodytext","colPos","sys_language_uid","l18n_parent","hidden","deleted","starttime","endtime","fe_group","t3ver_oid","t3ver_wsid","t3ver_state"
+,50,21,"text","Members teaser","",0,0,0,0,0,0,0,"",0,0,0
+,51,2,"text","Hidden teaser","",0,0,0,1,0,0,0,"",0,0,0
+,52,2,"text","Autumn campaign","",0,0,0,0,0,1792049400,1798702200,"",0,0,0
+,53,2,"text","Summer sale","",0,0,0,0,0,0,1790926200,"",0,0,0
+,54,2,"text","Partner teaser","",0,0,0,0,0,0,0,"1,2,-1",0,0,0
+,55,2,"text","Many groups","",0,0,0,0,0,0,0,"3,4,5,6,7,8,9,10,11,12,13,14",0,0,0
+,56,2,"text","Retired teaser","",0,0,0,0,0,0,0,"",0,0,0
+,57,2,"text","Retired teaser","",0,0,0,0,0,0,0,"",56,1,2
+,58,24,"text","Launch teaser","",0,0,0,0,0,0,0,"",0,0,0
