@@ -60,6 +60,8 @@ final class ReportMarkersTest extends UnitTestCase
         self::assertSame('Live', $markers['context.workspace']);
         self::assertSame('Web › Page', $markers['context.module']);
         self::assertStringContainsString('Page Content', $markers['context.details']);
+        // Findings need the TYPO3 labels, see FindingsExportTest
+        self::assertSame('No findings.', $markers['context.findings']);
 
         self::assertSame('13.4.35', $markers['system.typo3Version']);
         self::assertSame('8.2.33', $markers['system.phpVersion']);

@@ -100,6 +100,7 @@ final readonly class ReportMarkers
             'context.subject' => trim($subjectTypeLabel . ($subjectLabel !== '' ? ' "' . $subjectLabel . '"' : '')),
             'context.subjectUrl' => $this->string($subject, 'backendUrl'),
             'context.details' => $this->detailsFormatter->toText($payload),
+            'context.findings' => $this->detailsFormatter->findingsToText($payload),
             'context.language' => $this->string($this->nested($context, 'language'), 'title'),
             'context.workspace' => $this->string($this->nested($context, 'workspace'), 'title'),
             'context.module' => implode(' › ', array_filter([$this->string($module, 'group'), $this->string($module, 'title')])),

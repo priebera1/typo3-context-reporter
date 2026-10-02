@@ -10,6 +10,9 @@ WHAT HAPPENED
 WHERE IT HAPPENED
 {context.summary}
 
+FINDINGS
+{context.findings}
+
 Open in TYPO3: {context.subjectUrl}
 Report history: {report.url}
 

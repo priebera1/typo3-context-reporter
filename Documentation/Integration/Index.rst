@@ -99,6 +99,11 @@ Markers
     *   -   ``{context.details}``
         -   All technical data as readable text
 
+    *   -   ``{context.findings}``
+        -   The :ref:`findings <usage-findings>` as readable text, grouped
+            (website address, placement, visibility, files, permissions),
+            or ``No findings.``
+
     *   -   ``{context.language}``, ``{context.workspace}``, ``{context.module}``
         -   Language, workspace and backend module
 
@@ -109,7 +114,8 @@ Markers
         -   Browser information, if shared
 
 Markers without a value are replaced with an empty string. Markers in the
-subject are reduced to a single line.
+subject are reduced to a single line. Findings and technical details are
+always in English.
 
 ..  _integration-webhook:
 
@@ -123,7 +129,7 @@ The webhook sends an HTTP ``POST`` request with a JSON body.
 
     POST /your/endpoint HTTP/1.1
     Content-Type: application/json; charset=utf-8
-    User-Agent: TYPO3-Context-Reporter/0.2.0
+    User-Agent: TYPO3-Context-Reporter/0.3.0
     X-Context-Reporter-Event: report.created
     X-Context-Reporter-Report: CR-CR91-A84Z-DA59
     X-Context-Reporter-Delivery: 7dd6d20a-ee21-4107-be2e-5767269320d2
@@ -176,7 +182,9 @@ set. The authentication header is only sent when
             "type": { "field": "CType", "value": "textmedia", "label": "Text & Media" },
             "languageId": 0,
             "colPos": 0,
-            "hidden": false
+            "hidden": false,
+            "createdAt": "2026-09-14T10:05:00+02:00",
+            "changedAt": "2026-09-16T15:12:41+02:00"
           },
           "formEngine": { "mode": "edit", "records": [{ "table": "tt_content", "uid": 2 }] },
           "site": { "identifier": "main", "base": "https://www.example.com/", "rootPageId": 1 },
@@ -190,6 +198,10 @@ set. The authentication header is only sent when
               { "languageId": 1, "title": "Deutsch", "page": { "exists": true, "reasons": [] }, "record": { "exists": true, "reasons": ["hidden"], "hidden": true } }
             ]
           },
+          "placement": {
+            "column": { "colPos": 0, "label": "Main", "inBackendLayout": true },
+            "contentShownOn": { "pages": [{ "uid": 9, "title": "Team" }] }
+          },
           "fileChecks": {
             "references": {
               "checked": 2,
@@ -198,9 +210,16 @@ set. The authentication header is only sent when
                 { "field": "assets", "fieldLabel": "Media elements", "reference": 7, "file": { "uid": 12, "name": "team.jpg" }, "problems": ["hidden"] }
               ]
             }
+          },
+          "permissions": {
+            "table": { "modify": true },
+            "page": { "uid": 2, "show": true, "editPage": false, "deletePage": false, "newPages": false, "editContent": true },
+            "language": { "id": 0, "allowed": true },
+            "recordType": [{ "field": "CType", "value": "textmedia", "allowed": true }],
+            "fields": { "notAllowed": [{ "field": "hidden", "label": "Hidden" }] }
           }
         },
-        "system": { "typo3Version": "14.3.7", "phpVersion": "8.3.33", "applicationContext": "Production" },
+        "system": { "typo3Version": "14.3.7", "phpVersion": "8.3.33", "applicationContext": "Production", "timeZone": "Europe/Vienna" },
         "browser": { "summary": "Chrome 148 · macOS · 1440×900", "language": "en-US" },
         "attachments": [
           {
@@ -215,7 +234,7 @@ set. The authentication header is only sent when
           }
         ],
         "links": { "report": "https://www.example.com/typo3/module/system/context-reports/show?report=CR-CR91-A84Z-DA59" },
-        "generator": { "name": "TYPO3 Context Reporter", "package": "priebera/typo3-context-reporter", "version": "0.2.0" }
+        "generator": { "name": "TYPO3 Context Reporter", "package": "priebera/typo3-context-reporter", "version": "0.3.0" }
       }
     }
 
@@ -265,8 +284,52 @@ Notes on the report document:
     ``hidden`` (file reference) and ``brokenReference``. The section is
     omitted when nothing could be checked. Reports created before version 0.2
     have no ``fileChecks`` section.
-*   New fields can be added in later versions. Receivers should ignore
-    unknown fields.
+*   ``context.page.frontendUrl`` is the address TYPO3 builds for the page.
+    It is left out when there is no address (no site, a page type without
+    view, a language the site does not have, a page deleted in the workspace
+    or an error); ``context.routing`` explains it, see
+    :ref:`usage-website-address`. ``routing.notes`` lists ``noSite``,
+    ``deletedInWorkspace``, ``newInWorkspace``, ``notPreviewable``,
+    ``languageNotInSite``, ``languageDisabled``, ``pageNotTranslated``,
+    ``baseWithoutHost`` and ``generationFailed``; ``routing.fallback`` has the
+    ``type`` (``strict``, ``fallback``, ``free``) and the fallback
+    ``languages`` (``id``, ``title`` if the reporter may use the language) of
+    a translation language. The section is omitted when there is nothing to
+    explain. Reports created before version 0.3 have no ``routing`` section,
+    and their ``frontendUrl`` follows the former rules.
+*   ``context.placement`` (pages and content elements, see
+    :ref:`usage-placement`): ``column`` with ``colPos``, ``label`` and
+    ``inBackendLayout`` (missing when it cannot be told), ``layoutColumns``
+    (``colPos``, ``label``) when the column is not one of them,
+    ``backendLayout`` with ``identifier`` (``default`` and ``none`` for the
+    TYPO3 default), ``title``, ``source`` (``page``, ``parentPage``,
+    ``default``) and ``sourcePage``, ``contentFromPage`` (``uid``, ``title``,
+    or ``notAccessible`` / ``missing``) and ``contentShownOn`` (``pages``,
+    ``notListed``, ``notAccessible``).
+*   ``context.visibility``: pages also have ``translationBehaviour`` with
+    ``hideDefaultLanguage`` and ``hideIfNotTranslated`` (only the active
+    settings), see :ref:`usage-visibility`.
+*   ``context.fileChecks``: references also have the problem
+    ``typeNotAllowed``.
+*   ``context.fileUsage`` (reported files, see :ref:`usage-file-usage`):
+    ``references`` (count), ``usages`` with ``table``, ``uid``, ``label``,
+    ``field``, ``fieldLabel``, ``reference``, ``page`` and ``hidden``, and the
+    counts ``notListed``, ``notAccessible`` and ``notChecked``.
+*   ``context.permissions`` (reports of editors, see
+    :ref:`usage-permissions`): ``table`` (``modify``, ``adminOnly``,
+    ``readOnly``), ``page`` (``uid``, ``show``, ``editPage``, ``deletePage``,
+    ``newPages``, ``editContent``), ``editLock`` (``page``, ``record``),
+    ``language`` (``id``, ``allowed``), ``recordType`` and ``pageType`` (with
+    ``allowed``), ``fields`` (``notAllowed``, ``defaultLanguageOnly``,
+    ``disabled`` with ``field`` and ``label``, and ``…NotListed`` counts); for
+    files and folders ``fileActions``, ``folderActions``,
+    ``writableFileMount`` and ``storageWritable``. These are permission
+    facts, not TYPO3's decision whether something can be edited.
+*   ``createdAt`` and ``changedAt`` of ``context.page`` and
+    ``context.record`` and ``system.timeZone`` were added in version 0.3.
+*   New fields and new values of lists such as ``routing.notes`` or the
+    file ``problems`` can be added in later versions. Receivers should
+    ignore unknown fields and values.
 *   Backend links contain no tokens. Users who are not logged in are asked to
     log in first.
 
@@ -291,7 +354,7 @@ and not create a ticket.
         "project": { "name": "Example", "identifier": "example", "environment": "Production" },
         "reportSchema": "context-reporter.report.v1"
       },
-      "generator": { "name": "TYPO3 Context Reporter", "package": "priebera/typo3-context-reporter", "version": "0.2.0" }
+      "generator": { "name": "TYPO3 Context Reporter", "package": "priebera/typo3-context-reporter", "version": "0.3.0" }
     }
 
 Check ``X-Context-Reporter-Event`` (``report.created`` or ``test``) before

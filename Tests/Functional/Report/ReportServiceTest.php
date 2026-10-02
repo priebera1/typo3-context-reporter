@@ -160,6 +160,7 @@ final class ReportServiceTest extends AbstractContextReporterTestCase
         // The text part of the email is quoted-printable
         $mail = str_replace("\r\n", "\n", quoted_printable_decode((string)file_get_contents($this->mailbox)));
         self::assertStringContainsString("File checks\n  Reported file: not found in its storage; marked as missing\n", $mail);
+        self::assertStringContainsString("FINDINGS\nFiles\n  - Not found in its storage\n  - No file references to this file (links in texts are not counted)\n\nThese are settings", $mail);
         $envelope = json_decode((string)$this->webhookRequests[0]->getBody(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame($checks, $envelope['report']['context']['fileChecks']);
     }

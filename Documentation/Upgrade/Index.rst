@@ -40,6 +40,25 @@ In classic mode, upload the ZIP file of the new version in
 TYPO3 14) with :guilabel:`Overwrite` checked, then analyze the database
 structure and flush the caches.
 
+..  _upgrade-0-3:
+
+Updating to 0.3
+---------------
+
+*   The database schema is unchanged. Flush the caches after updating.
+*   Reports contain new optional sections, see :ref:`integration-webhook`:
+    ``routing``, ``placement``, ``fileUsage`` and ``permissions``, and new
+    fields. ``context.page.frontendUrl`` is now left out when TYPO3 has no
+    address for the page (e.g. folders, pages deleted in the workspace);
+    ``context.routing`` explains why. Receivers that require the frontend URL
+    should handle its absence.
+*   Reports of editors contain their permission facts for the reported
+    object, see :ref:`privacy-permissions`. Check that everyone who receives
+    reports may see them.
+*   The default email template has a new :guilabel:`FINDINGS` section with
+    the marker ``{context.findings}``. Custom templates keep working; add the
+    marker if you want the findings in your emails.
+
 ..  _upgrade-typo3:
 
 TYPO3 upgrades

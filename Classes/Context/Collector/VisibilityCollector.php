@@ -6,6 +6,7 @@ namespace Priebera\ContextReporter\Context\Collector;
 
 use Priebera\ContextReporter\Context\CollectionScope;
 use Priebera\ContextReporter\Context\ContextCollectorInterface;
+use Priebera\ContextReporter\Context\ServerTime;
 use Priebera\ContextReporter\Context\Subject\RecordAccess;
 use Priebera\ContextReporter\Context\Tca\TcaInspector;
 use Priebera\ContextReporter\Context\Visibility\VisibilityEvaluator;
@@ -15,6 +16,7 @@ use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Site\SiteFinder;
+use TYPO3\CMS\Core\Type\Bitmask\PageTranslationVisibility;
 
 /**
  * The stored settings that decide whether TYPO3 shows the reported page or
@@ -37,6 +39,7 @@ final readonly class VisibilityCollector implements ContextCollectorInterface
 {
     private const INHERITANCE_FIELD = 'extendToSubpages';
     private const MENU_FIELD = 'nav_hide';
+    private const TRANSLATION_BEHAVIOUR_FIELD = 'l18n_cfg';
     private const MAX_PARENT_DEPTH = 20;
     private const MAX_LANGUAGES = 30;
     private const MAX_FRONTEND_GROUPS = 10;
@@ -69,8 +72,9 @@ final readonly class VisibilityCollector implements ContextCollectorInterface
         $groupTitles = new \ArrayObject();
 
         $data = [
-            'evaluatedAt' => self::formatTime($now),
-            'subject' => $this->describe($subject->table, $subject->record, $now, $workspace, $groupTitles),
+            'evaluatedAt' => ServerTime::format($now),
+            'subject' => $this->describe($subject->table, $subject->record, $now, $workspace, $groupTitles)
+                + ($isPage ? $this->describeTranslationBehaviour($subject->record, $backendUser) : []),
         ];
 
         // The page the settings of the subject depend on: the page of a record,
@@ -78,7 +82,8 @@ final readonly class VisibilityCollector implements ContextCollectorInterface
         $page = $isRecord ? $subject->page : $this->findDefaultLanguagePage($subject->record, $backendUser);
         if ($page !== []) {
             $data['page'] = ['uid' => (int)($page['uid'] ?? 0), 'title' => (string)($page['title'] ?? '')]
-                + $this->describe('pages', $page, $now, $workspace, $groupTitles);
+                + $this->describe('pages', $page, $now, $workspace, $groupTitles)
+                + $this->describeTranslationBehaviour($page, $backendUser);
         }
         $basePage = $page !== [] ? $page : ($isPage ? $subject->record : []);
 
@@ -106,10 +111,10 @@ final readonly class VisibilityCollector implements ContextCollectorInterface
             $facts['hidden'] = true;
         }
         if ($visibility->startTime > 0) {
-            $facts['starttime'] = self::formatTime($visibility->startTime);
+            $facts['starttime'] = ServerTime::format($visibility->startTime);
         }
         if ($visibility->endTime > 0) {
-            $facts['endtime'] = self::formatTime($visibility->endTime);
+            $facts['endtime'] = ServerTime::format($visibility->endTime);
         }
         if ($visibility->frontendGroups !== []) {
             $facts['frontendGroups'] = $this->describeGroups($table, $enableFields->frontendGroups, $visibility->frontendGroups, $groupTitles);
@@ -129,6 +134,30 @@ final readonly class VisibilityCollector implements ContextCollectorInterface
             $facts['workspaceState'] = $workspaceState;
         }
         return $facts;
+    }
+
+    /**
+     * "Translation behaviour" (l18n_cfg) of a default language page, which
+     * applies to all its translations: "Hide default language of page" and
+     * "Hide page if no translation for the current language exists". The
+     * latter is inverted by $GLOBALS['TYPO3_CONF_VARS']['FE']['hidePagesIfNotTranslatedByDefault'],
+     * which PageTranslationVisibility applies. Only read with permission for
+     * the field and only reported when a setting is active.
+     *
+     * @param array<string, mixed> $page
+     * @return array{translationBehaviour?: array{hideDefaultLanguage?: true, hideIfNotTranslated?: true}}
+     */
+    private function describeTranslationBehaviour(array $page, BackendUserAuthentication $backendUser): array
+    {
+        if ($this->getLanguage('pages', $page) !== 0 || !$this->mayRead('pages', self::TRANSLATION_BEHAVIOUR_FIELD, $backendUser)) {
+            return [];
+        }
+        $settings = new PageTranslationVisibility((int)($page[self::TRANSLATION_BEHAVIOUR_FIELD] ?? 0));
+        $behaviour = array_filter([
+            'hideDefaultLanguage' => $settings->shouldBeHiddenInDefaultLanguage(),
+            'hideIfNotTranslated' => $settings->shouldHideTranslationIfNoTranslatedRecordExists(),
+        ]);
+        return $behaviour !== [] ? ['translationBehaviour' => $behaviour] : [];
     }
 
     /**
@@ -280,12 +309,5 @@ final readonly class VisibilityCollector implements ContextCollectorInterface
     {
         return $this->tca->hasColumn($table, $field)
             && (!$this->tca->isExcludeField($table, $field) || $backendUser->isAdmin() || $backendUser->check('non_exclude_fields', $table . ':' . $field));
-    }
-
-    private static function formatTime(int $timestamp): string
-    {
-        return (new \DateTimeImmutable('@' . $timestamp))
-            ->setTimezone(new \DateTimeZone(date_default_timezone_get()))
-            ->format(\DateTimeInterface::ATOM);
     }
 }

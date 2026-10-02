@@ -36,6 +36,8 @@ final class SubjectPresenterTest extends AbstractContextReporterTestCase
         self::assertSame('main · English · Live · ' . self::coreModuleLabel('web_list'), $presentation->getMetaLine());
         self::assertSame([
             ['key' => 'page', 'label' => 'Page', 'value' => 'About [2]'],
+            // The column of the default backend layout
+            ['key' => 'column', 'label' => 'Column', 'value' => 'Normal [0]'],
             ['key' => 'site', 'label' => 'Site', 'value' => 'main'],
             ['key' => 'language', 'label' => 'Language', 'value' => 'English'],
             ['key' => 'workspace', 'label' => 'Workspace', 'value' => 'Live'],
@@ -255,11 +257,10 @@ final class SubjectPresenterTest extends AbstractContextReporterTestCase
 
         $data = $this->present(['source' => 'contextMenu', 'target' => ['type' => 'page', 'uid' => 2]])->toArray();
 
-        self::assertSame(['kind', 'icon', 'typeLabel', 'title', 'identifier', 'location', 'meta', 'facts', 'visibility', 'fileChecks'], array_keys($data));
+        self::assertSame(['kind', 'icon', 'typeLabel', 'title', 'identifier', 'location', 'meta', 'facts', 'findings'], array_keys($data));
         self::assertSame('main · English · Live', $data['meta']);
         // Visible page with a visible translation and without file problems: nothing to point out
-        self::assertNull($data['visibility']);
-        self::assertNull($data['fileChecks']);
+        self::assertNull($data['findings']);
     }
 
     /**

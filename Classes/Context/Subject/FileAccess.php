@@ -19,6 +19,10 @@ use TYPO3\CMS\Core\Resource\Security\FileNameValidator;
  * permissions the storage evaluates (user file permissions, file mounts,
  * driver permissions). Nothing is indexed or created on the way.
  *
+ * Access fails closed: a resource whose storage, driver or index entry is
+ * unusable is not accessible, whatever the lookup throws (also errors of
+ * third-party drivers), so callers such as the context menu never fail.
+ *
  * @internal
  */
 final readonly class FileAccess
@@ -42,8 +46,8 @@ final readonly class FileAccess
             ) {
                 return null;
             }
-        } catch (\Exception) {
-            // Unknown file, unknown storage or no permission
+        } catch (\Throwable) {
+            // Unknown file, unknown storage, no permission or an unusable storage
             return null;
         }
         return $file;
@@ -72,8 +76,8 @@ final readonly class FileAccess
             ) {
                 return null;
             }
-        } catch (\Exception) {
-            // Unknown storage or no permission
+        } catch (\Throwable) {
+            // Unknown storage, no permission or an unusable storage
             return null;
         }
         return $file;
@@ -115,8 +119,8 @@ final readonly class FileAccess
             ) {
                 return null;
             }
-        } catch (\Exception) {
-            // Unknown folder, unknown storage or no permission
+        } catch (\Throwable) {
+            // Unknown folder, unknown storage, no permission or an unusable storage
             return null;
         }
         return $folder;
@@ -133,7 +137,8 @@ final readonly class FileAccess
         }
         try {
             $resource = $this->resourceFactory->getObjectFromCombinedIdentifier($combinedIdentifier);
-        } catch (\Exception) {
+        } catch (\Throwable) {
+            // e.g. a file deleted after the file list was loaded, or an unusable storage
             return null;
         }
         return match (true) {

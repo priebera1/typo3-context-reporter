@@ -18,16 +18,39 @@ Frontend
 
 Visibility settings
     The report lists stored settings (hidden, start and end time, frontend
-    user groups, "Hidden in menus", "Extend to subpages", translations and the
-    workspace state). It does not check the website: templates and
-    TypoScript, caches and CDNs, extensions with their own access rules,
-    the visitor's login, language fallbacks, mount points and shortcuts can
-    change what visitors see. Content in a column the page layout does not
-    show is not detected. The translation behaviour of pages ("Hide default
-    language of page", "Hide page if no translation for current language
-    exists") is not evaluated yet. Only connected translations are found,
-    not content created independently in a language (free mode). Parent
-    pages are read up to 20 levels and at most 30 languages are listed.
+    user groups, "Hidden in menus", "Extend to subpages", the translation
+    behaviour of pages, translations and the workspace state). It does not
+    check the website: templates and TypoScript, caches and CDNs, extensions
+    with their own access rules, the visitor's login, language fallbacks,
+    mount points and shortcuts can change what visitors see. Only connected
+    translations are found, not content created independently in a language
+    (free mode). Parent pages are read up to 20 levels and at most 30
+    languages are listed.
+
+Website address
+    The address is built by TYPO3's router from the page and the site
+    configuration, like the :guilabel:`View` button does. Whether visitors
+    get the page, a fallback language or an error, and which route enhancer,
+    base variant or redirect applies, is decided when the page is requested
+    and is not evaluated. Addresses of records with their own detail page
+    (e.g. news, configured with ``TCEMAIN.preview``) are not built; the
+    report contains the address of the page the record is stored on, if that
+    page has one.
+
+Placement
+    The columns are the ones TYPO3 offers in the column field of the editing
+    form, from the backend layout of the page and the item functions of
+    extensions. TSconfig that adds or removes column items is not applied,
+    like in the Page module. Extensions that place elements in other columns
+    without offering them in the column field (e.g. some grid or container
+    extensions) make such elements appear as "not a column of the backend
+    layout". If the column item function of an extension fails, TYPO3 shows
+    its usual error message to the reporter. The backend layout and where it
+    is set follow the rule TYPO3 documents for the two backend layout fields,
+    through parent pages the reporter may access (up to 20 levels). For
+    :guilabel:`Show content from page`, the default language page is
+    evaluated, and at most 100 pages that show the content are checked and 10
+    named. Whether the website shows the content depends on the templates.
 
 File checks
     Referenced files are checked with the file index of TYPO3: a file that
@@ -36,8 +59,12 @@ File checks
     Abstraction Layer: Update storage index". Only a reported file is looked
     up in its storage. File fields in FlexForms (plugin settings) and display
     conditions of fields are not evaluated, and image processing, file
-    permissions of the web server and the frontend output are not checked. At
-    most 100 references are checked and 10 problems listed.
+    permissions of the web server and the frontend output are not checked.
+    File types are checked like TYPO3 checks them when a record is saved:
+    the extension of the file name against ``allowed`` and ``disallowed`` of
+    the field (with the overrides of the record type), not the extension
+    stored in the file index and not the MIME type of the file. At most 100
+    references are checked and 10 problems listed.
 
 Languages
     A page is reported in one language. When several languages are shown
@@ -60,9 +87,12 @@ File list views
     Projects that define ``options.file_list.primaryActions`` themselves need
     to add ``contextReporterReport`` to see the button.
 
-File references
-    Reports about files do not list where a file is used (references), and
-    metadata values are not collected.
+File usage
+    Reports about files list the file references of the reporter's current
+    workspace. Links to a file in texts (soft references, e.g. in the rich
+    text editor) and usages in TypoScript or templates are not counted. At most
+    100 references are checked and 10 usages named. Metadata values of files
+    are not collected.
 
 Screen capture
     Screen capture uses the browser's Screen Capture API. It requires a
@@ -101,10 +131,15 @@ Workspaces
     backend link see the draft only when they work in the same workspace.
 
 Edit permissions
-    Reports only reference pages, records, files and folders the reporter can
-    access, but they do not contain a snapshot of the reporter's edit
-    permissions (for example field or language restrictions). The complete
-    record edit check of TYPO3 is internal API.
+    Reports of editors contain permission facts: table and page permissions,
+    edit locks, language, record type, page type, field availability and
+    file permissions. They never say whether something can be edited: TYPO3's
+    complete check is internal API and also depends on workspace rules (live
+    editing, stages), hooks and event listeners of extensions, which are not
+    evaluated. Display conditions of fields, TSconfig other than
+    ``TCEFORM.<table>.<field>.disabled`` and the permissions of the workspace
+    are not part of the report. At most 20 fields are named per list.
+    Reports of administrators contain no permission facts.
 
 Storage
     Reports and screenshots are stored in the TYPO3 database. The database

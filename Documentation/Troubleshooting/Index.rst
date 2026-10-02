@@ -66,6 +66,53 @@ Restrictions of parent pages ("Extend to subpages") are only listed for
 reporters who may edit that field, and only up to the first parent page they
 can access.
 
+..  _troubleshooting-website-address:
+
+The report has no website address
+=================================
+
+The :guilabel:`Website address` findings say why, see
+:ref:`usage-website-address`: the page belongs to no site, TYPO3 offers no
+view for its page type (folders, spacers, or page TSconfig
+``TCEMAIN.preview.disableButtonForDokType``), the site has no such language,
+or the page is deleted in the reporter's workspace. Records with their own
+detail page, e.g. news, get the address of the page they are stored on only.
+
+..  _troubleshooting-context-menu:
+
+The context menu of a file or folder shows an error
+===================================================
+
+TYPO3 13.4 and 14.3 fail with "Call to a member function
+checkActionPermission() on null" when the context menu of a file or folder
+is opened that TYPO3 cannot find any more, for example because it was
+deleted, renamed or moved after the file list was loaded. The error comes from
+the file list of TYPO3 and also occurs without Context Reporter. Reload the
+file list. Context Reporter leaves its :guilabel:`Report a problem` item out
+for files and folders it cannot resolve or access.
+
+..  _troubleshooting-file-types:
+
+A file of the wrong type is not mentioned in the file checks
+============================================================
+
+The file checks name the file types TYPO3 removes when the record is saved,
+see :ref:`usage-file-checks`. The type is the extension of the file name, not
+the extension stored in the file index. Image fields allow the image file types
+of TYPO3 (``$GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext']``), which
+include ``pdf``, ``ai`` and ``svg`` by default, so a PDF in an image field is
+not a problem for TYPO3.
+
+..  _troubleshooting-permissions:
+
+The permission facts look complete, but the record cannot be edited
+=====================================================================
+
+The permission facts are inputs of TYPO3's checks, not its decision, see
+:ref:`usage-permissions`. Workspace rules, hooks and extensions can deny
+editing anyway. Use :guilabel:`Switch to user` in the Backend users module to
+see the backend as the reporter does.
+
 ..  _troubleshooting-classic-upload:
 
 The Extension Manager says the extension is not available

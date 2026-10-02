@@ -43,6 +43,36 @@ final class FileCheckEvaluatorTest extends TestCase
         self::assertSame($expected, (new FileCheckEvaluator())->checkIndexedFile($this->createFile($storage, $properties)));
     }
 
+    /**
+     * @return iterable<string, array{string, array<string, mixed>, bool}>
+     */
+    public static function fileTypeProvider(): iterable
+    {
+        yield 'no restriction' => ['txt', ['type' => 'file'], true];
+        yield 'allowed' => ['jpg', ['allowed' => 'gif,jpg,png'], true];
+        yield 'not allowed' => ['txt', ['allowed' => 'gif,jpg,png'], false];
+        yield 'extension in other case' => ['jpg', ['allowed' => 'GIF, JPG'], true];
+        yield 'file without extension' => ['', ['allowed' => 'gif,jpg,png'], false];
+        yield 'file without extension, no restriction' => ['', [], true];
+        yield 'disallowed' => ['svg', ['disallowed' => 'svg,exe'], false];
+        yield 'not disallowed' => ['png', ['disallowed' => 'svg,exe'], true];
+        yield 'allowed and disallowed' => ['svg', ['allowed' => 'svg,png', 'disallowed' => 'svg'], false];
+        yield 'empty lists' => ['exe', ['allowed' => '', 'disallowed' => ''], true];
+        yield 'lists as arrays' => ['png', ['allowed' => ['jpg', 'png']], true];
+    }
+
+    /**
+     * The rule of DataHandler, which removes references to files of other types on save.
+     *
+     * @param array<string, mixed> $fieldConfiguration
+     */
+    #[Test]
+    #[DataProvider('fileTypeProvider')]
+    public function fileTypesFollowTheAllowedAndDisallowedExtensionsOfTheField(string $extension, array $fieldConfiguration, bool $expected): void
+    {
+        self::assertSame($expected, FileCheckEvaluator::isAllowedInField($extension, $fieldConfiguration));
+    }
+
     #[Test]
     public function aReportedFileIsLookedUpInItsStorage(): void
     {

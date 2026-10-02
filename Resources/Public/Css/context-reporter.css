@@ -151,10 +151,9 @@
   font-size: var(--cr-font-small);
 }
 
-/* Visibility and file check notices below the detected object (dialog and report detail) */
+/* Findings below the detected object (dialog and report detail) */
 
-.cr-visibility,
-.cr-file-checks {
+.cr-findings {
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--cr-border-color);
   border-inline-start: 3px solid var(--typo3-state-warning-border-color, #e8a33d);
@@ -162,35 +161,45 @@
   background: var(--cr-surface);
 }
 
-.cr-visibility__title,
-.cr-file-checks__title {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
+.cr-findings__title {
   margin: 0;
   font-weight: 600;
 }
 
-.cr-visibility__list,
-.cr-file-checks__list {
+.cr-findings__group {
+  margin-top: 0.5rem;
+}
+
+.cr-findings__group-title {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0;
+  font-size: inherit;
+  font-weight: 600;
+}
+
+.cr-findings__list {
   margin: 0.25rem 0 0;
   padding-inline-start: 1.25rem;
 }
 
-.cr-visibility__list li,
-.cr-file-checks__list li {
+.cr-findings__list li {
   overflow-wrap: anywhere;
 }
 
-.cr-visibility__note,
-.cr-file-checks__note {
+.cr-findings__more,
+.cr-findings__note {
   margin: 0.25rem 0 0;
   color: var(--cr-muted-color);
   font-size: var(--cr-font-small);
 }
 
-.cr-subject .cr-visibility,
-.cr-subject .cr-file-checks {
+.cr-findings__note {
+  margin-top: 0.5rem;
+}
+
+.cr-subject .cr-findings {
   margin-top: 1rem;
 }
 

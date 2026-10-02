@@ -64,6 +64,22 @@ final readonly class MarkdownReportExporter
             }
         }
 
+        $findings = $this->detailsFormatter->buildFindings($payload);
+        if ($findings !== null) {
+            $lines[] = '';
+            $lines[] = '## Findings';
+            foreach ($findings['groups'] as $group) {
+                $lines[] = '';
+                $lines[] = '### ' . $this->inline($group['title']);
+                $lines[] = '';
+                foreach ($group['items'] as $item) {
+                    $lines[] = '- ' . $this->inline($item);
+                }
+            }
+            $lines[] = '';
+            $lines[] = '_' . $this->inline($findings['note']) . '_';
+        }
+
         $lines[] = '';
         $lines[] = '## Context';
         $lines[] = '';

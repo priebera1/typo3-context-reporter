@@ -56,15 +56,15 @@ Subject
     its label, type and a backend link.
 
 Page
-    UID, PID, title, slug, page type, hidden flag, rootline, backend link,
-    edit link and frontend URL.
+    UID, PID, title, slug, page type, hidden flag, creation and last change,
+    rootline, backend link, edit link and frontend URL (website address).
 
 Record
     Table, UID, PID, label, record type with its label, language,
-    translation source, ``colPos``, hidden flag, workspace version and backend
-    link. Apart from the label (the title TYPO3 shows for the record), no
-    field values are collected; multi-line text such as the body text of a
-    content element is never used as label.
+    translation source, ``colPos``, hidden flag, workspace version, creation
+    and last change, and backend link. Apart from the label (the title TYPO3
+    shows for the record), no field values are collected; multi-line text
+    such as the body text of a content element is never used as label.
 
 File
     ``sys_file`` UID, storage UID, identifier, name, extension, MIME type,
@@ -91,19 +91,43 @@ Site, language, workspace
 
 Visibility
     For pages and records: the stored settings that decide whether TYPO3
-    shows them to website visitors, see :ref:`usage-visibility`.
+    shows them to website visitors, including the translation behaviour of
+    pages, see :ref:`usage-visibility`.
+
+Website address
+    For pages and records on pages: the facts behind the frontend URL, such
+    as no site, a page type without view, a disabled language, a missing
+    translation with the fallback languages, or a page that is new or deleted
+    in the workspace, see :ref:`usage-website-address`.
+
+Placement
+    For content elements: the column and whether the backend layout of the
+    page has it. For pages and content elements: the backend layout and where
+    it is set, and :guilabel:`Show content from page` in both directions, see
+    :ref:`usage-placement`.
 
 File checks
     For a file: whether its storage has it, whether it is empty or marked as
     missing. For pages and records: problems of the files their file fields
-    refer to, see :ref:`usage-file-checks`.
+    refer to, including file types the field does not allow, see
+    :ref:`usage-file-checks`.
+
+File usage
+    For a file: the records and fields that refer to it, as far as the
+    reporter may access them, see :ref:`usage-file-usage`.
+
+Permissions
+    For reports of editors: their permissions for the reported page, record,
+    file or folder, see :ref:`usage-permissions`.
 
 Backend
-    Module, route and backend language. Tokens and return URLs are removed.
+    Module, route, page ID and listed table, and backend language. Tokens and
+    return URLs are removed; tables are only named if the reporter may list
+    them.
 
 System
     TYPO3 and PHP versions, application context, Composer mode, database
-    platform, operating system and extension version.
+    platform, operating system, time zone and extension version.
 
 Browser
     Browser, operating system, user agent, languages, time zone, window and
@@ -118,7 +142,8 @@ Recent backend errors
     Opt-in: the reporter's own error and warning entries of the backend log,
     see :ref:`privacy-recent-errors`.
 
-The report dialog shows all of this before the report is sent. See
+The report dialog shows all of this before the report is sent, and the
+:ref:`findings <usage-findings>` summarize what stands out. See
 :ref:`privacy-security` for what is deliberately not collected.
 
 ..  _introduction-scope:

@@ -72,7 +72,7 @@ Composer), install the ZIP file from the
     automatically after download from TER or file upload`.
 #.  Open :guilabel:`Admin Tools > Extensions` (:guilabel:`System >
     Extensions` in TYPO3 14), choose :guilabel:`Upload Extension` and upload
-    the ZIP file, for example :file:`context_reporter_0.2.0.zip`. Keep the
+    the ZIP file, for example :file:`context_reporter_0.3.0.zip`. Keep the
     file name: the Extension Manager reads the extension key from it.
 #.  Click :guilabel:`Activate` next to :guilabel:`Context Reporter` (and
     confirm in TYPO3 14). The activation creates the database tables.

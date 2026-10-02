@@ -12,6 +12,7 @@ use Priebera\ContextReporter\Configuration\ExtensionInfo;
 use Priebera\ContextReporter\Context\CollectionScope;
 use Priebera\ContextReporter\Context\ContextCollectorInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsTaggedItem;
+use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Information\Typo3Version;
@@ -28,6 +29,7 @@ final readonly class SystemCollector implements ContextCollectorInterface
         private Typo3Version $typo3Version,
         private ConnectionPool $connectionPool,
         private ExtensionInfo $extensionInfo,
+        private Context $context,
     ) {}
 
     public function getSectionKey(): string
@@ -48,6 +50,11 @@ final readonly class SystemCollector implements ContextCollectorInterface
             $system['databasePlatform'] = $database;
         }
         $system['operatingSystem'] = PHP_OS_FAMILY;
+        // The zone TYPO3 shows and reports times in ($GLOBALS['TYPO3_CONF_VARS']['SYS']['phpTimeZone'])
+        $timeZone = $this->context->getPropertyFromAspect('date', 'timezone', '');
+        if (is_string($timeZone) && $timeZone !== '') {
+            $system['timeZone'] = $timeZone;
+        }
         if ($this->extensionInfo->getVersion() !== '') {
             $system['extensionVersion'] = $this->extensionInfo->getVersion();
         }

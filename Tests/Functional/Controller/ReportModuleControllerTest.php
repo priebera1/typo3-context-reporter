@@ -148,9 +148,10 @@ final class ReportModuleControllerTest extends AbstractContextReporterTestCase
         $html = $this->render('system_contextreports.show', ['report' => $identifier]);
 
         $subject = $this->extractBetween($html, 'id="cr-subject-heading"', 'cr-description-heading');
-        self::assertStringContainsString('Visibility settings', $subject);
+        self::assertStringContainsString('id="cr-findings-heading">Findings</h3>', $subject);
+        self::assertStringContainsString('id="cr-findings-visibility-heading"', $subject);
         self::assertStringContainsString('<li>Translation Deutsch: Hidden</li>', $subject);
-        self::assertStringContainsString('These are the settings stored in TYPO3.', $subject);
+        self::assertStringContainsString('These are settings and permissions stored in TYPO3, not a check of the website', $subject);
         $technical = $this->extractBetween($html, 'cr-technical-details', 'cr-danger-zone');
         self::assertStringContainsString('Translation Deutsch [1]', $technical);
     }
@@ -165,8 +166,7 @@ final class ReportModuleControllerTest extends AbstractContextReporterTestCase
         $html = $this->render('system_contextreports.show', ['report' => $report->identifier]);
 
         self::assertStringContainsString('Hero teaser', $html);
-        self::assertStringNotContainsString('cr-visibility', $html);
-        self::assertStringNotContainsString('Visibility settings', $html);
+        self::assertStringNotContainsString('cr-findings', $html);
     }
 
     #[Test]
@@ -179,10 +179,9 @@ final class ReportModuleControllerTest extends AbstractContextReporterTestCase
         $html = $this->render('system_contextreports.show', ['report' => $identifier]);
 
         $subject = $this->extractBetween($html, 'id="cr-subject-heading"', 'cr-description-heading');
-        self::assertStringContainsString('id="cr-file-checks-heading"', $subject);
+        self::assertStringContainsString('id="cr-findings-files-heading"', $subject);
         self::assertStringContainsString('<li>Not found in its storage</li>', $subject);
-        self::assertStringContainsString('Based on the TYPO3 file index.', $subject);
-        self::assertStringNotContainsString('cr-visibility', $subject);
+        self::assertStringNotContainsString('id="cr-findings-visibility-heading"', $subject);
         $technical = $this->extractBetween($html, 'cr-technical-details', 'cr-danger-zone');
         self::assertStringContainsString('not found in its storage; marked as missing', $technical);
     }
@@ -197,8 +196,7 @@ final class ReportModuleControllerTest extends AbstractContextReporterTestCase
         $html = $this->render('system_contextreports.show', ['report' => $report->identifier]);
 
         self::assertStringContainsString('Hero teaser', $html);
-        self::assertStringNotContainsString('cr-file-checks', $html);
-        self::assertStringNotContainsString('File checks', $html);
+        self::assertStringNotContainsString('cr-findings-files', $html);
     }
 
     #[Test]

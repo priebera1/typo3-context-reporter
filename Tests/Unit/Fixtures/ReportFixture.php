@@ -163,6 +163,52 @@ final class ReportFixture
     }
 
     /**
+     * The record document with the sections added in 0.3.0: a French element
+     * in a disabled language on a page without French translation, in a
+     * column the backend layout does not have, on a page that shows the
+     * content of another page, reported by an editor without permission to
+     * modify content elements.
+     *
+     * @return array<string, mixed>
+     */
+    public static function documentWithDiagnostics(): array
+    {
+        $document = self::documentWithFileChecks();
+        $document['context']['record']['languageId'] = 2;
+        $document['context']['record']['colPos'] = 3;
+        $document['context']['record']['createdAt'] = '2026-09-21T16:13:20+02:00';
+        $document['context']['record']['changedAt'] = '2026-12-23T05:26:40+01:00';
+        $document['context']['language'] = ['id' => 2, 'title' => 'Français', 'locale' => 'fr-FR', 'enabled' => false];
+        $document['context']['fileChecks']['references']['problems'][] = [
+            'field' => 'image', 'fieldLabel' => 'Images', 'reference' => 84, 'file' => ['uid' => 14, 'name' => 'notes.txt'], 'problems' => ['typeNotAllowed'],
+        ];
+        $document['context']['routing'] = [
+            'notes' => ['languageDisabled', 'pageNotTranslated'],
+            'fallback' => ['type' => 'fallback', 'languages' => [['id' => 0, 'title' => 'English'], ['id' => 1]]],
+        ];
+        $document['context']['placement'] = [
+            'column' => ['colPos' => 3, 'inBackendLayout' => false],
+            'layoutColumns' => [['colPos' => 0, 'label' => 'Main'], ['colPos' => 5, 'label' => 'Sidebar']],
+            'backendLayout' => ['identifier' => 'pagets__two', 'title' => 'Two columns', 'source' => 'parentPage', 'sourcePage' => ['uid' => 1, 'title' => 'Home']],
+            'contentFromPage' => ['uid' => 7, 'title' => 'Shared content'],
+            'contentShownOn' => ['pages' => [['uid' => 9, 'title' => 'Landing']], 'notAccessible' => 2],
+        ];
+        $document['context']['permissions'] = [
+            'table' => ['modify' => false],
+            'page' => ['uid' => 1, 'show' => true, 'editPage' => false, 'deletePage' => false, 'newPages' => false, 'editContent' => false],
+            'editLock' => ['record' => true],
+            'language' => ['id' => 2, 'allowed' => false],
+            'recordType' => [['field' => 'CType', 'value' => 'textmedia', 'allowed' => false]],
+            'fields' => [
+                'notAllowed' => [['field' => 'hidden', 'label' => 'Hidden'], ['field' => 'layout', 'label' => 'Layout']],
+                'disabled' => [['field' => 'header', 'label' => 'Header']],
+            ],
+        ];
+        $document['system']['timeZone'] = 'Europe/Vienna';
+        return $document;
+    }
+
+    /**
      * A report about a file opened in the file list.
      *
      * @return array<string, mixed>

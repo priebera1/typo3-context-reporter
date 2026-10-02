@@ -7,28 +7,29 @@ namespace Priebera\ContextReporter\Context\Collector;
 use Priebera\ContextReporter\Backend\BackendLinkBuilder;
 use Priebera\ContextReporter\Context\CollectionScope;
 use Priebera\ContextReporter\Context\ContextCollectorInterface;
+use Priebera\ContextReporter\Context\ServerTime;
 use Priebera\ContextReporter\Context\Subject\FileAccess;
+use Priebera\ContextReporter\Context\Subject\RecordLabel;
 use Priebera\ContextReporter\Context\Tca\TcaInspector;
 use Priebera\ContextReporter\Domain\SubjectType;
 use Symfony\Component\DependencyInjection\Attribute\AsTaggedItem;
-use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 
 /**
  * Metadata of the record a report is about. Field values are never copied;
- * only the record identity, its label, type, language and visibility.
+ * only the record identity, its label, type, language, visibility and the
+ * times TYPO3 keeps for it (created, last changed).
  *
  * @internal
  */
 #[AsTaggedItem(priority: 80)]
 final readonly class RecordCollector implements ContextCollectorInterface
 {
-    private const MAX_LABEL_LENGTH = 200;
-
     public function __construct(
         private TcaInspector $tca,
         private BackendLinkBuilder $links,
         private FileAccess $fileAccess,
+        private RecordLabel $recordLabel,
     ) {}
 
     public function getSectionKey(): string
@@ -56,7 +57,7 @@ final readonly class RecordCollector implements ContextCollectorInterface
         $record = $subject->record;
         $data['uid'] = $subject->uid;
         $data['pid'] = (int)($record['pid'] ?? 0);
-        $label = $this->mayUseLabel($table, $record, $scope->backendUser) ? $this->createLabel($table, $record) : '';
+        $label = $this->mayUseLabel($table, $record, $scope->backendUser) ? $this->recordLabel->create($table, $record) : '';
         if ($label !== '') {
             $data['label'] = $label;
         }
@@ -89,6 +90,8 @@ final readonly class RecordCollector implements ContextCollectorInterface
         if ($versionUid > 0 && $versionUid !== $subject->uid) {
             $data['workspaceVersionUid'] = $versionUid;
         }
+        // The row as the reporter sees it: in a workspace, the times of the version
+        $data += ServerTime::describeRecord($record, $this->tca->getCreationTimeField($table), $this->tca->getChangeTimeField($table));
         $backendUrl = $this->links->editRecord($table, $subject->uid);
         if ($backendUrl !== '') {
             $data['backendUrl'] = $backendUrl;
@@ -107,26 +110,5 @@ final readonly class RecordCollector implements ContextCollectorInterface
     {
         return $table !== 'sys_file_reference'
             || $this->fileAccess->findIndexedFile((int)($record['uid_local'] ?? 0), $backendUser) !== null;
-    }
-
-    /**
-     * @param array<string, mixed> $record
-     */
-    private function createLabel(string $table, array $record): string
-    {
-        // TYPO3 falls back to other fields when the label field is empty (label_alt),
-        // e.g. to the body text of a content element. Free text is content, not a title.
-        foreach ($this->tca->getContentFields($table) as $field) {
-            if (array_key_exists($field, $record)) {
-                $record[$field] = '';
-            }
-        }
-        try {
-            $label = (string)BackendUtility::getRecordTitle($table, $record, false, false);
-        } catch (\Throwable) {
-            return '';
-        }
-        $label = trim((string)preg_replace('/\s+/', ' ', strip_tags($label)));
-        return mb_strlen($label) > self::MAX_LABEL_LENGTH ? mb_substr($label, 0, self::MAX_LABEL_LENGTH) . '…' : $label;
     }
 }

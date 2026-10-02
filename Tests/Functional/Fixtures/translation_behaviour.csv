@@ -1,0 +1,14 @@
+"pages"
+,"uid","pid","title","slug","doktype","hidden","deleted","perms_userid","perms_groupid","perms_user","perms_group","perms_everybody","sys_language_uid","l10n_parent","l18n_cfg"
+,27,2,"English hidden","/about/english-hidden",1,0,0,1,1,31,31,0,0,0,3
+,28,2,"Translations only","/about/translations-only",1,0,0,1,1,31,31,0,0,0,2
+,29,2,"Nur übersetzt","/about/translations-only",1,0,0,1,1,31,31,0,1,28,2
+"tt_content"
+,"uid","pid","CType","header","bodytext","colPos","sys_language_uid","l18n_parent"
+,59,28,"text","Element on a page without default language","",0,0,0
+"be_groups"
+,"uid","pid","title","tables_select","tables_modify","db_mountpoints","groupMods","non_exclude_fields"
+,10,0,"Translation behaviour readers","pages,tt_content","pages,tt_content","2","web_layout,web_list","pages:l18n_cfg"
+"be_users"
+,"uid","pid","username","password","admin","usergroup","realName","email","lang","db_mountpoints","options","workspace_perms","disable","deleted"
+,12,0,"tara","$argon2i$v=19$m=65536,t=16,p=1$c29tZXNhbHQ$Kxt6ZxgHKVTLaRJGb0VBdGtYGYnTX0WNe4OHOfr5HDc",0,"1,10","Tara Translation","tara@example.com","default","",3,1,0,0

@@ -49,6 +49,11 @@ final readonly class BackendCollector implements ContextCollectorInterface
             $backend['route'] = ['identifier' => $scope->route->identifier, 'path' => $scope->route->path];
         }
         $parameters = $location->getSafeQueryParameters();
+        $table = $parameters['table'] ?? '';
+        // Only tables of the TCA the reporter may list, e.g. the table of the record list
+        if ($table !== '' && (!$this->tca->hasTable($table) || !$scope->backendUser->check('tables_select', $table))) {
+            unset($parameters['table']);
+        }
         if ($parameters !== []) {
             $backend['parameters'] = $parameters;
         }

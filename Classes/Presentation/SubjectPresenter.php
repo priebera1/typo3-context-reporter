@@ -33,8 +33,7 @@ final readonly class SubjectPresenter
         private ModuleProvider $moduleProvider,
         private IconFactory $iconFactory,
         private LanguageServiceFactory $languageServiceFactory,
-        private VisibilityNoticeBuilder $visibilityNotices,
-        private FileCheckNoticeBuilder $fileCheckNotices,
+        private FindingsBuilder $findings,
     ) {}
 
     public function present(ContextDocument $document): SubjectPresentation
@@ -68,12 +67,11 @@ final readonly class SubjectPresenter
             typeLabel: $typeLabel,
             title: $this->string($page, 'title') ?: $this->string($subject, 'label') ?: $this->label('subject.untitled', $languageService),
             identifier: $uid !== '' ? sprintf($this->label('subject.uid', $languageService), $uid) : '',
-            facts: $this->contextFacts($document, $languageService),
+            facts: array_merge($this->changeFact($page, $languageService), $this->contextFacts($document, $languageService)),
             backendUrl: $this->string($page, 'backendUrl') ?: $this->string($subject, 'backendUrl'),
             frontendUrl: $this->string($page, 'frontendUrl'),
             listTitle: $this->shorten($this->string($page, 'title') ?: $this->string($subject, 'label')),
-            visibility: $this->visibilityNotices->build($document, $languageService),
-            fileChecks: $this->fileCheckNotices->build($document, $languageService),
+            findings: $this->findings->build($document, $languageService),
         );
     }
 
@@ -121,6 +119,14 @@ final readonly class SubjectPresenter
         if ($page !== []) {
             $pageFact[] = $this->fact('page', 'subject.fact.page', sprintf('%s [%s]', $this->string($page, 'title'), $this->string($page, 'uid')), $languageService);
         }
+        $column = $this->describeColumn($record, $document->getContextSection('placement'));
+        if ($column !== '') {
+            $pageFact[] = $this->fact('column', 'subject.fact.column', $column, $languageService);
+        }
+        $changed = $this->formatTime($this->string($record, 'changedAt'));
+        if ($changed !== '') {
+            $pageFact[] = $this->fact('changed', 'subject.fact.changed', $changed, $languageService);
+        }
 
         return new SubjectPresentation(
             kind: SubjectType::Record->value,
@@ -133,8 +139,7 @@ final readonly class SubjectPresenter
             backendUrl: $this->string($record, 'backendUrl') ?: $this->string($subject, 'backendUrl'),
             frontendUrl: $this->string($page, 'frontendUrl'),
             listTitle: $this->shorten($title, $recordType),
-            visibility: $this->visibilityNotices->build($document, $languageService),
-            fileChecks: $this->fileCheckNotices->build($document, $languageService),
+            findings: $this->findings->build($document, $languageService),
         );
     }
 
@@ -165,7 +170,7 @@ final readonly class SubjectPresenter
             facts: array_merge($facts, $this->contextFacts($document, $languageService)),
             backendUrl: $this->string($file, 'backendUrl') ?: $this->string($subject, 'backendUrl'),
             listTitle: $this->shorten($this->string($file, 'name') ?: $this->string($subject, 'label')),
-            fileChecks: $this->fileCheckNotices->build($document, $languageService),
+            findings: $this->findings->build($document, $languageService),
         );
     }
 
@@ -190,6 +195,7 @@ final readonly class SubjectPresenter
             facts: array_merge($facts, $this->contextFacts($document, $languageService)),
             backendUrl: $this->string($folder, 'backendUrl') ?: $this->string($subject, 'backendUrl'),
             listTitle: $this->shorten($this->string($folder, 'name') ?: $this->string($subject, 'label')),
+            findings: $this->findings->build($document, $languageService),
         );
     }
 
@@ -247,6 +253,52 @@ final readonly class SubjectPresenter
             $facts[] = $this->fact('module', 'subject.fact.module', $this->moduleTitle($module, $languageService), $languageService);
         }
         return $facts;
+    }
+
+    /**
+     * The column of a content element, named after the backend layout when
+     * the report knows the name, e.g. "Sidebar [5]".
+     *
+     * @param array<array-key, mixed> $record
+     * @param array<array-key, mixed> $placement
+     */
+    private function describeColumn(array $record, array $placement): string
+    {
+        $column = is_array($placement['column'] ?? null) ? $placement['column'] : [];
+        $colPos = $this->string($column, 'colPos') ?: $this->string($record, 'colPos');
+        if ($colPos === '') {
+            return '';
+        }
+        $label = $this->string($column, 'label');
+        return $label !== '' ? $label . ' [' . $colPos . ']' : $colPos;
+    }
+
+    /**
+     * @param array<array-key, mixed> $data
+     * @return list<array{key: string, label: string, value: string}>
+     */
+    private function changeFact(array $data, LanguageService $languageService): array
+    {
+        $changed = $this->formatTime($this->string($data, 'changedAt'));
+        return $changed !== '' ? [$this->fact('changed', 'subject.fact.changed', $changed, $languageService)] : [];
+    }
+
+    /**
+     * A stored time in the date and time format of the TYPO3 backend.
+     */
+    private function formatTime(string $time): string
+    {
+        if ($time === '') {
+            return '';
+        }
+        try {
+            $date = new \DateTimeImmutable($time);
+        } catch (\Throwable) {
+            return $time;
+        }
+        $dateFormat = $GLOBALS['TYPO3_CONF_VARS']['SYS']['ddmmyy'] ?? '';
+        $timeFormat = $GLOBALS['TYPO3_CONF_VARS']['SYS']['hhmm'] ?? '';
+        return $date->format((is_string($dateFormat) && $dateFormat !== '' ? $dateFormat : 'd-m-y') . ' ' . (is_string($timeFormat) && $timeFormat !== '' ? $timeFormat : 'H:i'));
     }
 
     /**

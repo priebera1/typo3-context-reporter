@@ -32,6 +32,20 @@ parameters:
       path: ../Classes/Backend/ReportTriggerFactory.php
       reportUnmatched: false
 
+    # PreviewUriBuilder::isPreviewable() exists as of TYPO3 13.4.15; older 13.4 versions
+    # use the TSconfig rule of PagePreviewability (Classes/Context/Routing/PagePreviewability.php).
+    -
+      message: '#^Call to function method_exists\(\) with .TYPO3\\\\CMS\\\\Backend\\\\Routing\\\\PreviewUriBuilder. and .isPreviewable. will always evaluate to true\.$#'
+      path: ../Classes/Context/Routing/PagePreviewability.php
+      reportUnmatched: false
+
+    # ItemProcessingService::processItems() (item processors) exists as of TYPO3 v14
+    # (Classes/Context/Tca/ProcessedSelectItems.php).
+    -
+      message: '#^Call to function method_exists\(\) with TYPO3\\CMS\\Core\\DataHandling\\ItemProcessingService and .processItems. will always evaluate to (true|false)\.$#'
+      path: ../Classes/Context/Tca/ProcessedSelectItems.php
+      reportUnmatched: false
+
     # ResourceFactory::getFolderObjectFromCombinedIdentifier() has no return type up to
     # TYPO3 v13, so the defensive check is redundant only on v14.
     -

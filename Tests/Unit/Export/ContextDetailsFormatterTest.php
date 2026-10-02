@@ -153,6 +153,92 @@ final class ContextDetailsFormatterTest extends UnitTestCase
         );
     }
 
+    #[Test]
+    public function diagnosticsOf030AreReadableRows(): void
+    {
+        $sections = (new ContextDetailsFormatter())->buildSections(
+            (new ReportPayloadFactory(new ExtensionInfo('1.0.0')))->create(ReportFixture::report(document: ReportFixture::documentWithDiagnostics())),
+        );
+
+        self::assertSame(
+            ['Subject', 'Page', 'Record', 'Editing form', 'Site', 'Language', 'Workspace', 'Website address', 'Placement', 'File checks', 'Permissions', 'Backend', 'Reporter', 'Project', 'System', 'Browser'],
+            array_column($sections, 'title'),
+        );
+        self::assertSame('2026-09-21T16:13:20+02:00', $this->rowsOf($sections, 'Record')['Created']);
+        self::assertSame('2026-12-23T05:26:40+01:00', $this->rowsOf($sections, 'Record')['Last changed']);
+        self::assertSame('Europe/Vienna', $this->rowsOf($sections, 'System')['Time zone']);
+        self::assertSame(
+            [
+                'Facts' => 'language disabled in the site configuration; page not translated into the language',
+                'Fallback' => 'fallback: English [0], ID 1',
+                'Note' => ContextDetailsFormatter::ROUTING_NOTE,
+            ],
+            $this->rowsOf($sections, 'Website address'),
+        );
+        self::assertSame(
+            [
+                'Column' => '3 (not a column of the backend layout)',
+                'Backend layout columns' => 'Main [0], Sidebar [5]',
+                'Backend layout' => 'Two columns (pagets__two), from parent page "Home" [1]',
+                'Content from page' => '"Shared content" [7]',
+                'Content shown on' => '"Landing" [9], 2 pages without access',
+            ],
+            $this->rowsOf($sections, 'Placement'),
+        );
+        self::assertSame(
+            'Images [image], reference 84',
+            array_keys($this->rowsOf($sections, 'File checks'))[3] ?? null,
+        );
+        self::assertSame('"notes.txt" [sys_file:14]: file type not allowed in the field', $this->rowsOf($sections, 'File checks')['Images [image], reference 84']);
+        self::assertSame(
+            [
+                'Table' => 'modify: no',
+                'Page [1]' => 'show: yes; edit page: no; delete page: no; new pages: no; edit content: no',
+                'Edit lock' => 'record',
+                'Language' => 'ID 2: not allowed',
+                'Record type' => 'CType = textmedia: not allowed',
+                'Fields not allowed' => 'Hidden [hidden], Layout [layout]',
+                'Fields disabled in TSconfig' => 'Header [header]',
+                'Note' => ContextDetailsFormatter::PERMISSIONS_NOTE,
+            ],
+            $this->rowsOf($sections, 'Permissions'),
+        );
+    }
+
+    #[Test]
+    public function fileUsageAndFilePermissionsAreReadableRows(): void
+    {
+        $document = ReportFixture::fileDocument();
+        $document['context']['fileUsage'] = [
+            'references' => 5,
+            'usages' => [
+                ['table' => 'tt_content', 'uid' => 10, 'label' => 'Hero teaser', 'field' => 'image', 'fieldLabel' => 'Images', 'reference' => 160, 'page' => ['uid' => 2, 'title' => 'About'], 'hidden' => true],
+            ],
+            'notAccessible' => 4,
+        ];
+        $document['context']['permissions'] = [
+            'fileActions' => ['read' => true, 'write' => false, 'delete' => false],
+            'writableFileMount' => false,
+            'storageWritable' => true,
+        ];
+        $sections = (new ContextDetailsFormatter())->buildSections(
+            (new ReportPayloadFactory(new ExtensionInfo('1.0.0')))->create(ReportFixture::report(document: $document)),
+        );
+
+        self::assertSame(
+            [
+                'References' => '5',
+                '#1' => 'tt_content:10 "Hero teaser", Images [image], page "About" [2], reference 160 (hidden)',
+                'Not accessible' => '4',
+            ],
+            $this->rowsOf($sections, 'File usage'),
+        );
+        self::assertSame(
+            ['File actions' => 'read: yes; write: no; delete: no', 'Writable file mount' => 'no', 'Storage writable' => 'yes', 'Note' => ContextDetailsFormatter::PERMISSIONS_NOTE],
+            $this->rowsOf($sections, 'Permissions'),
+        );
+    }
+
     /**
      * @return array<string, mixed>
      */

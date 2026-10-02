@@ -78,7 +78,7 @@
     "extra": {
         "typo3/cms": {
             "extension-key": "context_reporter",
-            "version": "0.2.0",
+            "version": "0.3.0",
             "web-dir": ".Build/public",
             "Package": {
                 "providesPackages": {}

@@ -135,17 +135,95 @@
             <trans-unit id="subject.fact.module" resname="subject.fact.module">
                 <source>Module</source>
             </trans-unit>
+            <trans-unit id="subject.fact.column" resname="subject.fact.column">
+                <source>Column</source>
+            </trans-unit>
+            <trans-unit id="subject.fact.changed" resname="subject.fact.changed">
+                <source>Last changed</source>
+            </trans-unit>
             <trans-unit id="subject.fact.storage" resname="subject.fact.storage">
                 <source>Storage</source>
             </trans-unit>
             <trans-unit id="subject.fact.folder" resname="subject.fact.folder">
                 <source>Folder</source>
             </trans-unit>
-            <trans-unit id="visibility.title" resname="visibility.title">
-                <source>Visibility settings</source>
+            <trans-unit id="findings.title" resname="findings.title">
+                <source>Findings</source>
             </trans-unit>
-            <trans-unit id="visibility.note" resname="visibility.note">
-                <source>These are the settings stored in TYPO3. Templates, caches, extensions and other frontend logic can still change what the website shows.</source>
+            <trans-unit id="findings.note" resname="findings.note">
+                <source>These are settings and permissions stored in TYPO3, not a check of the website: templates, caches and extensions can still change what visitors see. Permission facts are not TYPO3's decision whether something can be edited.</source>
+            </trans-unit>
+            <trans-unit id="findings.more" resname="findings.more">
+                <source>%d more in the technical details</source>
+            </trans-unit>
+            <trans-unit id="findings.group.website" resname="findings.group.website">
+                <source>Website address</source>
+            </trans-unit>
+            <trans-unit id="findings.group.placement" resname="findings.group.placement">
+                <source>Placement</source>
+            </trans-unit>
+            <trans-unit id="findings.group.visibility" resname="findings.group.visibility">
+                <source>Visibility</source>
+            </trans-unit>
+            <trans-unit id="findings.group.files" resname="findings.group.files">
+                <source>Files</source>
+            </trans-unit>
+            <trans-unit id="findings.group.access" resname="findings.group.access">
+                <source>Permissions</source>
+            </trans-unit>
+            <trans-unit id="website.noSite" resname="website.noSite">
+                <source>The page belongs to no site, so it has no website address</source>
+            </trans-unit>
+            <trans-unit id="website.deletedInWorkspace" resname="website.deletedInWorkspace">
+                <source>No website address: the page is deleted in this workspace</source>
+            </trans-unit>
+            <trans-unit id="website.newInWorkspace" resname="website.newInWorkspace">
+                <source>The website address belongs to a page that only exists in this workspace</source>
+            </trans-unit>
+            <trans-unit id="website.notPreviewable" resname="website.notPreviewable">
+                <source>No website address: TYPO3 offers no view for pages of type "%s" here</source>
+            </trans-unit>
+            <trans-unit id="website.languageNotInSite" resname="website.languageNotInSite">
+                <source>No website address: the site has no language with ID %s</source>
+            </trans-unit>
+            <trans-unit id="website.languageDisabled" resname="website.languageDisabled">
+                <source>The website address is in "%s", which is disabled in the site configuration</source>
+            </trans-unit>
+            <trans-unit id="website.pageNotTranslated" resname="website.pageNotTranslated">
+                <source>The page is not translated into "%s": the address uses the page of the default language</source>
+            </trans-unit>
+            <trans-unit id="website.fallback" resname="website.fallback">
+                <source>Fallback languages of "%s": %s</source>
+            </trans-unit>
+            <trans-unit id="website.noFallback" resname="website.noFallback">
+                <source>No fallback language for "%s" (fallback type: %s)</source>
+            </trans-unit>
+            <trans-unit id="website.baseWithoutHost" resname="website.baseWithoutHost">
+                <source>The site base has no host: the website address is a path only</source>
+            </trans-unit>
+            <trans-unit id="website.generationFailed" resname="website.generationFailed">
+                <source>TYPO3 could not build a website address for the page</source>
+            </trans-unit>
+            <trans-unit id="placement.columnNotInLayout" resname="placement.columnNotInLayout">
+                <source>Column %s is not a column of the backend layout of the page (columns: %s). Extensions, e.g. for container elements, can offer further columns.</source>
+            </trans-unit>
+            <trans-unit id="placement.contentFromPage" resname="placement.contentFromPage">
+                <source>Page "%s" is set to show the content of page "%s" [%s] ("Show content from page")</source>
+            </trans-unit>
+            <trans-unit id="placement.contentFromInaccessiblePage" resname="placement.contentFromInaccessiblePage">
+                <source>Page "%s" is set to show the content of page %s, which you cannot access ("Show content from page")</source>
+            </trans-unit>
+            <trans-unit id="placement.contentFromMissingPage" resname="placement.contentFromMissingPage">
+                <source>Page "%s" is set to show the content of page %s, which does not exist ("Show content from page")</source>
+            </trans-unit>
+            <trans-unit id="placement.contentShownOn" resname="placement.contentShownOn">
+                <source>Pages set to show the content of page "%s": %s</source>
+            </trans-unit>
+            <trans-unit id="placement.morePages" resname="placement.morePages">
+                <source>%d more</source>
+            </trans-unit>
+            <trans-unit id="placement.inaccessiblePages" resname="placement.inaccessiblePages">
+                <source>%d without access</source>
             </trans-unit>
             <trans-unit id="visibility.hidden" resname="visibility.hidden">
                 <source>Hidden</source>
@@ -195,11 +273,14 @@
             <trans-unit id="visibility.languageDisabled" resname="visibility.languageDisabled">
                 <source>Disabled in the site configuration: %s</source>
             </trans-unit>
-            <trans-unit id="fileChecks.title" resname="fileChecks.title">
-                <source>File checks</source>
+            <trans-unit id="visibility.hideDefaultLanguage" resname="visibility.hideDefaultLanguage">
+                <source>Translation behaviour: hidden in the default language</source>
             </trans-unit>
-            <trans-unit id="fileChecks.note" resname="fileChecks.note">
-                <source>Based on the TYPO3 file index. Only a reported file is also looked up in its storage.</source>
+            <trans-unit id="visibility.hideIfNotTranslated" resname="visibility.hideIfNotTranslated">
+                <source>Translation behaviour: hidden in languages without translation</source>
+            </trans-unit>
+            <trans-unit id="visibility.serverTime" resname="visibility.serverTime">
+                <source>%s (server time, %s)</source>
             </trans-unit>
             <trans-unit id="fileChecks.notInStorage" resname="fileChecks.notInStorage">
                 <source>Not found in its storage</source>
@@ -219,6 +300,9 @@
             <trans-unit id="fileChecks.hidden" resname="fileChecks.hidden">
                 <source>Reference hidden</source>
             </trans-unit>
+            <trans-unit id="fileChecks.typeNotAllowed" resname="fileChecks.typeNotAllowed">
+                <source>File type not allowed in this field, TYPO3 removes the reference when the record is saved</source>
+            </trans-unit>
             <trans-unit id="fileChecks.broken" resname="fileChecks.broken">
                 <source>Referenced file no longer exists</source>
             </trans-unit>
@@ -236,6 +320,81 @@
             </trans-unit>
             <trans-unit id="fileChecks.overLimit" resname="fileChecks.overLimit">
                 <source>References not checked (limit reached): %d</source>
+            </trans-unit>
+            <trans-unit id="fileUsage.none" resname="fileUsage.none">
+                <source>No file references to this file (links in texts are not counted)</source>
+            </trans-unit>
+            <trans-unit id="fileUsage.usage" resname="fileUsage.usage">
+                <source>Used in %s</source>
+            </trans-unit>
+            <trans-unit id="fileUsage.page" resname="fileUsage.page">
+                <source>page "%s" [%s]</source>
+            </trans-unit>
+            <trans-unit id="fileUsage.hidden" resname="fileUsage.hidden">
+                <source>reference hidden</source>
+            </trans-unit>
+            <trans-unit id="fileUsage.notListed" resname="fileUsage.notListed">
+                <source>Further usages: %d</source>
+            </trans-unit>
+            <trans-unit id="fileUsage.notAccessible" resname="fileUsage.notAccessible">
+                <source>Usages in records you cannot access: %d</source>
+            </trans-unit>
+            <trans-unit id="fileUsage.notChecked" resname="fileUsage.notChecked">
+                <source>Usages not checked (limit reached): %d</source>
+            </trans-unit>
+            <trans-unit id="access.tableNotModifiable" resname="access.tableNotModifiable">
+                <source>"%s" is not among the tables you may modify</source>
+            </trans-unit>
+            <trans-unit id="access.adminOnly" resname="access.adminOnly">
+                <source>Only administrators may modify records of "%s"</source>
+            </trans-unit>
+            <trans-unit id="access.readOnly" resname="access.readOnly">
+                <source>Records of "%s" are read-only</source>
+            </trans-unit>
+            <trans-unit id="access.noContentEdit" resname="access.noContentEdit">
+                <source>Your permissions for page "%s" do not include "Edit content"</source>
+            </trans-unit>
+            <trans-unit id="access.noPageEdit" resname="access.noPageEdit">
+                <source>Your permissions for page "%s" do not include "Edit page"</source>
+            </trans-unit>
+            <trans-unit id="access.pageLocked" resname="access.pageLocked">
+                <source>Page "%s" is locked for editing by non-administrators</source>
+            </trans-unit>
+            <trans-unit id="access.recordLocked" resname="access.recordLocked">
+                <source>The record is locked for editing by non-administrators</source>
+            </trans-unit>
+            <trans-unit id="access.languageNotAllowed" resname="access.languageNotAllowed">
+                <source>Language "%s" is not among your languages</source>
+            </trans-unit>
+            <trans-unit id="access.recordTypeNotAllowed" resname="access.recordTypeNotAllowed">
+                <source>%s "%s" is not among your explicitly allowed values</source>
+            </trans-unit>
+            <trans-unit id="access.pageTypeNotAllowed" resname="access.pageTypeNotAllowed">
+                <source>Page type "%s" is not among your page types</source>
+            </trans-unit>
+            <trans-unit id="access.fieldsNotAllowed" resname="access.fieldsNotAllowed">
+                <source>Fields you may not edit (exclude fields): %s</source>
+            </trans-unit>
+            <trans-unit id="access.fieldsDefaultLanguage" resname="access.fieldsDefaultLanguage">
+                <source>Fields this translation takes from the default language: %s</source>
+            </trans-unit>
+            <trans-unit id="access.fieldsDisabled" resname="access.fieldsDisabled">
+                <source>Fields disabled in the page TSconfig: %s</source>
+            </trans-unit>
+            <trans-unit id="access.moreFields" resname="access.moreFields">
+                <source>%d more</source>
+            </trans-unit>
+            <trans-unit id="access.fileActionsMissing" resname="access.fileActionsMissing">
+                <source>Your file permissions do not include: %s</source>
+            </trans-unit>
+            <trans-unit id="access.folderActionsMissing" resname="access.folderActionsMissing">
+                <source>Your folder permissions do not include: %s</source>
+            </trans-unit>
+            <trans-unit id="access.mountReadOnly" resname="access.mountReadOnly">
+                <source>The file mount is read-only for you</source>
+            </trans-unit>
+            <trans-unit id="access.storageNotWritable" resname="access.storageNotWritable">
+                <source>The storage is not writable</source>
             </trans-unit>
         </body>
     </file>

@@ -33,6 +33,8 @@ final class VisibilityDiagnosticsTest extends AbstractContextReporterTestCase
 {
     private const NOW = 1791790200;
     private const VERA = 7;
+    /** May read "Translation behaviour" (l18n_cfg), see translation_behaviour.csv */
+    private const TARA = 12;
     private const WORKSPACE_A = 1;
 
     protected array $coreExtensionsToLoad = ['typo3/cms-filelist', 'typo3/cms-workspaces'];
@@ -260,25 +262,21 @@ final class VisibilityDiagnosticsTest extends AbstractContextReporterTestCase
         $this->loginBackendUser(self::ADMIN);
         self::assertSame(
             [
-                'title' => 'Visibility settings',
-                'notices' => [
-                    'Frontend access: Members, Partners, Hide at login',
-                    'Page not translated into: Français',
-                    'Not translated into: Deutsch, Français',
-                    'Disabled in the site configuration: Français',
-                ],
-                'note' => 'These are the settings stored in TYPO3. Templates, caches, extensions and other frontend logic can still change what the website shows.',
+                'Frontend access: Members, Partners, Hide at login',
+                'Page not translated into: Français',
+                'Not translated into: Deutsch, Français',
+                'Disabled in the site configuration: Français',
             ],
-            $this->present(['type' => 'record', 'table' => 'tt_content', 'uid' => 54])->visibility,
+            $this->notices(['type' => 'record', 'table' => 'tt_content', 'uid' => 54]),
         );
         $launch = $this->build(['source' => 'contextMenu', 'target' => ['type' => 'record', 'table' => 'tt_content', 'uid' => 58]]);
         self::assertSame(
             'Page "Coming soon": Publishing starts on ' . self::displayTime($launch, 'page') . ' · Frontend access: Show at any login · Hidden in menus',
-            $this->presentDocument($launch)->visibility['notices'][0] ?? '',
+            $this->findingNotices($launch, 'visibility')[0] ?? '',
         );
         self::assertSame(
             'Parent page "Members area", applies to its subpages: Frontend access: Members',
-            $this->present(['type' => 'page', 'uid' => 21])->visibility['notices'][0] ?? '',
+            $this->notices(['type' => 'page', 'uid' => 21])[0] ?? '',
         );
 
         // Erika's backend is German
@@ -291,13 +289,13 @@ final class VisibilityDiagnosticsTest extends AbstractContextReporterTestCase
                 'Nicht übersetzt in: Deutsch, Français',
                 'In der Site-Konfiguration deaktiviert: Français',
             ],
-            $this->presentDocument($scheduled)->visibility['notices'] ?? [],
+            $this->findingNotices($scheduled, 'visibility'),
         );
 
         // Workspace A has a draft of the page "About" [2] and of the element [10]
         $this->loginInWorkspace(self::EDITOR, self::WORKSPACE_A);
-        $changed = $this->present(['type' => 'record', 'table' => 'tt_content', 'uid' => 10])->visibility;
-        self::assertSame('Sichtbarkeitseinstellungen', $changed['title'] ?? '');
+        $changed = $this->present(['type' => 'record', 'table' => 'tt_content', 'uid' => 10])->findings;
+        self::assertSame('Sichtbarkeit', $changed['groups'][0]['title'] ?? '');
         self::assertSame(
             [
                 'In dieser Arbeitsumgebung geändert, die Live-Website zeigt die veröffentlichte Version',
@@ -307,16 +305,65 @@ final class VisibilityDiagnosticsTest extends AbstractContextReporterTestCase
                 'Nicht übersetzt in: Français',
                 'In der Site-Konfiguration deaktiviert: Français',
             ],
-            $changed['notices'] ?? [],
+            $this->notices(['type' => 'record', 'table' => 'tt_content', 'uid' => 10]),
         );
         self::assertSame(
             'Neu in dieser Arbeitsumgebung, noch nicht auf der Live-Website',
-            $this->present(['type' => 'record', 'table' => 'tt_content', 'uid' => 32])->visibility['notices'][0] ?? '',
+            $this->notices(['type' => 'record', 'table' => 'tt_content', 'uid' => 32])[0] ?? '',
         );
         self::assertSame(
             'In dieser Arbeitsumgebung gelöscht, bis zur Veröffentlichung noch auf der Live-Website',
-            $this->present(['type' => 'record', 'table' => 'tt_content', 'uid' => 56])->visibility['notices'][0] ?? '',
+            $this->notices(['type' => 'record', 'table' => 'tt_content', 'uid' => 56])[0] ?? '',
         );
+    }
+
+    #[Test]
+    public function translationBehaviourOfPagesIsReadWithFieldPermission(): void
+    {
+        // Pages 27 (hide default language, hide if not translated) and 28 (hide if not translated, German translation 29)
+        $this->importCSVDataSet(__DIR__ . '/../Fixtures/translation_behaviour.csv');
+
+        $this->loginBackendUser(self::TARA);
+        self::assertSame(
+            ['hideDefaultLanguage' => true, 'hideIfNotTranslated' => true],
+            $this->visibility(['type' => 'page', 'uid' => 27])['subject']['translationBehaviour'] ?? null,
+        );
+        // The page of a record and the default language page of a translation
+        self::assertSame(['hideIfNotTranslated' => true], $this->visibility(['type' => 'record', 'table' => 'tt_content', 'uid' => 59])['page']['translationBehaviour'] ?? null);
+        $translation = $this->visibility(['type' => 'page', 'uid' => 29]);
+        self::assertArrayNotHasKey('translationBehaviour', $translation['subject'], 'The setting belongs to the default language page');
+        self::assertSame(['hideIfNotTranslated' => true], $translation['page']['translationBehaviour'] ?? null);
+        // Nothing to say about pages without such a setting
+        self::assertArrayNotHasKey('translationBehaviour', $this->visibility(['type' => 'page', 'uid' => 2])['subject']);
+        self::assertSame(
+            ['Translation behaviour: hidden in the default language', 'Translation behaviour: hidden in languages without translation'],
+            array_slice($this->notices(['type' => 'page', 'uid' => 27]) ?? [], 0, 2),
+        );
+        self::assertSame(
+            'Page "Translations only": Translation behaviour: hidden in languages without translation',
+            $this->notices(['type' => 'record', 'table' => 'tt_content', 'uid' => 59])[0] ?? null,
+        );
+
+        // Erika may not read the field
+        $this->loginBackendUser(self::EDITOR);
+        self::assertArrayNotHasKey('translationBehaviour', $this->visibility(['type' => 'page', 'uid' => 27])['subject']);
+        self::assertArrayNotHasKey('translationBehaviour', $this->visibility(['type' => 'record', 'table' => 'tt_content', 'uid' => 59])['page']);
+    }
+
+    #[Test]
+    public function hidingUntranslatedPagesByDefaultInvertsTheSetting(): void
+    {
+        $this->importCSVDataSet(__DIR__ . '/../Fixtures/translation_behaviour.csv');
+        $GLOBALS['TYPO3_CONF_VARS']['FE']['hidePagesIfNotTranslatedByDefault'] = true;
+        try {
+            $this->loginBackendUser(self::ADMIN);
+
+            self::assertSame(['hideIfNotTranslated' => true], $this->visibility(['type' => 'page', 'uid' => 2])['subject']['translationBehaviour'] ?? null);
+            self::assertArrayNotHasKey('translationBehaviour', $this->visibility(['type' => 'page', 'uid' => 28])['subject']);
+            self::assertSame(['hideDefaultLanguage' => true], $this->visibility(['type' => 'page', 'uid' => 27])['subject']['translationBehaviour'] ?? null);
+        } finally {
+            $GLOBALS['TYPO3_CONF_VARS']['FE']['hidePagesIfNotTranslatedByDefault'] = false;
+        }
     }
 
     #[Test]
@@ -325,10 +372,10 @@ final class VisibilityDiagnosticsTest extends AbstractContextReporterTestCase
         $this->loginBackendUser(self::ADMIN);
 
         // A report stored before the visibility settings were collected
-        self::assertNull($this->presentDocument(ContextDocument::fromArray(ReportFixture::document()))->visibility);
+        self::assertNull($this->presentDocument(ContextDocument::fromArray(ReportFixture::document()))->findings);
         // Visible page with visible translations only
         $this->loginBackendUser(self::VERA);
-        self::assertNull($this->present(['type' => 'page', 'uid' => 2])->visibility);
+        self::assertNull($this->notices(['type' => 'page', 'uid' => 2]));
     }
 
     #[Test]
@@ -379,6 +426,15 @@ final class VisibilityDiagnosticsTest extends AbstractContextReporterTestCase
     private function presentDocument(ContextDocument $document): \Priebera\ContextReporter\Presentation\SubjectPresentation
     {
         return $this->get(SubjectPresenter::class)->present($document);
+    }
+
+    /**
+     * @param array<string, mixed> $target
+     * @return list<string>|null
+     */
+    private function notices(array $target): ?array
+    {
+        return $this->findingNotices($this->build(['source' => 'contextMenu', 'target' => $target]), 'visibility');
     }
 
     /**
