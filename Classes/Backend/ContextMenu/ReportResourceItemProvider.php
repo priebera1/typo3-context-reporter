@@ -61,17 +61,26 @@ final class ReportResourceItemProvider implements ProviderInterface
         return 41;
     }
 
+    /**
+     * Only resources the reporter may access. Whatever fails on the way (an
+     * unusable storage, a resource deleted after the file list was loaded),
+     * the item is left out instead of breaking the context menu.
+     */
     public function canHandle(): bool
     {
         $this->resource = null;
         $backendUser = $GLOBALS['BE_USER'] ?? null;
-        if (!in_array($this->table, self::TABLES, true)
-            || !$backendUser instanceof BackendUserAuthentication
-            || !$this->accessPolicy->canReport($backendUser)
-        ) {
+        if (!in_array($this->table, self::TABLES, true) || !$backendUser instanceof BackendUserAuthentication) {
             return false;
         }
-        $this->resource = $this->fileAccess->findResource($this->identifier, $backendUser);
+        try {
+            if (!$this->accessPolicy->canReport($backendUser)) {
+                return false;
+            }
+            $this->resource = $this->fileAccess->findResource($this->identifier, $backendUser);
+        } catch (\Throwable) {
+            $this->resource = null;
+        }
         return $this->resource !== null;
     }
 
@@ -80,6 +89,19 @@ final class ReportResourceItemProvider implements ProviderInterface
      * @return array<string, mixed>
      */
     public function addItems(array $items): array
+    {
+        try {
+            return $this->addReportItem($items);
+        } catch (\Throwable) {
+            return $items;
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $items
+     * @return array<string, mixed>
+     */
+    private function addReportItem(array $items): array
     {
         if ($this->resource === null || $this->isItemDisabled(self::ITEM_NAME, $this->table, $this->context)) {
             return $items;

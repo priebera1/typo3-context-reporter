@@ -96,7 +96,8 @@ reported in the language the reporter is looking at in the Page module, the
 Preview module (:guilabel:`Web > View` in TYPO3 13.4,
 :guilabel:`Content > Preview` in TYPO3 14.3) or another module with the page
 tree that keeps the language selection the same way, for example the
-Visual Editor. The frontend URL in the report points to that language.
+Visual Editor. The website address in the report points to that language,
+see :ref:`usage-website-address`.
 
 *   When several languages are shown side by side, the report uses the one
     selected translation, or the default language if more than one
@@ -108,6 +109,91 @@ Visual Editor. The frontend URL in the report points to that language.
 *   A page reported from a module without page tree uses the default
     language.
 
+..  _usage-findings:
+
+Findings
+--------
+
+Below the reported object, the dialog and the report detail show
+:guilabel:`Findings`: short notices about what TYPO3 has stored for the
+object, in fixed groups:
+
+*   :guilabel:`Website address`, see :ref:`usage-website-address`
+*   :guilabel:`Placement`, see :ref:`usage-placement`
+*   :guilabel:`Visibility`, see :ref:`usage-visibility`
+*   :guilabel:`Files`, see :ref:`usage-file-checks` and
+    :ref:`usage-file-usage`
+*   :guilabel:`Permissions`, see :ref:`usage-permissions`
+
+A group is only shown when there is something to point out, with up to five
+notices; :guilabel:`2 more in the technical details` says that the technical
+details contain the rest. The Markdown version and the email
+(:ref:`{context.findings} <integration-email-markers>`) list all findings.
+There are no severity levels: the findings are facts, not a diagnosis.
+
+The findings are the settings and permissions stored in TYPO3 when the dialog
+opens. They are not a check of the website, where templates, caches and
+extensions can still change what visitors see, and the permission facts are
+not TYPO3's decision whether something can be edited.
+
+..  _usage-website-address:
+
+Website address
+---------------
+
+The report links the website address (frontend URL) of the page in the
+language of the report. TYPO3 builds the address from the page and the site
+configuration without checking whether visitors can open it, so the report
+names the facts that explain the address, for example:
+
+*   :guilabel:`The page belongs to no site, so it has no website address`
+*   :guilabel:`No website address: TYPO3 offers no view for pages of type
+    "Folder" here`, following the :guilabel:`View` button of TYPO3 (folders
+    and spacers, page TSconfig ``TCEMAIN.preview.disableButtonForDokType``,
+    on TYPO3 14.3 also the page type configuration)
+*   :guilabel:`No website address: the page is deleted in this workspace`
+    (TYPO3 would link the home page) and :guilabel:`The website address
+    belongs to a page that only exists in this workspace`
+*   :guilabel:`The website address is in "Français", which is disabled in
+    the site configuration`, or :guilabel:`No website address: the site has
+    no language with ID 5`
+*   :guilabel:`The page is not translated into "Français": the address uses
+    the page of the default language`, followed by the fallback languages
+    of that language in the site configuration
+*   :guilabel:`The site base has no host: the website address is a path
+    only`
+*   :guilabel:`TYPO3 could not build a website address for the page`
+
+Translations are only looked up in the languages the reporter may use. Whether
+visitors get the page, a fallback or an error is decided by TYPO3 when the page
+is requested and is not part of the report.
+
+..  _usage-placement:
+
+Placement
+---------
+
+For content elements, the report contains the column (``colPos``) and the
+columns TYPO3 offers for the page: the columns of its backend layout, as the
+column field of the editing form lists them, including columns that
+extensions add. The report detail shows the column name, for example
+:guilabel:`Column: Sidebar [5]`. The findings point out:
+
+*   :guilabel:`Column 3 is not a column of the backend layout of the page
+    (columns: Main [0], Sidebar [5])`. Elements in such a column are listed
+    as unused in the Page module. Extensions for container elements and
+    similar can place elements in further columns, which is why the notice
+    does not say that the element is invisible.
+*   :guilabel:`Page "About us" is set to show the content of page "Shared"
+    [7] ("Show content from page")`, also for pages the reporter cannot
+    access (by UID) or that no longer exist.
+*   :guilabel:`Pages set to show the content of page "About us": Landing
+    [9], 1 without access`: other pages that show the content of this page.
+
+For pages and content elements, the technical details also name the backend
+layout of the page and the parent page it is set on, if the reporter may edit
+both backend layout fields of the page properties.
+
 ..  _usage-visibility:
 
 Visibility settings
@@ -115,14 +201,21 @@ Visibility settings
 
 When a page or record does not appear on the website, the reason is often a
 setting in TYPO3. For pages and records, the report contains these settings,
-and the dialog and the report detail list the ones that keep the object from
-visitors below the reported object, for example:
+and the findings list the ones that keep the object from visitors, for
+example:
 
 *   :guilabel:`Hidden`
 *   :guilabel:`Publishing starts on 2026-10-15 08:00` or
-    :guilabel:`Publishing ended on 2026-09-01 00:00`
+    :guilabel:`Publishing ended on 2026-09-01 00:00`. When the reporter's
+    browser was in another time zone than the server, the server time zone is
+    named, for example :guilabel:`(server time, Europe/Vienna)`.
 *   :guilabel:`Frontend access: Members, Hide at login`
 *   :guilabel:`Hidden in menus` (pages)
+*   :guilabel:`Translation behaviour: hidden in the default language` and
+    :guilabel:`Translation behaviour: hidden in languages without
+    translation` (the page setting :guilabel:`Translation behaviour`,
+    including ``$GLOBALS['TYPO3_CONF_VARS']['FE']['hidePagesIfNotTranslatedByDefault']``).
+    Only reporters who may edit that field see this.
 *   :guilabel:`Page "About us": Hidden` for a record on that page
 *   :guilabel:`Parent page "Members area", applies to its subpages: Frontend
     access: Members`: a parent page with :guilabel:`Extend to subpages` passes
@@ -146,9 +239,8 @@ File checks
 -----------
 
 A missing image or download is often a file problem. For a reported file,
-and for the files of a reported page or record, the dialog and the report
-detail list problems TYPO3 knows about under :guilabel:`File checks`, for
-example:
+and for the files of a reported page or record, the findings list problems
+TYPO3 knows about under :guilabel:`Files`, for example:
 
 *   :guilabel:`Not found in its storage` or :guilabel:`Marked as missing, but
     found in its storage` for a reported file: it is looked up in its storage
@@ -158,6 +250,15 @@ example:
 *   :guilabel:`Images: "team.jpg" – Reference hidden` or
     :guilabel:`Images: "team.jpg" – Marked as missing` for a file reference
     of the reported page or record
+*   :guilabel:`Images: "notes.txt" – File type not allowed in this field,
+    TYPO3 removes the reference when the record is saved`: the file field
+    does not allow the extension of the file name (``allowed`` and
+    ``disallowed`` of the field, for the record type). This happens, for
+    example, when a file is replaced by one of another type. The editing form
+    still shows such a reference, but TYPO3 drops it when the record is saved.
+    Image fields allow the image file types of TYPO3
+    (``$GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext']``), by default
+    including ``pdf``, ``ai`` and ``svg``.
 *   :guilabel:`Images: Referenced file no longer exists` for a reference to a
     file TYPO3 does not know any more
 *   :guilabel:`Referenced files not checked (outside the accessible file
@@ -170,6 +271,50 @@ checked, e.g. :guilabel:`Images` of an :guilabel:`Images Only` element but
 not old references of a former type. Referenced files are checked with the
 file index of TYPO3; their storage is not asked. Without problems, nothing is
 shown; the technical data still says how many references were checked.
+
+..  _usage-file-usage:
+
+File usage
+----------
+
+A report about a file lists where it is used: the file references of the
+reporter's workspace, for example :guilabel:`Used in Page Content "Our story"
+[tt_content:2] · Images · page "About us" [2]`. Usages are only named when
+the reporter may access the record and edit the field; the others are counted
+(:guilabel:`Usages in records you cannot access: 3`). Records of backend and
+frontend users and groups (for example avatars) are never named.
+:guilabel:`No file references to this file` means that no record refers to
+the file in a file field; links to the file in texts are not counted.
+
+..  _usage-permissions:
+
+Permission facts
+----------------
+
+When a page or record cannot be edited, the cause is often a permission.
+Reports of editors contain their permissions for the reported object, and the
+findings list those that are missing, for example:
+
+*   :guilabel:`"Page Content" is not among the tables you may modify`
+*   :guilabel:`Your permissions for page "About us" do not include "Edit
+    content"`
+*   :guilabel:`Page "About us" is locked for editing by non-administrators`
+*   :guilabel:`Language "Deutsch" is not among your languages`
+*   :guilabel:`Type "Plain HTML" is not among your explicitly allowed values`
+*   :guilabel:`Page type "Folder" is not among your page types`
+*   :guilabel:`Fields you may not edit (exclude fields): Hidden, …`,
+    :guilabel:`Fields this translation takes from the default language: …`
+    and :guilabel:`Fields disabled in the page TSconfig: …`
+*   for files and folders: :guilabel:`Your file permissions do not include:
+    Rename, Delete`, :guilabel:`The file mount is read-only for you` and
+    :guilabel:`The storage is not writable`
+
+These are inputs of TYPO3's permission checks, each read with the public
+permission API. They are not TYPO3's decision: whether something can be edited
+and saved also depends on internal checks, workspace rules, hooks and
+extensions, so the report never says that something can or cannot be edited.
+Administrators have all permissions; their reports contain no permission
+facts.
 
 ..  _usage-frontend:
 
@@ -191,8 +336,7 @@ the frontend from the backend:
 #.  Describe which part of the page is wrong.
 
 If the problem is that something does not appear at all, check the
-:ref:`visibility settings <usage-visibility>` and the
-:ref:`file checks <usage-file-checks>` the dialog lists first.
+:ref:`findings <usage-findings>` the dialog lists first.
 
 Keep in mind:
 

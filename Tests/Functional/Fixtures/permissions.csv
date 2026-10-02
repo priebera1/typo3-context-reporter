@@ -1,0 +1,21 @@
+"pages"
+,"uid","pid","title","slug","doktype","hidden","deleted","perms_userid","perms_groupid","perms_user","perms_group","perms_everybody","sys_language_uid","l10n_parent","editlock","TSconfig"
+,60,2,"Locked page","/about/locked",1,0,0,1,14,31,1,0,0,0,1,""
+,61,2,"Restricted form","/about/restricted-form",1,0,0,1,1,31,31,0,0,0,0,"TCEFORM.tt_content.header.disabled = 1
+TCEFORM.tt_content.subheader.types.text.disabled = 1
+TCEFORM.tt_content.bodytext.types.html.disabled = 1"
+"tt_content"
+,"uid","pid","CType","header","bodytext","colPos","sys_language_uid","l18n_parent","editlock"
+,92,60,"html","Locked markup","",0,1,0,1
+,93,61,"text","Element with restricted form","",0,0,0,0
+"sys_filemounts"
+,"uid","pid","title","identifier","read_only"
+,2,0,"Uploads (read only)","1:/user_upload/",1
+"be_groups"
+,"uid","pid","title","tables_select","tables_modify","db_mountpoints","groupMods","file_mountpoints","file_permissions","allowed_languages","explicit_allowdeny","pagetypes_select","non_exclude_fields"
+,14,0,"Readers","pages,tt_content","","60","web_layout,web_list,media_management","2","readFolder,readFile,writeFile,addFile","0","tt_content:CType:text","","tt_content:hidden"
+,15,0,"Page editors","pages,tt_content","pages,tt_content","2","web_layout,web_list","1","readFolder,readFile","","tt_content:CType:text,tt_content:CType:html","1",""
+"be_users"
+,"uid","pid","username","password","admin","usergroup","realName","email","lang","db_mountpoints","options","workspace_perms","disable","deleted","file_permissions"
+,16,0,"rita","$argon2i$v=19$m=65536,t=16,p=1$c29tZXNhbHQ$Kxt6ZxgHKVTLaRJGb0VBdGtYGYnTX0WNe4OHOfr5HDc",0,"14","Rita Reader","rita@example.com","default","",3,1,0,0,""
+,17,0,"paul","$argon2i$v=19$m=65536,t=16,p=1$c29tZXNhbHQ$Kxt6ZxgHKVTLaRJGb0VBdGtYGYnTX0WNe4OHOfr5HDc",0,"1,15","Paul Pageeditor","paul@example.com","default","",3,1,0,0,""

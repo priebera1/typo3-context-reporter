@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Priebera\ContextReporter\Tests\Functional;
 
 use Priebera\ContextReporter\Configuration\ExtensionSettingsProvider;
+use Priebera\ContextReporter\Domain\ContextDocument;
+use Priebera\ContextReporter\Presentation\FindingsBuilder;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Cache\CacheManager;
@@ -104,6 +106,22 @@ abstract class AbstractContextReporterTestCase extends FunctionalTestCase
     {
         $module = self::coreModule($identifier);
         return implode(' › ', array_filter([$module['group'], $module['title']]));
+    }
+
+    /**
+     * All notices of a findings group in the backend language of the logged in user.
+     *
+     * @return list<string>|null Null when the group has no notices
+     */
+    protected function findingNotices(ContextDocument $document, string $group): ?array
+    {
+        $findings = $this->get(FindingsBuilder::class)->build($document, $GLOBALS['LANG'], null);
+        foreach ($findings['groups'] ?? [] as $findingGroup) {
+            if ($findingGroup['key'] === $group) {
+                return $findingGroup['items'];
+            }
+        }
+        return null;
     }
 
     protected function loginBackendUser(int $uid): BackendUserAuthentication

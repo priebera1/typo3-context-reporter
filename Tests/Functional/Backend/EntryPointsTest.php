@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Priebera\ContextReporter\Tests\Functional\Backend;
 
 use PHPUnit\Framework\Attributes\Test;
+use Priebera\ContextReporter\Backend\ContextMenu\ReportItemProvider;
 use Priebera\ContextReporter\Backend\ContextMenu\ReportResourceItemProvider;
 use Priebera\ContextReporter\Backend\EventListener\AddReportActionToFileList;
 use Priebera\ContextReporter\Backend\EventListener\AddReportActionToRecordList;
@@ -16,6 +17,8 @@ use TYPO3\CMS\Backend\RecordList\Event\ModifyRecordListRecordActionsEvent;
 use TYPO3\CMS\Backend\Routing\Route;
 use TYPO3\CMS\Backend\Template\Components\ButtonBar;
 use TYPO3\CMS\Backend\Template\Components\Buttons\GenericButton;
+use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
+use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
@@ -214,6 +217,78 @@ final class EntryPointsTest extends AbstractContextReporterTestCase
         $this->loginBackendUser(self::BLOCKED_EDITOR);
         $provider->setContext('sys_file', '1:/user_upload/logo.png');
         self::assertFalse($provider->canHandle());
+    }
+
+    /**
+     * Files and folders TYPO3 cannot resolve any more, e.g. a file deleted or
+     * renamed after the file list was loaded, an index entry without file, an
+     * unknown storage or a malformed identifier: the report item is not
+     * offered and the provider never fails.
+     */
+    #[Test]
+    public function fileContextMenuItemIsNotOfferedForResourcesThatCannotBeResolved(): void
+    {
+        $this->get(ConnectionPool::class)->getConnectionForTable('sys_file')->insert('sys_file', [
+            'uid' => 50, 'pid' => 0, 'storage' => 1, 'type' => 2, 'identifier' => '/user_upload/gone.png', 'name' => 'gone.png',
+            'identifier_hash' => sha1('/user_upload/gone.png'), 'folder_hash' => sha1('/user_upload'), 'extension' => 'png', 'mime_type' => 'image/png', 'size' => 99,
+        ]);
+        $identifiers = ['1:/user_upload/gone.png', '1:/user_upload/never-existed.png', '1:/user_upload/gone/', '9:/logo.png', '1:', '', 'x:/logo.png', '1:/user_upload/logo.png/below-a-file'];
+
+        foreach ([self::ADMIN, self::EDITOR] as $userUid) {
+            $this->loginBackendUser($userUid);
+            $provider = $this->get(ReportResourceItemProvider::class);
+            foreach ($identifiers as $identifier) {
+                $provider->setContext('sys_file', $identifier);
+                self::assertFalse($provider->canHandle(), 'User ' . $userUid . ': ' . $identifier);
+                self::assertSame(['info' => []], $provider->addItems(['info' => []]), 'User ' . $userUid . ': ' . $identifier);
+            }
+        }
+    }
+
+    /**
+     * Whatever fails while the report item is prepared, the context menu of
+     * TYPO3 keeps working: the item is left out.
+     */
+    #[Test]
+    public function contextMenuProvidersNeverFail(): void
+    {
+        $this->loginBackendUser(self::EDITOR);
+        $backendUser = $this->createMock(BackendUserAuthentication::class);
+        $backendUser->user = ['uid' => self::EDITOR];
+        $backendUser->method('getTSConfig')->willThrowException(new \Error('Broken user TSconfig'));
+        $GLOBALS['BE_USER'] = $backendUser;
+
+        foreach ([
+            [ReportResourceItemProvider::class, 'sys_file', '1:/user_upload/logo.png'],
+            [ReportItemProvider::class, 'tt_content', '10'],
+        ] as [$providerClass, $table, $identifier]) {
+            $provider = $this->get($providerClass);
+            $provider->setContext($table, $identifier);
+            self::assertFalse($provider->canHandle(), $providerClass);
+            self::assertSame(['info' => []], $provider->addItems(['info' => []]), $providerClass);
+        }
+    }
+
+    /**
+     * TYPO3 13.4 and 14.3 themselves fail on the context menu of a file or
+     * folder they cannot resolve: the file provider of the file list
+     * (EXT:filelist) keeps no object and then calls checkActionPermission()
+     * on null. The error comes from TYPO3, not from Context Reporter, whose
+     * provider stays quiet (see above). If this test fails, TYPO3 no longer
+     * has the problem: remove it and the note in Documentation/Troubleshooting.
+     */
+    #[Test]
+    public function typo3FileProviderFailsOnItsOwnForFilesItCannotResolve(): void
+    {
+        $this->loginBackendUser(self::ADMIN);
+
+        try {
+            $this->get(ContextMenu::class)->getItems('sys_file', '1:/user_upload/never-existed.png');
+            self::fail('TYPO3 no longer fails on unresolvable files in the context menu');
+        } catch (\Error $error) {
+            self::assertStringContainsString('checkActionPermission() on null', $error->getMessage());
+            self::assertStringEndsWith('cms-filelist/Classes/ContextMenu/ItemProviders/FileProvider.php', str_replace('\\', '/', $error->getFile()));
+        }
     }
 
     /**

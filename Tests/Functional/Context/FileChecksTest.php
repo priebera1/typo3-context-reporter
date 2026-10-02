@@ -9,8 +9,6 @@ use Priebera\ContextReporter\Context\CollectionRequest;
 use Priebera\ContextReporter\Context\ContextDocumentBuilder;
 use Priebera\ContextReporter\Context\Location\BackendLocationFactory;
 use Priebera\ContextReporter\Domain\ContextDocument;
-use Priebera\ContextReporter\Presentation\SubjectPresentation;
-use Priebera\ContextReporter\Presentation\SubjectPresenter;
 use Priebera\ContextReporter\Tests\Functional\AbstractContextReporterTestCase;
 use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Context\WorkspaceAspect;
@@ -92,7 +90,8 @@ final class FileChecksTest extends AbstractContextReporterTestCase
                     ['field' => 'image', 'fieldLabel' => $label, 'reference' => 102, 'file' => ['uid' => self::FILE_LOGO, 'name' => 'logo.png'], 'problems' => ['hidden']],
                     ['field' => 'image', 'fieldLabel' => $label, 'reference' => 103, 'file' => ['uid' => self::FILE_MISSING, 'name' => 'manual.pdf'], 'problems' => ['missing']],
                     ['field' => 'image', 'fieldLabel' => $label, 'reference' => 104, 'problems' => ['brokenReference']],
-                    ['field' => 'image', 'fieldLabel' => $label, 'reference' => 107, 'file' => ['uid' => self::FILE_EMPTY, 'name' => 'empty.txt'], 'problems' => ['empty']],
+                    // Plain text is no image type
+                    ['field' => 'image', 'fieldLabel' => $label, 'reference' => 107, 'file' => ['uid' => self::FILE_EMPTY, 'name' => 'empty.txt'], 'problems' => ['empty', 'typeNotAllowed']],
                 ],
             ],
         ], $document->getContextSection('fileChecks'));
@@ -113,10 +112,14 @@ final class FileChecksTest extends AbstractContextReporterTestCase
         self::assertSame(7, $references['checked']);
         self::assertSame(0, $references['notChecked']);
         // Neither the old reference in "assets" [108] nor the deleted one [109]
-        self::assertSame([102, 103, 104, 106, 107], array_column($references['problems'], 'reference'));
+        self::assertSame([102, 103, 104, 105, 106, 107], array_column($references['problems'], 'reference'));
+        self::assertSame(
+            ['field' => 'image', 'fieldLabel' => $this->englishLabel('tt_content', 'image'), 'reference' => 105, 'file' => ['uid' => self::FILE_BUDGET, 'name' => 'budget.txt'], 'problems' => ['typeNotAllowed']],
+            $references['problems'][3],
+        );
         self::assertSame(
             ['field' => 'image', 'fieldLabel' => $this->englishLabel('tt_content', 'image'), 'reference' => 106, 'file' => ['uid' => self::FILE_OFFLINE, 'name' => 'offline.png'], 'problems' => ['storageOffline']],
-            $references['problems'][3],
+            $references['problems'][4],
         );
     }
 
@@ -163,12 +166,12 @@ final class FileChecksTest extends AbstractContextReporterTestCase
 
         // [101] is hidden in the workspace, [107] deleted and [140] new
         self::assertSame(7, $references['checked']);
-        self::assertSame([101, 102, 103, 104, 106, 140], array_column($references['problems'], 'reference'));
+        self::assertSame([101, 102, 103, 104, 105, 106, 140], array_column($references['problems'], 'reference'));
         self::assertSame(['hidden'], $references['problems'][0]['problems']);
-        self::assertSame(['missing'], $references['problems'][5]['problems']);
+        self::assertSame(['missing'], $references['problems'][6]['problems']);
 
         $this->loginInWorkspace(self::ADMIN, 0);
-        self::assertSame([102, 103, 104, 106, 107], array_column($this->fileChecks(['type' => 'record', 'table' => 'tt_content', 'uid' => self::GALLERY])['references']['problems'], 'reference'));
+        self::assertSame([102, 103, 104, 105, 106, 107], array_column($this->fileChecks(['type' => 'record', 'table' => 'tt_content', 'uid' => self::GALLERY])['references']['problems'], 'reference'));
     }
 
     #[Test]
@@ -256,13 +259,13 @@ final class FileChecksTest extends AbstractContextReporterTestCase
         self::assertSame('sys_file_metadata', $form->getSubject()['table'] ?? '');
         self::assertSame(['file' => $empty], $form->getContextSection('fileChecks'));
 
-        self::assertSame(['Empty file (0 bytes)'], $this->present(['type' => 'record', 'table' => 'sys_file_metadata', 'uid' => self::METADATA_EMPTY])->fileChecks['notices'] ?? null);
+        self::assertSame(['Empty file (0 bytes)'], $this->findingNotices($this->build(['type' => 'record', 'table' => 'sys_file_metadata', 'uid' => self::METADATA_EMPTY]), 'files'));
         // Healthy file: checked, nothing to point out
         self::assertSame(
             ['file' => ['uid' => self::FILE_LOGO, 'name' => 'logo.png', 'storageCheck' => 'found', 'problems' => []]],
             $this->fileChecks(['type' => 'record', 'table' => 'sys_file_metadata', 'uid' => self::METADATA_LOGO]),
         );
-        self::assertNull($this->present(['type' => 'record', 'table' => 'sys_file_metadata', 'uid' => self::METADATA_LOGO])->fileChecks);
+        self::assertNull($this->findingNotices($this->build(['type' => 'record', 'table' => 'sys_file_metadata', 'uid' => self::METADATA_LOGO]), 'files'));
         // The file itself is still reported as before
         self::assertSame(['file' => ['storageCheck' => 'found', 'problems' => ['empty']]], $this->fileChecks(['type' => 'file', 'uid' => self::FILE_EMPTY]));
 
@@ -315,7 +318,7 @@ final class FileChecksTest extends AbstractContextReporterTestCase
         self::assertSame(['references' => ['checked' => 0, 'notChecked' => 1, 'problems' => []]], $document->getContextSection('fileChecks'));
         self::assertSame(
             ['Nicht geprüfte referenzierte Dateien (außerhalb der zugänglichen Dateifreigaben): 1'],
-            $this->get(SubjectPresenter::class)->present($document)->fileChecks['notices'] ?? null,
+            $this->findingNotices($document, 'files'),
         );
         // The label of a file reference is the name of its file
         $json = json_encode($document->toArray(), JSON_THROW_ON_ERROR);
@@ -348,50 +351,48 @@ final class FileChecksTest extends AbstractContextReporterTestCase
     {
         $this->loginBackendUser(self::ADMIN);
         $images = $this->viewerLabel('tt_content', 'image');
+        $notAllowed = 'File type not allowed in this field, TYPO3 removes the reference when the record is saved';
 
-        $gallery = $this->present(['type' => 'record', 'table' => 'tt_content', 'uid' => self::GALLERY])->fileChecks;
         self::assertSame(
             [
-                'title' => 'File checks',
-                'notices' => [
-                    $images . ': "logo.png" – Reference hidden',
-                    $images . ': "manual.pdf" – Marked as missing',
-                    $images . ': Referenced file no longer exists',
-                    $images . ': "offline.png" – Storage offline in the backend',
-                    $images . ': "empty.txt" – Empty file (0 bytes)',
-                ],
-                'note' => 'Based on the TYPO3 file index. Only a reported file is also looked up in its storage.',
+                $images . ': "logo.png" – Reference hidden',
+                $images . ': "manual.pdf" – Marked as missing',
+                $images . ': Referenced file no longer exists',
+                $images . ': "budget.txt" – ' . $notAllowed,
+                $images . ': "offline.png" – Storage offline in the backend',
+                $images . ': "empty.txt" – Empty file (0 bytes) · ' . $notAllowed,
             ],
-            $gallery,
+            $this->findingNotices($this->build(['type' => 'record', 'table' => 'tt_content', 'uid' => self::GALLERY]), 'files'),
         );
         self::assertSame(
             'Further references with problems: 2',
-            array_slice($this->present(['type' => 'record', 'table' => 'tt_content', 'uid' => self::HIDDEN_MEDIA])->fileChecks['notices'] ?? [], -1)[0] ?? '',
+            array_slice($this->findingNotices($this->build(['type' => 'record', 'table' => 'tt_content', 'uid' => self::HIDDEN_MEDIA]), 'files') ?? [], -1)[0] ?? '',
         );
 
-        self::assertSame(['Not found in its storage'], $this->present(['type' => 'file', 'uid' => self::FILE_GONE])->fileChecks['notices'] ?? null);
-        self::assertSame(['Marked as missing, but found in its storage'], $this->present(['type' => 'file', 'uid' => self::FILE_MARKED_MISSING])->fileChecks['notices'] ?? null);
-        self::assertSame(['Storage offline in the backend'], $this->present(['type' => 'file', 'uid' => self::FILE_OFFLINE])->fileChecks['notices'] ?? null);
-        self::assertSame(['Empty file (0 bytes)'], $this->present(['type' => 'file', 'uid' => self::FILE_EMPTY])->fileChecks['notices'] ?? null);
-        // Nothing to point out
-        self::assertNull($this->present(['type' => 'file', 'uid' => self::FILE_LOGO])->fileChecks);
+        // Reported files: the checks, followed by where the file is used
+        $unused = 'No file references to this file (links in texts are not counted)';
+        $usedInGallery = 'Used in Page Content "Gallery" [tt_content:60] · ' . $images . ' · page "About" [2]';
+        self::assertSame(['Not found in its storage', $unused], $this->findingNotices($this->build(['type' => 'file', 'uid' => self::FILE_GONE]), 'files'));
+        self::assertSame(['Marked as missing, but found in its storage', $unused], $this->findingNotices($this->build(['type' => 'file', 'uid' => self::FILE_MARKED_MISSING]), 'files'));
+        self::assertSame(['Storage offline in the backend', $usedInGallery], $this->findingNotices($this->build(['type' => 'file', 'uid' => self::FILE_OFFLINE]), 'files'));
+        self::assertSame(['Empty file (0 bytes)', $usedInGallery], $this->findingNotices($this->build(['type' => 'file', 'uid' => self::FILE_EMPTY]), 'files'));
+        // Nothing to point out about the file itself
+        foreach ($this->findingNotices($this->build(['type' => 'file', 'uid' => self::FILE_LOGO]), 'files') ?? [] as $notice) {
+            self::assertMatchesRegularExpression('/^(Used in |Further usages: )/', $notice);
+        }
 
         // Fiona works in German; files she may not access are only counted
         $this->loginBackendUser(self::FILE_CHECKER);
         $images = $this->viewerLabel('tt_content', 'image');
         self::assertSame(
             [
-                'title' => 'Dateiprüfung',
-                'notices' => [
-                    $images . ': „logo.png“ – Referenz verborgen',
-                    $images . ': „manual.pdf“ – Als fehlend markiert',
-                    $images . ': Referenzierte Datei existiert nicht mehr',
-                    $images . ': „empty.txt“ – Leere Datei (0 Bytes)',
-                    'Nicht geprüfte referenzierte Dateien (außerhalb der zugänglichen Dateifreigaben): 2',
-                ],
-                'note' => 'Grundlage ist der Dateiindex von TYPO3. Nur eine gemeldete Datei wird zusätzlich in ihrem Speicher gesucht.',
+                $images . ': „logo.png“ – Referenz verborgen',
+                $images . ': „manual.pdf“ – Als fehlend markiert',
+                $images . ': Referenzierte Datei existiert nicht mehr',
+                $images . ': „empty.txt“ – Leere Datei (0 Bytes) · Dateityp in diesem Feld nicht erlaubt, TYPO3 entfernt die Referenz beim Speichern des Datensatzes',
+                'Nicht geprüfte referenzierte Dateien (außerhalb der zugänglichen Dateifreigaben): 2',
             ],
-            $this->present(['type' => 'record', 'table' => 'tt_content', 'uid' => self::GALLERY])->fileChecks,
+            $this->findingNotices($this->build(['type' => 'record', 'table' => 'tt_content', 'uid' => self::GALLERY]), 'files'),
         );
     }
 
@@ -404,14 +405,6 @@ final class FileChecksTest extends AbstractContextReporterTestCase
         $checks = $this->build($target)->getContextSection('fileChecks');
         self::assertNotSame([], $checks);
         return $checks;
-    }
-
-    /**
-     * @param array<string, mixed> $target
-     */
-    private function present(array $target): SubjectPresentation
-    {
-        return $this->get(SubjectPresenter::class)->present($this->build($target));
     }
 
     /**

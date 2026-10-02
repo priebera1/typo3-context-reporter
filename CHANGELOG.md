@@ -3,6 +3,38 @@
 All notable changes to this project are documented in this file. The project
 follows [semantic versioning](https://semver.org/).
 
+## [0.3.0] - 2026-10-02
+
+### Added
+
+* Findings. The report dialog and the report detail group the diagnostics below the reported object: website address, placement, visibility, files and permissions, a few notices per group with a pointer to the technical details, and one note that these are stored settings and permission facts, not a check of the website. The Markdown version lists all findings, and the new email marker `{context.findings}` (also in the default email template) contains them as text.
+* Website address facts (`context.routing`): why a page or the page of a record has no website address or which settings explain it: no site, a page type TYPO3 offers no view for, a language the site does not have or that is disabled, a missing page translation with the fallback languages, a page that is new or deleted in the workspace, a site base without host, an address TYPO3 could not build.
+* Placement (`context.placement`): the column of a content element and whether the backend layout of its page has it (as TYPO3 offers the columns in the editing form, including columns of extensions), the backend layout and the parent page it is set on, and "Show content from page" in both directions.
+* Translation behaviour of pages ("Hide default language of page", "Hide page if no translation for current language exists", including `hidePagesIfNotTranslatedByDefault`) in `context.visibility`.
+* File checks name references to files of a type the file field does not allow (`typeNotAllowed`), which TYPO3 removes when the record is saved. The type is the extension of the file name, checked like TYPO3 does it; image fields allow the image file types of TYPO3, by default including PDF, AI and SVG.
+* File usage (`context.fileUsage`): for a reported file, the records and fields that refer to it.
+* Permission facts (`context.permissions`) of editors: table permission, page permissions, edit locks, language, record type, page type, fields that are not available (exclude fields, fields of the default language in translations, fields disabled in TSconfig), and for files and folders the file permissions, read-only file mounts and whether the storage is writable. They are inputs of TYPO3's checks; the report never says whether something can be edited.
+* Creation time and last change of the reported page or record, and the time zone of the server. Scheduled and expired notices name the server time zone when the reporter's browser was in another one. The report detail shows the column and the last change of a record.
+
+### Changed
+
+* The visibility notices and file check notices are now part of the findings.
+
+### Fixed
+
+* The frontend URL follows the "View" button of TYPO3: external links, shortcuts, mount points and custom page types get their address, and pages TSconfig `TCEMAIN.preview.disableButtonForDokType` excludes from viewing do not. A page deleted in the workspace gets no address; the reason is in `context.routing`.
+* The table of the record list is only reported for tables of the TCA the reporter may list.
+* The report item of the context menu never breaks the context menu of files, folders, pages and records: when a file, folder or storage cannot be resolved or checked (e.g. a file deleted after the file list was loaded, or a storage driver that fails), the item is left out. TYPO3 13.4 and 14.3 themselves still fail on the context menu of a file or folder they cannot find any more ("Call to a member function checkActionPermission() on null"), also without Context Reporter; reload the file list.
+
+### Security
+
+* The new facts stay within the reporter's access: translations and fallback languages only in languages the reporter may use, the backend layout only with permission for both backend layout fields and through accessible parent pages, pages and records only named when accessible (otherwise counted), records of users and groups never named, and only the reporter's own permissions without owners, groups or other users.
+
+### Compatibility
+
+* The report format stays `context-reporter.report.v1`: all new sections and fields are optional, reports created before have none and are shown as before. Lists of codes (e.g. `routing.notes`, file `problems`) can grow; receivers should ignore unknown values. The database schema is unchanged. Flush the caches after updating.
+* TYPO3 13.4 LTS and TYPO3 14.3 LTS, PHP 8.2, 8.3, 8.4 and 8.5. On TYPO3 13.4.0 to 13.4.14, which have no `PreviewUriBuilder::isPreviewable()`, the same TSconfig rule is applied.
+
 ## [0.2.0] - 2026-10-01
 
 ### Added

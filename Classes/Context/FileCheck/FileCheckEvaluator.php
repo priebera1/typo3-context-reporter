@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Priebera\ContextReporter\Context\FileCheck;
 
 use TYPO3\CMS\Core\Resource\File;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Problems of a file as TYPO3 knows them. A referenced file is judged by
@@ -28,6 +29,8 @@ final readonly class FileCheckEvaluator
     public const HIDDEN = 'hidden';
     /** The file reference points to a file the file index does not know (any more) */
     public const BROKEN_REFERENCE = 'brokenReference';
+    /** The file field does not allow the type (file extension) of the referenced file */
+    public const TYPE_NOT_ALLOWED = 'typeNotAllowed';
 
     public const STORAGE_CHECK_FOUND = 'found';
     public const STORAGE_CHECK_NOT_FOUND = 'notFound';
@@ -85,6 +88,38 @@ final readonly class FileCheckEvaluator
             $problems[] = self::EMPTY;
         }
         return ['storageCheck' => $storageCheck, 'problems' => $problems];
+    }
+
+    /**
+     * Whether a file field allows files with the extension, by the rule
+     * DataHandler applies when the record is saved (FileExtensionFilter):
+     * not allowed when "allowed" is set and does not list the extension, or
+     * when "disallowed" lists it. Extensions are compared in lower case; a
+     * file without extension has the extension "".
+     *
+     * @param array<array-key, mixed> $fieldConfiguration The "config" of the field, with the overrides of the record type
+     */
+    public static function isAllowedInField(string $extension, array $fieldConfiguration): bool
+    {
+        $extension = strtolower($extension);
+        $allowed = self::toExtensionList($fieldConfiguration['allowed'] ?? '');
+        $disallowed = self::toExtensionList($fieldConfiguration['disallowed'] ?? '');
+        return ($allowed === [] || in_array($extension, $allowed, true))
+            && ($disallowed === [] || !in_array($extension, $disallowed, true));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function toExtensionList(mixed $extensions): array
+    {
+        if (is_array($extensions)) {
+            $extensions = implode(',', array_filter($extensions, is_scalar(...)));
+        }
+        if (!is_string($extensions) || $extensions === '') {
+            return [];
+        }
+        return array_map(strtolower(...), GeneralUtility::trimExplode(',', $extensions));
     }
 
     /**

@@ -7,11 +7,11 @@ namespace Priebera\ContextReporter\Context\Collector;
 use Priebera\ContextReporter\Backend\BackendLinkBuilder;
 use Priebera\ContextReporter\Context\CollectionScope;
 use Priebera\ContextReporter\Context\ContextCollectorInterface;
+use Priebera\ContextReporter\Context\Routing\FrontendAddressResolver;
+use Priebera\ContextReporter\Context\ServerTime;
 use Priebera\ContextReporter\Context\Subject\RecordAccess;
-use Priebera\ContextReporter\Context\Subject\SubjectLanguageResolver;
 use Priebera\ContextReporter\Context\Tca\TcaInspector;
 use Symfony\Component\DependencyInjection\Attribute\AsTaggedItem;
-use TYPO3\CMS\Core\Site\SiteFinder;
 
 /**
  * The page the subject is, or lives on. Only allowlisted page properties are
@@ -25,16 +25,10 @@ final readonly class PageCollector implements ContextCollectorInterface
     private const PAGE_MODULE = 'web_layout';
     private const MAX_ROOTLINE_DEPTH = 20;
 
-    /**
-     * External link, spacer, folder and recycler pages have no frontend URL of their own.
-     */
-    private const NOT_VIEWABLE_DOKTYPES = [3, 199, 254, 255];
-
     public function __construct(
         private TcaInspector $tca,
         private BackendLinkBuilder $links,
-        private SiteFinder $siteFinder,
-        private SubjectLanguageResolver $languageResolver,
+        private FrontendAddressResolver $addressResolver,
         private RecordAccess $recordAccess,
     ) {}
 
@@ -74,14 +68,17 @@ final readonly class PageCollector implements ContextCollectorInterface
         if ($versionUid > 0 && $versionUid !== $uid) {
             $data['workspaceVersionUid'] = $versionUid;
         }
+        $data += ServerTime::describeRecord($page, $this->tca->getCreationTimeField('pages'), $this->tca->getChangeTimeField('pages'));
         $rootline = $this->buildRootline($page, $scope);
         if ($rootline !== []) {
             $data['rootline'] = $rootline;
         }
+        $address = $this->addressResolver->resolve($scope);
         $links = array_filter([
             'backendUrl' => $this->links->module(self::PAGE_MODULE, ['id' => $uid]),
             'editUrl' => $this->links->editRecord('pages', $uid),
-            'frontendUrl' => $this->buildFrontendUrl($uid, $doktype, max(0, $this->languageResolver->resolve($scope) ?? 0)),
+            // Only an address that belongs to the page; "context.routing" explains a missing one
+            'frontendUrl' => $address !== null ? $address->url : '',
         ]);
         return $data + $links;
     }
@@ -103,17 +100,5 @@ final readonly class PageCollector implements ContextCollectorInterface
             $current = $parentUid > 0 ? $this->recordAccess->findPage($parentUid, $scope->backendUser) : null;
         }
         return $rootline;
-    }
-
-    private function buildFrontendUrl(int $uid, int $doktype, int $languageId): string
-    {
-        if ($doktype >= 200 || in_array($doktype, self::NOT_VIEWABLE_DOKTYPES, true)) {
-            return '';
-        }
-        try {
-            return (string)$this->siteFinder->getSiteByPageId($uid)->getRouter()->generateUri($uid, ['_language' => $languageId]);
-        } catch (\Throwable) {
-            return '';
-        }
     }
 }

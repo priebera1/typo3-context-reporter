@@ -30,8 +30,7 @@ final readonly class SubjectPresentation
      * @param list<array{key: string, label: string, value: string}> $facts
      * @param string $backendUrl Shareable backend link to the object
      * @param string $listTitle Defaults to the title
-     * @param array{title: string, notices: list<string>, note: string}|null $visibility Notices about stored visibility settings
-     * @param array{title: string, notices: list<string>, note: string}|null $fileChecks Notices about file problems
+     * @param array{title: string, groups: list<array{key: string, title: string, icon: string, items: list<string>, more: int, moreText: string}>, note: string}|null $findings Findings of the diagnostics, see FindingsBuilder
      */
     public function __construct(
         public string $kind,
@@ -44,8 +43,7 @@ final readonly class SubjectPresentation
         public string $backendUrl = '',
         public string $frontendUrl = '',
         string $listTitle = '',
-        public ?array $visibility = null,
-        public ?array $fileChecks = null,
+        public ?array $findings = null,
     ) {
         $this->listTitle = $listTitle !== '' ? $listTitle : $title;
     }
@@ -67,7 +65,7 @@ final readonly class SubjectPresentation
     /**
      * The data the report dialog renders. Links are left out on purpose.
      *
-     * @return array{kind: string, icon: string, typeLabel: string, title: string, identifier: string, location: string, meta: string, facts: list<array{key: string, label: string, value: string}>, visibility: array{title: string, notices: list<string>, note: string}|null, fileChecks: array{title: string, notices: list<string>, note: string}|null}
+     * @return array{kind: string, icon: string, typeLabel: string, title: string, identifier: string, location: string, meta: string, facts: list<array{key: string, label: string, value: string}>, findings: array{title: string, groups: list<array{key: string, title: string, icon: string, items: list<string>, more: int, moreText: string}>, note: string}|null}
      */
     public function toArray(): array
     {
@@ -80,8 +78,7 @@ final readonly class SubjectPresentation
             'location' => $this->location,
             'meta' => $this->getMetaLine(),
             'facts' => $this->facts,
-            'visibility' => $this->visibility,
-            'fileChecks' => $this->fileChecks,
+            'findings' => $this->findings,
         ];
     }
 }

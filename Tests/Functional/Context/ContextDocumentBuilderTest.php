@@ -15,6 +15,8 @@ use Priebera\ContextReporter\Context\Location\BackendLocationFactory;
 use Priebera\ContextReporter\Context\Subject\SubjectNotAvailableException;
 use Priebera\ContextReporter\Domain\ContextDocument;
 use Priebera\ContextReporter\Tests\Functional\AbstractContextReporterTestCase;
+use TYPO3\CMS\Core\Context\Context;
+use TYPO3\CMS\Core\Context\DateTimeAspect;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Information\Typo3Version;
 
@@ -249,6 +251,66 @@ final class ContextDocumentBuilderTest extends AbstractContextReporterTestCase
         self::assertSame('site_configuration', $data['subject']['module']);
         self::assertSame('site_configuration', $data['context']['backend']['module']['identifier']);
         self::assertArrayNotHasKey('page', $data['context']);
+    }
+
+    #[Test]
+    public function creationAndLastChangeAreReportedInTheServerTimeZone(): void
+    {
+        $timeZone = date_default_timezone_get();
+        date_default_timezone_set('Europe/Vienna');
+        try {
+            $connectionPool = $this->get(ConnectionPool::class);
+            // Summer and winter time
+            $connectionPool->getConnectionForTable('tt_content')->update('tt_content', ['crdate' => 1790000000, 'tstamp' => 1798000000], ['uid' => 10]);
+            $connectionPool->getConnectionForTable('pages')->update('pages', ['crdate' => 1785000000, 'tstamp' => 1791000000], ['uid' => 2]);
+            $this->get(Context::class)->setAspect('date', new DateTimeAspect(new \DateTimeImmutable('now', new \DateTimeZone('Europe/Vienna'))));
+            $this->loginBackendUser(self::ADMIN);
+
+            $data = $this->build(['source' => 'contextMenu', 'target' => ['type' => 'record', 'table' => 'tt_content', 'uid' => 10]])->toArray();
+
+            self::assertSame('Europe/Vienna', $data['system']['timeZone']);
+            self::assertSame('2026-09-21T16:13:20+02:00', $data['context']['record']['createdAt']);
+            self::assertSame('2026-12-23T05:26:40+01:00', $data['context']['record']['changedAt']);
+            self::assertSame('2026-07-25T19:20:00+02:00', $data['context']['page']['createdAt']);
+            self::assertSame('2026-10-03T06:00:00+02:00', $data['context']['page']['changedAt']);
+        } finally {
+            date_default_timezone_set($timeZone);
+        }
+    }
+
+    #[Test]
+    public function timesAreOnlyReportedWhenTheTableHasAndSetsThem(): void
+    {
+        $this->loginBackendUser(self::ADMIN);
+        $this->get(ConnectionPool::class)->getConnectionForTable('tt_content')->update('tt_content', ['crdate' => 1790000000, 'tstamp' => 1798000000], ['uid' => 10]);
+        $ctrl = $GLOBALS['TCA']['tt_content']['ctrl'];
+        unset($GLOBALS['TCA']['tt_content']['ctrl']['tstamp']);
+        try {
+            $record = $this->build(['source' => 'contextMenu', 'target' => ['type' => 'record', 'table' => 'tt_content', 'uid' => 10]])->toArray()['context']['record'];
+        } finally {
+            $GLOBALS['TCA']['tt_content']['ctrl'] = $ctrl;
+        }
+
+        self::assertArrayHasKey('createdAt', $record);
+        self::assertArrayNotHasKey('changedAt', $record, 'The table has no "tstamp" field');
+        // Never set (0)
+        $page = $this->build(['source' => 'contextMenu', 'target' => ['type' => 'page', 'uid' => 2]])->toArray()['context']['page'];
+        self::assertArrayNotHasKey('createdAt', $page);
+        self::assertArrayNotHasKey('changedAt', $page);
+    }
+
+    #[Test]
+    public function listedTableIsOnlyReportedForTablesTheReporterMayList(): void
+    {
+        $this->loginBackendUser(self::EDITOR);
+        $parameters = fn(string $table): array => $this->build([
+            'source' => 'toolbar',
+            'location' => ['url' => '/typo3/module/web/list?id=2&table=' . $table, 'module' => 'web_list'],
+        ])->toArray()['context']['backend']['parameters'] ?? [];
+
+        self::assertSame(['id' => '2', 'table' => 'tt_content'], $parameters('tt_content'));
+        self::assertSame(['id' => '2'], $parameters('tx_unknown_records'), 'Not a TCA table');
+        self::assertSame(['id' => '2'], $parameters('be_users'), 'No permission to list backend users');
     }
 
     #[Test]

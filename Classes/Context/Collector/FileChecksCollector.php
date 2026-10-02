@@ -72,7 +72,7 @@ final readonly class FileChecksCollector implements ContextCollectorInterface
         }
         $references = $subject->table === self::REFERENCE_TABLE
             // A reported file reference is checked like the references of a record
-            ? $this->summarizeReferences((string)($subject->record['tablenames'] ?? ''), [$subject->record], $backendUser)
+            ? $this->summarizeReferences((string)($subject->record['tablenames'] ?? ''), [$subject->record], $backendUser, $this->findParentRecord($subject->record, $backendUser))
             : $this->checkReferences($subject->table, $subject->uid, $subject->record, $backendUser);
         if ($references !== null) {
             $data['references'] = $references;
@@ -97,16 +97,31 @@ final readonly class FileChecksCollector implements ContextCollectorInterface
             return null;
         }
 
-        return $this->summarizeReferences($table, $this->recordAccess->findFileReferences($table, $uid, $fields, $backendUser), $backendUser);
+        return $this->summarizeReferences($table, $this->recordAccess->findFileReferences($table, $uid, $fields, $backendUser), $backendUser, $record);
+    }
+
+    /**
+     * The record a reported file reference belongs to, if the reporter may access it.
+     *
+     * @param array<string, mixed> $reference
+     * @return array<string, mixed>|null
+     */
+    private function findParentRecord(array $reference, BackendUserAuthentication $backendUser): ?array
+    {
+        $table = (string)($reference['tablenames'] ?? '');
+        $uid = (int)($reference['uid_foreign'] ?? 0);
+        return $table !== '' && $uid > 0 ? $this->recordAccess->findRecord($table, $uid, $backendUser) : null;
     }
 
     /**
      * @param string $table The table the references belong to, for the field labels
      * @param list<array<string, mixed>> $references Accessible file references
+     * @param array<string, mixed>|null $record The record the references belong to, for the allowed file types of its fields
      * @return array<string, mixed>
      */
-    private function summarizeReferences(string $table, array $references, BackendUserAuthentication $backendUser): array
+    private function summarizeReferences(string $table, array $references, BackendUserAuthentication $backendUser, ?array $record): array
     {
+        $fieldConfigurations = [];
         $hiddenField = $this->tca->getDisabledField(self::REFERENCE_TABLE);
         $checked = 0;
         $notChecked = 0;
@@ -125,6 +140,11 @@ final readonly class FileChecksCollector implements ContextCollectorInterface
                     continue;
                 }
                 $referenceProblems = $this->evaluator->checkIndexedFile($file);
+                $field = (string)($reference['fieldname'] ?? '');
+                $fieldConfigurations[$field] ??= $record !== null ? $this->tca->getFieldConfiguration($table, $field, $record) : null;
+                if ($fieldConfigurations[$field] !== null && !FileCheckEvaluator::isAllowedInField($file->getExtension(), $fieldConfigurations[$field])) {
+                    $referenceProblems[] = FileCheckEvaluator::TYPE_NOT_ALLOWED;
+                }
             }
             $checked++;
             if ($hiddenField !== '' && (bool)($reference[$hiddenField] ?? false)) {

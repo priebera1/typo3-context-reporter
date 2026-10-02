@@ -1,0 +1,44 @@
+"backend_layout"
+,"uid","pid","title","config","deleted","hidden"
+,1,0,"Database layout","backend_layout {
+  colCount = 1
+  rowCount = 2
+  rows {
+    1.columns.1 {
+      name = Stage
+      colPos = 0
+    }
+    2.columns.1 {
+      name = Footer
+      colPos = 7
+    }
+  }
+}",0,0
+"pages"
+,"uid","pid","title","slug","doktype","hidden","deleted","perms_userid","perms_groupid","perms_user","perms_group","perms_everybody","sys_language_uid","l10n_parent","backend_layout","backend_layout_next_level","content_from_pid","t3ver_oid","t3ver_wsid","t3ver_state"
+,30,2,"Section with two columns","/about/section",1,0,0,1,1,31,31,0,0,0,"","pagets__two",0,0,0,0
+,31,30,"Section page","/about/section/page",1,0,0,1,1,31,31,0,0,0,"","",0,0,0,0
+,32,2,"Single column","/about/single",1,0,0,1,1,31,31,0,0,0,"pagets__single","",0,0,0,0
+,33,2,"No layout","/about/no-layout",1,0,0,1,1,31,31,0,0,0,"-1","",0,0,0,0
+,34,2,"Mirror of About","/about/mirror",1,0,0,1,1,31,31,0,0,0,"","",2,0,0,0
+,35,2,"Mirror of the other root","/about/mirror-other",1,0,0,1,1,31,31,0,0,0,"","",4,0,0,0
+,36,2,"Mirror of a removed page","/about/mirror-removed",1,0,0,1,1,31,31,0,0,0,"","",999,0,0,0
+,37,4,"Mirror of About on the other root","/mirror-about",1,0,0,1,0,31,0,0,0,0,"","",2,0,0,0
+,38,2,"Section with two columns","/about/section",1,0,0,1,1,31,31,0,0,0,"","pagets__single",0,30,1,0
+,39,2,"Database layout page","/about/database-layout",1,0,0,1,1,31,31,0,0,0,"1","",0,0,0,0
+"tt_content"
+,"uid","pid","CType","header","bodytext","colPos","sys_language_uid","l18n_parent"
+,70,31,"text","Sidebar teaser","",5,0,0
+,71,31,"text","Element in an unknown column","",3,0,0
+,72,32,"text","Single column element","",0,0,0
+,73,2,"text","Container child","",200,0,0
+,74,2,"text","Lost element","",200,0,0
+,75,39,"text","Footer element","",7,0,0
+"be_groups"
+,"uid","pid","title","tables_select","tables_modify","db_mountpoints","groupMods","non_exclude_fields"
+,11,0,"Layout readers","pages,tt_content","pages,tt_content","2","web_layout,web_list","pages:backend_layout,pages:backend_layout_next_level"
+,12,0,"Own layout only","pages,tt_content","pages,tt_content","2","web_layout,web_list","pages:backend_layout"
+"be_users"
+,"uid","pid","username","password","admin","usergroup","realName","email","lang","db_mountpoints","options","workspace_perms","disable","deleted"
+,13,0,"lars","$argon2i$v=19$m=65536,t=16,p=1$c29tZXNhbHQ$Kxt6ZxgHKVTLaRJGb0VBdGtYGYnTX0WNe4OHOfr5HDc",0,"1,11","Lars Layout","lars@example.com","default","",3,1,0,0
+,14,0,"olga","$argon2i$v=19$m=65536,t=16,p=1$c29tZXNhbHQ$Kxt6ZxgHKVTLaRJGb0VBdGtYGYnTX0WNe4OHOfr5HDc",0,"1,12","Olga Ownlayout","olga@example.com","default","",3,1,0,0

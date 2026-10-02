@@ -86,32 +86,26 @@
                             </f:for>
                         </dl>
                     </f:if>
-                    <f:if condition="{subject.visibility}">
-                        <section class="cr-visibility" aria-labelledby="cr-visibility-heading">
-                            <h3 class="cr-visibility__title h6" id="cr-visibility-heading">
-                                <core:icon identifier="actions-eye" size="small" />
-                                {subject.visibility.title}
-                            </h3>
-                            <ul class="cr-visibility__list">
-                                <f:for each="{subject.visibility.notices}" as="notice">
-                                    <li>{notice}</li>
-                                </f:for>
-                            </ul>
-                            <p class="cr-visibility__note">{subject.visibility.note}</p>
-                        </section>
-                    </f:if>
-                    <f:if condition="{subject.fileChecks}">
-                        <section class="cr-file-checks" aria-labelledby="cr-file-checks-heading">
-                            <h3 class="cr-file-checks__title h6" id="cr-file-checks-heading">
-                                <core:icon identifier="actions-file" size="small" />
-                                {subject.fileChecks.title}
-                            </h3>
-                            <ul class="cr-file-checks__list">
-                                <f:for each="{subject.fileChecks.notices}" as="notice">
-                                    <li>{notice}</li>
-                                </f:for>
-                            </ul>
-                            <p class="cr-file-checks__note">{subject.fileChecks.note}</p>
+                    <f:if condition="{subject.findings}">
+                        <section class="cr-findings" aria-labelledby="cr-findings-heading">
+                            <h3 class="cr-findings__title h6" id="cr-findings-heading">{subject.findings.title}</h3>
+                            <f:for each="{subject.findings.groups}" as="group">
+                                <section class="cr-findings__group" data-group="{group.key}" aria-labelledby="cr-findings-{group.key}-heading">
+                                    <h4 class="cr-findings__group-title" id="cr-findings-{group.key}-heading">
+                                        <core:icon identifier="{group.icon}" size="small" />
+                                        {group.title}
+                                    </h4>
+                                    <ul class="cr-findings__list">
+                                        <f:for each="{group.items}" as="item">
+                                            <li>{item}</li>
+                                        </f:for>
+                                    </ul>
+                                    <f:if condition="{group.moreText}">
+                                        <p class="cr-findings__more">{group.moreText}</p>
+                                    </f:if>
+                                </section>
+                            </f:for>
+                            <p class="cr-findings__note">{subject.findings.note}</p>
                         </section>
                     </f:if>
                     <f:if condition="{subjectUrl} || {metadataUrl} || {frontendUrl}">

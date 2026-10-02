@@ -15,11 +15,16 @@ use TYPO3\CMS\Core\Localization\LanguageService;
  * dialog and the report detail. Only settings that keep the object from
  * visitors are mentioned; the full data is in the technical details.
  *
+ * Times are shown in the server time, like everywhere in the TYPO3 backend;
+ * when the reporter's browser was in another time zone, the server time
+ * zone is named.
+ *
  * @internal
  */
 final readonly class VisibilityNoticeBuilder
 {
-    private const LABELS = 'LLL:EXT:context_reporter/Resources/Private/Language/locallang.xlf:';
+    use NoticeTrait;
+
     private const SEPARATOR = ' · ';
 
     private const WORKSPACE_LABELS = [
@@ -28,49 +33,46 @@ final readonly class VisibilityNoticeBuilder
         VisibilityEvaluator::WORKSPACE_DELETED => 'visibility.workspace.deleted',
     ];
 
+    private const TRANSLATION_BEHAVIOUR_LABELS = [
+        'hideDefaultLanguage' => 'visibility.hideDefaultLanguage',
+        'hideIfNotTranslated' => 'visibility.hideIfNotTranslated',
+    ];
+
     public function __construct(
         private TcaInspector $tca,
     ) {}
 
     /**
-     * @return array{title: string, notices: list<string>, note: string}|null Null when there is nothing to point out
+     * @return list<string>
      */
-    public function build(ContextDocument $document, LanguageService $languageService): ?array
+    public function build(ContextDocument $document, LanguageService $languageService): array
     {
         $visibility = $document->getContextSection('visibility');
         if ($visibility === []) {
-            return null;
+            return [];
         }
+        $serverTimeZone = $this->getServerTimeZoneToName($document);
 
-        $notices = $this->describe($this->array($visibility, 'subject'), $languageService);
+        $notices = $this->describe($this->array($visibility, 'subject'), $languageService, $serverTimeZone);
         $page = $this->array($visibility, 'page');
-        $pageFacts = $this->describe($page, $languageService);
+        $pageFacts = $this->describe($page, $languageService, $serverTimeZone);
         if ($pageFacts !== []) {
             $notices[] = sprintf($this->label('visibility.page', $languageService), $this->string($page, 'title'), implode(self::SEPARATOR, $pageFacts));
         }
         foreach ($this->list($this->array($visibility, 'parentPages'), 'restricting') as $parent) {
-            $parentFacts = $this->describe($parent, $languageService);
+            $parentFacts = $this->describe($parent, $languageService, $serverTimeZone);
             if ($parentFacts !== []) {
                 $notices[] = sprintf($this->label('visibility.parentPage', $languageService), $this->string($parent, 'title'), implode(self::SEPARATOR, $parentFacts));
             }
         }
-        array_push($notices, ...$this->describeTranslations($this->list($visibility, 'translations'), $languageService));
-
-        if ($notices === []) {
-            return null;
-        }
-        return [
-            'title' => $this->label('visibility.title', $languageService),
-            'notices' => $notices,
-            'note' => $this->label('visibility.note', $languageService),
-        ];
+        return [...$notices, ...$this->describeTranslations($this->list($visibility, 'translations'), $languageService, $serverTimeZone)];
     }
 
     /**
      * @param list<array<array-key, mixed>> $translations
      * @return list<string>
      */
-    private function describeTranslations(array $translations, LanguageService $languageService): array
+    private function describeTranslations(array $translations, LanguageService $languageService, string $serverTimeZone): array
     {
         $notices = [];
         $missing = ['page' => [], 'record' => []];
@@ -89,7 +91,7 @@ final readonly class VisibilityNoticeBuilder
                     $missing[$key][] = $language;
                     continue;
                 }
-                $facts = $this->describe($state, $languageService);
+                $facts = $this->describe($state, $languageService, $serverTimeZone);
                 if ($facts !== []) {
                     $notices[] = sprintf($this->label($labelKey, $languageService), $language, implode(self::SEPARATOR, $facts));
                 }
@@ -111,7 +113,7 @@ final readonly class VisibilityNoticeBuilder
      * @param array<array-key, mixed> $facts
      * @return list<string>
      */
-    private function describe(array $facts, LanguageService $languageService): array
+    private function describe(array $facts, LanguageService $languageService, string $serverTimeZone): array
     {
         $reasons = array_filter(is_array($facts['reasons'] ?? null) ? $facts['reasons'] : [], is_string(...));
         $texts = [];
@@ -119,16 +121,21 @@ final readonly class VisibilityNoticeBuilder
             $texts[] = $this->label('visibility.hidden', $languageService);
         }
         if (in_array(VisibilityEvaluator::SCHEDULED, $reasons, true)) {
-            $texts[] = sprintf($this->label('visibility.scheduled', $languageService), $this->formatTime($this->string($facts, 'starttime')));
+            $texts[] = sprintf($this->label('visibility.scheduled', $languageService), $this->formatTime($this->string($facts, 'starttime'), $serverTimeZone, $languageService));
         }
         if (in_array(VisibilityEvaluator::EXPIRED, $reasons, true)) {
-            $texts[] = sprintf($this->label('visibility.expired', $languageService), $this->formatTime($this->string($facts, 'endtime')));
+            $texts[] = sprintf($this->label('visibility.expired', $languageService), $this->formatTime($this->string($facts, 'endtime'), $serverTimeZone, $languageService));
         }
         if (in_array(VisibilityEvaluator::ACCESS_RESTRICTED, $reasons, true)) {
             $texts[] = sprintf($this->label('visibility.accessRestricted', $languageService), $this->describeGroups($facts, $languageService));
         }
         if (($facts['hiddenInMenu'] ?? false) === true) {
             $texts[] = $this->label('visibility.hiddenInMenu', $languageService);
+        }
+        foreach (self::TRANSLATION_BEHAVIOUR_LABELS as $key => $labelKey) {
+            if (($this->array($facts, 'translationBehaviour')[$key] ?? false) === true) {
+                $texts[] = $this->label($labelKey, $languageService);
+            }
         }
         $workspaceLabel = self::WORKSPACE_LABELS[$this->string($facts, 'workspaceState')] ?? '';
         if ($workspaceLabel !== '') {
@@ -156,7 +163,18 @@ final readonly class VisibilityNoticeBuilder
         return implode(', ', $titles);
     }
 
-    private function formatTime(string $time): string
+    /**
+     * The server time zone when the reporter's browser reported another one,
+     * otherwise empty.
+     */
+    private function getServerTimeZoneToName(ContextDocument $document): string
+    {
+        $serverTimeZone = $this->string($document->getSection('system'), 'timeZone');
+        $browserTimeZone = $this->string($document->getSection('browser'), 'timeZone');
+        return $serverTimeZone !== '' && $browserTimeZone !== '' && $serverTimeZone !== $browserTimeZone ? $serverTimeZone : '';
+    }
+
+    private function formatTime(string $time, string $serverTimeZone, LanguageService $languageService): string
     {
         try {
             $date = new \DateTimeImmutable($time);
@@ -166,40 +184,9 @@ final readonly class VisibilityNoticeBuilder
         // The date and time format of the TYPO3 backend
         $dateFormat = $GLOBALS['TYPO3_CONF_VARS']['SYS']['ddmmyy'] ?? '';
         $timeFormat = $GLOBALS['TYPO3_CONF_VARS']['SYS']['hhmm'] ?? '';
-        return $date->format(
+        $formatted = $date->format(
             (is_string($dateFormat) && $dateFormat !== '' ? $dateFormat : 'd-m-y') . ' ' . (is_string($timeFormat) && $timeFormat !== '' ? $timeFormat : 'H:i'),
         );
-    }
-
-    private function label(string $key, LanguageService $languageService): string
-    {
-        return $languageService->sL(self::LABELS . $key) ?: $key;
-    }
-
-    /**
-     * @param array<array-key, mixed> $data
-     * @return array<array-key, mixed>
-     */
-    private function array(array $data, string $key): array
-    {
-        return is_array($data[$key] ?? null) ? $data[$key] : [];
-    }
-
-    /**
-     * @param array<array-key, mixed> $data
-     * @return list<array<array-key, mixed>>
-     */
-    private function list(array $data, string $key): array
-    {
-        return array_values(array_filter($this->array($data, $key), is_array(...)));
-    }
-
-    /**
-     * @param array<array-key, mixed> $data
-     */
-    private function string(array $data, string $key): string
-    {
-        $value = $data[$key] ?? '';
-        return is_scalar($value) && !is_bool($value) ? (string)$value : '';
+        return $serverTimeZone !== '' ? sprintf($this->label('visibility.serverTime', $languageService), $formatted, $serverTimeZone) : $formatted;
     }
 }

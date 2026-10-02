@@ -34,8 +34,11 @@ workflow.
 - **Report where the problem is:** backend toolbar, context menu of pages, records, files and folders, record list, Page module, file list and the record editing form.
 - **Object-aware context:** page, record and content type, editing form, file, folder and storage, site, language, workspace, backend module, system and browser. Only allowlisted metadata is collected, and the dialog shows everything before it is sent.
 - **Screenshots, edited locally:** screen capture, upload or paste; rectangle, arrow, freehand, text and opaque redaction. Annotations are flattened before upload.
-- **Why isn't it on the website?** For pages and records, the dialog lists the stored settings that keep them from visitors: hidden, start and end dates, frontend user groups, restrictions passed on by parent pages, hidden or missing translations and the workspace state. Facts only, no guesses about the rendered page.
-- **Missing images and downloads:** file checks list files that are marked as missing, gone from their storage, empty or in an offline storage, hidden file references and references to files that no longer exist. Files outside the reporter's file mounts are only counted.
+- **Findings instead of guesswork:** the dialog and the report detail group what stands out by website address, placement, visibility, files and permissions. Facts only, no guesses about the rendered page and no verdict on what an editor can edit.
+- **Why isn't it on the website?** For pages and records: hidden, start and end dates, frontend user groups, restrictions passed on by parent pages, translation behaviour, hidden or missing translations and the workspace state, and why a page has no website address (no site, page type without view, disabled language, missing translation, workspace).
+- **Where is it placed?** The column of a content element and whether the backend layout of the page has it, the backend layout and where it is set, and "Show content from page" in both directions.
+- **Missing images and downloads:** file checks list files that are marked as missing, gone from their storage, empty or in an offline storage, of a type the field does not allow, hidden file references and references to files that no longer exist; a reported file lists where it is used. Files and records outside the reporter's access are only counted.
+- **Why can't I edit it?** Reports of editors contain their permission facts: table and page permissions, edit locks, language, record and page type, fields that are not available, file permissions.
 - **Frontend problems, too:** report a page from the Page or Preview module in the language the editor is looking at; the report links the frontend URL of that language.
 - **Delivery:** email through the TYPO3 mail API, a signed webhook (HMAC-SHA256) for n8n, Make, Zapier or your own API, and downloads as JSON or Markdown.
 - **Ready for GitLab and Jira:** an importable n8n workflow verifies the signature, creates a GitLab issue and shows its number to the reporter; the documentation covers Jira as well.
@@ -49,6 +52,7 @@ workflow.
 
 | Context Reporter | TYPO3 | PHP |
 | --- | --- | --- |
+| 0.3 | 13.4 LTS, 14.3 LTS | 8.2, 8.3, 8.4, 8.5 |
 | 0.2 | 13.4 LTS, 14.3 LTS | 8.2, 8.3, 8.4, 8.5 |
 | 0.1 | 13.4 LTS, 14.3 LTS | 8.2, 8.3, 8.4, 8.5 |
 

@@ -9,6 +9,7 @@ use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
 use TYPO3\CMS\Core\Database\Query\Restriction\WorkspaceRestriction;
 use TYPO3\CMS\Core\Type\Bitmask\Permission;
@@ -49,6 +50,7 @@ final readonly class RecordAccess
     private const NO_NEW_RECORD_TABLES = ['sys_file_metadata'];
 
     private const FILE_REFERENCE_TABLE = 'sys_file_reference';
+    private const CONTENT_FROM_PAGE_FIELD = 'content_from_pid';
 
     public function __construct(
         private TcaInspector $tca,
@@ -137,6 +139,102 @@ final readonly class RecordAccess
             $translations[$languageId] = $row;
         }
         return $translations;
+    }
+
+    /**
+     * The default language pages that show the content of the given page
+     * ("Show content from page"), as workspace overlaid rows of the user's
+     * current workspace, without access check. Pages deleted in the
+     * workspace and versions that no longer point to the page are left out.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function findPagesShowingContentOf(int $pageUid, BackendUserAuthentication $backendUser, int $limit): array
+    {
+        if ($pageUid <= 0 || !$this->tca->hasColumn('pages', self::CONTENT_FROM_PAGE_FIELD)) {
+            return [];
+        }
+        $workspace = (int)$backendUser->workspace;
+        $queryBuilder = $this->connectionPool->getQueryBuilderForTable('pages');
+        $queryBuilder->getRestrictions()
+            ->removeAll()
+            ->add(new DeletedRestriction())
+            ->add(new WorkspaceRestriction($workspace));
+        $queryBuilder
+            ->select('*')
+            ->from('pages')
+            ->where($queryBuilder->expr()->eq(self::CONTENT_FROM_PAGE_FIELD, $queryBuilder->createNamedParameter($pageUid, Connection::PARAM_INT)))
+            ->orderBy('uid')
+            ->setMaxResults($limit);
+        $languageField = $this->tca->getLanguageField('pages');
+        if ($languageField !== '') {
+            $queryBuilder->andWhere($queryBuilder->expr()->eq($languageField, $queryBuilder->createNamedParameter(0, Connection::PARAM_INT)));
+        }
+        $pages = [];
+        foreach ($queryBuilder->executeQuery()->fetchAllAssociative() as $row) {
+            BackendUtility::workspaceOL('pages', $row, $workspace);
+            if (!is_array($row)
+                || VersionState::tryFrom((int)($row['t3ver_state'] ?? 0)) === VersionState::DELETE_PLACEHOLDER
+                || (int)($row[self::CONTENT_FROM_PAGE_FIELD] ?? 0) !== $pageUid
+            ) {
+                continue;
+            }
+            $pages[] = $row;
+        }
+        return $pages;
+    }
+
+    /**
+     * The file references to a file in the user's current workspace, as
+     * workspace overlaid rows in the order they were created, without access
+     * check of the records they belong to. References deleted in the
+     * workspace are left out. At most $limit references are returned;
+     * "total" counts all of them.
+     *
+     * @return array{references: list<array<string, mixed>>, total: int}
+     */
+    public function findReferencesToFile(int $fileUid, BackendUserAuthentication $backendUser, int $limit): array
+    {
+        if ($fileUid <= 0) {
+            return ['references' => [], 'total' => 0];
+        }
+        $workspace = (int)$backendUser->workspace;
+        $createQuery = function () use ($fileUid, $workspace): QueryBuilder {
+            $queryBuilder = $this->connectionPool->getQueryBuilderForTable(self::FILE_REFERENCE_TABLE);
+            $queryBuilder->getRestrictions()
+                ->removeAll()
+                ->add(new DeletedRestriction())
+                ->add(new WorkspaceRestriction($workspace));
+            $queryBuilder
+                ->from(self::FILE_REFERENCE_TABLE)
+                ->where($queryBuilder->expr()->eq('uid_local', $queryBuilder->createNamedParameter($fileUid, Connection::PARAM_INT)));
+            return $queryBuilder;
+        };
+        $rows = $createQuery()->select('*')->orderBy('uid')->setMaxResults($limit + 1)->executeQuery()->fetchAllAssociative();
+        $total = count($rows) > $limit ? (int)$createQuery()->count('uid')->executeQuery()->fetchOne() : null;
+
+        $references = [];
+        $deleted = 0;
+        foreach (array_slice($rows, 0, $limit) as $row) {
+            BackendUtility::workspaceOL(self::FILE_REFERENCE_TABLE, $row, $workspace);
+            // A reference deleted in the workspace is gone for the user
+            if (!is_array($row) || VersionState::tryFrom((int)($row['t3ver_state'] ?? 0)) === VersionState::DELETE_PLACEHOLDER) {
+                $deleted++;
+                continue;
+            }
+            $references[] = $row;
+        }
+        return ['references' => $references, 'total' => $total !== null ? $total - $deleted : count($references)];
+    }
+
+    /**
+     * Whether a page record exists, regardless of access. Only used to tell a
+     * page that no longer exists from a page the user may not access; nothing
+     * about the page is returned.
+     */
+    public function pageExists(int $uid): bool
+    {
+        return $uid > 0 && BackendUtility::getRecord('pages', $uid, 'uid') !== null;
     }
 
     /**

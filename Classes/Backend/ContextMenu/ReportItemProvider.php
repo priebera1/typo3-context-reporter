@@ -55,12 +55,20 @@ final class ReportItemProvider implements ProviderInterface
         return 42;
     }
 
+    /**
+     * Whatever fails while checking, the item is left out instead of
+     * breaking the context menu.
+     */
     public function canHandle(): bool
     {
-        return $this->tca->hasTable($this->table)
-            && !in_array($this->table, RecordAccess::DENIED_TABLES, true)
-            && preg_match('/^[1-9]\d{0,9}$/D', $this->identifier) === 1
-            && $this->accessPolicy->canReport($GLOBALS['BE_USER'] ?? null);
+        try {
+            return $this->tca->hasTable($this->table)
+                && !in_array($this->table, RecordAccess::DENIED_TABLES, true)
+                && preg_match('/^[1-9]\d{0,9}$/D', $this->identifier) === 1
+                && $this->accessPolicy->canReport($GLOBALS['BE_USER'] ?? null);
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
     /**
@@ -68,6 +76,19 @@ final class ReportItemProvider implements ProviderInterface
      * @return array<string, mixed>
      */
     public function addItems(array $items): array
+    {
+        try {
+            return $this->addReportItem($items);
+        } catch (\Throwable) {
+            return $items;
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $items
+     * @return array<string, mixed>
+     */
+    private function addReportItem(array $items): array
     {
         if ($this->isItemDisabled(self::ITEM_NAME, $this->table, $this->context)) {
             return $items;

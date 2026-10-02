@@ -22,8 +22,12 @@ The collectors do not read:
 *   API keys, access tokens or SMTP credentials
 *   cookies, session data, ``Authorization`` headers or any other HTTP header
 *   ``$GLOBALS``, configuration dumps or database dumps
-*   record field values other than the record label, for example body text,
-    and no form contents; multi-line text is never used as record label
+*   record field values other than the record label and the settings
+    described below (visibility, placement, edit locks, creation and last
+    change), for example body text, and no form contents; multi-line text is
+    never used as record label
+*   site settings, error handling, base variants or other site configuration
+    beyond the site identifier, base, root page and the languages
 *   file contents, file metadata values or storage configuration
 *   the backend log, unless :confval:`setting-privacy-recentbackenderrors` is
     enabled
@@ -56,6 +60,8 @@ TYPO3 shows them to website visitors, see :ref:`usage-visibility`:
 *   :guilabel:`Extend to subpages` of parent pages only if the reporter may
     edit that field (:guilabel:`Allowed excludefields`; administrators may);
     otherwise inherited restrictions are left out of the report,
+*   :guilabel:`Translation behaviour` of pages only if the reporter may edit
+    that field,
 *   parent pages only up to the first page the reporter cannot access; pages
     above it are not read, and the report only notes that they were not
     checked,
@@ -87,6 +93,69 @@ reports contain the file problems TYPO3 knows about, see
 
 Like all context, the checks are shown in the dialog and sealed before the
 report is sent.
+
+..  _privacy-website-address:
+
+Website address
+---------------
+
+For the website address, see :ref:`usage-website-address`, reports contain
+the address TYPO3 builds for the page and codes for the facts behind it. A
+missing translation is only looked up in languages the reporter may use, and
+the fallback languages of a language are only named if the reporter may use
+them (otherwise only their ID). The site configuration itself (settings,
+base variants, error handling, route enhancers) is not read into the report.
+
+..  _privacy-placement:
+
+Placement
+---------
+
+For pages and content elements, see :ref:`usage-placement`:
+
+*   the column of a content element and the column names of the backend
+    layout, which the Page module shows to the reporter anyway,
+*   the backend layout of the page and the parent page it is set on, only if
+    the reporter may edit both backend layout fields (:guilabel:`Allowed
+    excludefields`), and only through parent pages the reporter may access,
+*   :guilabel:`Show content from page`: the UID of the page, as the Page
+    module shows it to everyone who opens the page, with its title only if
+    the reporter may access it; pages that show the content of the page are
+    only named if the reporter may access them, otherwise counted.
+
+..  _privacy-file-usage:
+
+File usage
+----------
+
+For a reported file, see :ref:`usage-file-usage`, reports name the records
+and fields that refer to the file only if the reporter may access the record
+(table and page permissions, current workspace) and edit the field. All other
+usages are only counted, without table, UID or title. Records of backend and
+frontend users and groups are never named, also not for administrators.
+
+..  _privacy-permissions:
+
+Permission facts
+----------------
+
+For editors, reports contain their own permissions for the reported object,
+see :ref:`usage-permissions`: whether they may modify the table, their
+combined page permissions, edit locks, whether they may use the language,
+the record type and the page type, which fields of the form are not available
+to them, and their file permissions. The report does not say where a
+permission comes from: page owners and groups, the reporter's groups, other
+users, workspace members and stage assignments are not collected. Reports of
+administrators contain no permission facts.
+
+..  _privacy-times:
+
+Times
+-----
+
+Reports contain the creation time and the time of the last change of the
+reported page or record, if TYPO3 keeps them for the table, and the time zone
+of the server. They do not say who created or changed the record.
 
 ..  _privacy-recent-errors:
 

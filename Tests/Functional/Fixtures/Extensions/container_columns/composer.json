@@ -1,0 +1,14 @@
+{
+    "name": "priebera/context-reporter-container-columns",
+    "description": "Test fixture: an extension that offers its own content columns to some content elements, as container extensions do.",
+    "type": "typo3-cms-extension",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "typo3/cms-frontend": "*"
+    },
+    "extra": {
+        "typo3/cms": {
+            "extension-key": "container_columns"
+        }
+    }
+}

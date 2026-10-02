@@ -69,14 +69,13 @@ final class TcaInspector
     }
 
     /**
-     * File fields (TCA type "file") the editing form shows for the type of
-     * the record. Fields of other types keep their references when the type
-     * changes; those are not shown and not returned.
+     * The fields the editing form shows for the type of the record, as far
+     * as the TCA defines them as columns. Display conditions are not evaluated.
      *
      * @param array<string, mixed> $row
      * @return list<string>
      */
-    public function getShownFileFields(string $table, array $row): array
+    public function getShownFields(string $table, array $row): array
     {
         if (!$this->hasTable($table)) {
             return [];
@@ -92,10 +91,46 @@ final class TcaInspector
             return [];
         }
         $fields = $this->showitemParser->getFields($typeConfiguration, is_array($palettes) ? $palettes : [], $row);
+        return array_values(array_filter($fields, fn(string $field): bool => $this->hasColumn($table, $field)));
+    }
+
+    /**
+     * File fields (TCA type "file") the editing form shows for the type of
+     * the record. Fields of other types keep their references when the type
+     * changes; those are not shown and not returned.
+     *
+     * @param array<string, mixed> $row
+     * @return list<string>
+     */
+    public function getShownFileFields(string $table, array $row): array
+    {
         return array_values(array_filter(
-            $fields,
+            $this->getShownFields($table, $row),
             static fn(string $field): bool => ($GLOBALS['TCA'][$table]['columns'][$field]['config']['type'] ?? '') === 'file',
         ));
+    }
+
+    /**
+     * The configuration of a field for the type of the record: the field
+     * "config" with the "columnsOverrides" of the record type, as DataHandler
+     * and the editing form use it.
+     *
+     * @param array<string, mixed> $row
+     * @return array<array-key, mixed>
+     */
+    public function getFieldConfiguration(string $table, string $field, array $row): array
+    {
+        $config = $GLOBALS['TCA'][$table]['columns'][$field]['config'] ?? null;
+        if (!is_array($config)) {
+            return [];
+        }
+        try {
+            $type = (string)BackendUtility::getTCAtypeValue($table, $row);
+        } catch (\Throwable) {
+            return $config;
+        }
+        $overrides = $GLOBALS['TCA'][$table]['types'][$type]['columnsOverrides'][$field]['config'] ?? null;
+        return is_array($overrides) ? array_replace_recursive($config, $overrides) : $config;
     }
 
     public function getColumnLabel(string $table, string $field, ?LanguageService $languageService = null): string
@@ -112,6 +147,22 @@ final class TcaInspector
     public function getTranslationSourceField(string $table): string
     {
         return $this->ctrlString($table, 'transOrigPointerField');
+    }
+
+    /**
+     * The field TYPO3 stores the creation time in ("ctrl.crdate").
+     */
+    public function getCreationTimeField(string $table): string
+    {
+        return $this->ctrlString($table, 'crdate');
+    }
+
+    /**
+     * The field TYPO3 stores the time of the last change in ("ctrl.tstamp").
+     */
+    public function getChangeTimeField(string $table): string
+    {
+        return $this->ctrlString($table, 'tstamp');
     }
 
     public function getDisabledField(string $table): string
@@ -139,6 +190,50 @@ final class TcaInspector
     public function isExcludeField(string $table, string $field): bool
     {
         return (bool)($GLOBALS['TCA'][$table]['columns'][$field]['exclude'] ?? false);
+    }
+
+    /**
+     * Whether only administrators may modify records of the table ("ctrl.adminOnly").
+     */
+    public function isAdminOnly(string $table): bool
+    {
+        return (bool)($GLOBALS['TCA'][$table]['ctrl']['adminOnly'] ?? false);
+    }
+
+    /**
+     * The field that locks a record for editing by non-administrators ("ctrl.editlock").
+     */
+    public function getEditLockField(string $table): string
+    {
+        $field = $this->ctrlString($table, 'editlock');
+        return $this->hasColumn($table, $field) ? $field : '';
+    }
+
+    /**
+     * How a field behaves in translations ("l10n_mode"), e.g. "exclude":
+     * translations use the value of the default language.
+     */
+    public function getTranslationMode(string $table, string $field): string
+    {
+        $mode = $GLOBALS['TCA'][$table]['columns'][$field]['l10n_mode'] ?? '';
+        return is_string($mode) ? $mode : '';
+    }
+
+    /**
+     * Select fields whose values need an explicit permission of the user
+     * ("authMode"), e.g. the content type of content elements.
+     *
+     * @return list<string>
+     */
+    public function getAuthModeFields(string $table): array
+    {
+        $fields = [];
+        foreach ($GLOBALS['TCA'][$table]['columns'] ?? [] as $field => $column) {
+            if (is_string($field) && is_array($column) && ($column['config']['authMode'] ?? '') !== '') {
+                $fields[] = $field;
+            }
+        }
+        return $fields;
     }
 
     public function isReadOnly(string $table): bool

@@ -19,7 +19,8 @@ use TYPO3\CMS\Core\Localization\LanguageService;
  */
 final readonly class FileCheckNoticeBuilder
 {
-    private const LABELS = 'LLL:EXT:context_reporter/Resources/Private/Language/locallang.xlf:';
+    use NoticeTrait;
+
     private const SEPARATOR = ' · ';
 
     private const REPORTED_FILE_LABELS = [
@@ -33,6 +34,7 @@ final readonly class FileCheckNoticeBuilder
         FileCheckEvaluator::MISSING => 'fileChecks.markedMissing',
         FileCheckEvaluator::STORAGE_OFFLINE => 'fileChecks.storageOffline',
         FileCheckEvaluator::EMPTY => 'fileChecks.empty',
+        FileCheckEvaluator::TYPE_NOT_ALLOWED => 'fileChecks.typeNotAllowed',
     ];
 
     public function __construct(
@@ -40,27 +42,19 @@ final readonly class FileCheckNoticeBuilder
     ) {}
 
     /**
-     * @return array{title: string, notices: list<string>, note: string}|null Null when there is nothing to point out
+     * @return list<string>
      */
-    public function build(ContextDocument $document, LanguageService $languageService): ?array
+    public function build(ContextDocument $document, LanguageService $languageService): array
     {
         $checks = $document->getContextSection('fileChecks');
         if ($checks === []) {
-            return null;
+            return [];
         }
         $table = $this->string($document->getSubject(), 'table');
-        $notices = array_merge(
+        return array_merge(
             $this->describeReportedFile($this->array($checks, 'file'), $languageService),
             $this->describeReferences($this->array($checks, 'references'), $table, $languageService),
         );
-        if ($notices === []) {
-            return null;
-        }
-        return [
-            'title' => $this->label('fileChecks.title', $languageService),
-            'notices' => $notices,
-            'note' => $this->label('fileChecks.note', $languageService),
-        ];
     }
 
     /**
@@ -134,37 +128,5 @@ final readonly class FileCheckNoticeBuilder
     private function problems(array $data): array
     {
         return array_values(array_filter($this->array($data, 'problems'), is_string(...)));
-    }
-
-    private function label(string $key, LanguageService $languageService): string
-    {
-        return $languageService->sL(self::LABELS . $key) ?: $key;
-    }
-
-    /**
-     * @param array<array-key, mixed> $data
-     * @return array<array-key, mixed>
-     */
-    private function array(array $data, string $key): array
-    {
-        return is_array($data[$key] ?? null) ? $data[$key] : [];
-    }
-
-    /**
-     * @param array<array-key, mixed> $data
-     * @return list<array<array-key, mixed>>
-     */
-    private function list(array $data, string $key): array
-    {
-        return array_values(array_filter($this->array($data, $key), is_array(...)));
-    }
-
-    /**
-     * @param array<array-key, mixed> $data
-     */
-    private function string(array $data, string $key): string
-    {
-        $value = $data[$key] ?? '';
-        return is_scalar($value) && !is_bool($value) ? (string)$value : '';
     }
 }
