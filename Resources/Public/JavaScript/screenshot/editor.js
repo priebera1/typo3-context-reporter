@@ -100,6 +100,27 @@ export class ScreenshotEditor {
     };
   }
 
+  /**
+   * Moves the keyboard focus to the canvas, so the tool shortcuts reach the editor.
+   */
+  focus() {
+    this.stageHost.focus({ preventScroll: true });
+  }
+
+  /**
+   * Whether the editor uses an Escape key press itself (drops the selection or
+   * finishes a note) instead of letting it close the dialog.
+   *
+   * @param {EventTarget|null} target
+   * @returns {boolean}
+   */
+  handlesEscape(target) {
+    if (this.textInput) {
+      return true;
+    }
+    return target instanceof Node && this.host.contains(target) && this.transformer.nodes().length > 0;
+  }
+
   destroy() {
     this.resizeObserver?.disconnect();
     this.stage?.destroy();

@@ -91,6 +91,7 @@ final class SettingsFormProcessorTest extends AbstractContextReporterTestCase
             'attachScreenshot' => '1',
             'attachJson' => '0',
             'replyToReporter' => '1',
+            'htmlVersion' => '1',
         ]);
 
         self::assertTrue($result->isValid());
@@ -101,6 +102,7 @@ final class SettingsFormProcessorTest extends AbstractContextReporterTestCase
             'senderName' => 'TYPO3 Portal',
             'subject' => ExtensionSettingsFactory::DEFAULT_SUBJECT,
             'bodyTemplate' => ExtensionSettingsFactory::DEFAULT_BODY_TEMPLATE,
+            'htmlVersion' => true,
             'attachScreenshot' => true,
             'attachJson' => false,
             'replyToReporter' => true,
@@ -137,6 +139,30 @@ final class SettingsFormProcessorTest extends AbstractContextReporterTestCase
         self::assertArrayHasKey('timeout', $this->process('webhook', ['timeout' => '31'])->errors);
         self::assertArrayHasKey('authHeaderName', $this->process('webhook', ['authHeaderName' => 'X Api Key'])->errors);
         self::assertSame('Authorization', $this->process('webhook', ['authHeaderName' => ''])->values['authHeaderName']);
+    }
+
+    #[Test]
+    public function senderAddressNeedsAFullDomain(): void
+    {
+        foreach (['a@b', 'typo3@localhost', 'typo3@example.', 'nobody'] as $address) {
+            self::assertSame('error.senderAddress', $this->process('email', ['senderAddress' => $address])->errors['senderAddress'] ?? null, $address);
+        }
+        foreach (['typo3@example.com', 'no-reply@mail.example.co.uk', 'typo3@xn--bcher-kva.example'] as $address) {
+            self::assertTrue($this->process('email', ['senderAddress' => $address])->isValid(), $address);
+        }
+        self::assertTrue($this->process('email', ['senderAddress' => ''])->isValid(), 'Empty uses the TYPO3 default sender');
+    }
+
+    #[Test]
+    public function webhookEndpointMustNotContainCredentials(): void
+    {
+        foreach (['https://user:secret@hooks.example.com/abc', 'https://user@hooks.example.com/abc', 'http://u:p@receiver.local:8090/'] as $url) {
+            $result = $this->process('webhook', ['enabled' => '1', 'url' => $url, 'allowInsecureHttp' => '1']);
+            self::assertSame('error.urlCredentials', $result->errors['url'] ?? null, $url);
+        }
+        self::assertTrue($this->process('webhook', ['enabled' => '1', 'url' => 'https://hooks.example.com/abc?token=x'])->isValid(), 'Query tokens stay possible (write-only, redacted)');
+        self::assertTrue($this->process('webhook', ['enabled' => '1', 'url' => 'http://receiver.local:8090/', 'allowInsecureHttp' => '1'])->isValid());
+        self::assertArrayHasKey('publicUrl', $this->process('hub', ['publicUrl' => 'https://user:pw@hub.example.com'])->errors);
     }
 
     #[Test]
@@ -178,6 +204,69 @@ final class SettingsFormProcessorTest extends AbstractContextReporterTestCase
         self::assertSame('', $removed->values['authHeaderValue']);
 
         self::assertArrayHasKey('authHeaderValue', $this->process('webhook', ['authHeaderValue' => "Bearer x\r\nX-Evil: 1"], $current)->errors);
+    }
+
+    #[Test]
+    public function hubSettingsNeedTheWebhookUrlAndSecretOfAHubSite(): void
+    {
+        $valid = $this->process('hub', ['enabled' => '1', 'url' => ' https://hub.example.com/in/s_8Fq2LmZx4RtY7vB1nKc3Wd9P ', 'secret' => ' whsec_8Fq2LmZx4RtY7vB1nKc3Wd9PaQ5sT0uV ', 'includeScreenshot' => '1']);
+        self::assertTrue($valid->isValid());
+        self::assertSame([
+            'enabled' => true,
+            'url' => 'https://hub.example.com/in/s_8Fq2LmZx4RtY7vB1nKc3Wd9P',
+            'secret' => 'whsec_8Fq2LmZx4RtY7vB1nKc3Wd9PaQ5sT0uV',
+            'publicUrl' => '',
+            'includeScreenshot' => true,
+            'allowInsecureHttp' => false,
+        ], $valid->values);
+
+        $errors = static fn(array $input, array $current = []): array => (new SettingsFormProcessor())->process('hub', $input, $current, [])->errors;
+        self::assertSame(['url' => 'error.hubUrlRequired', 'secret' => 'error.hubSecretRequired'], $errors(['enabled' => '1']));
+        self::assertSame([], $errors(['enabled' => '0']), 'A switched-off Hub may stay unconfigured');
+        self::assertSame(['url' => 'error.hubUrl'], $errors(['url' => 'https://hub.example.com/app/inbox']));
+        self::assertSame(['url' => 'error.hubUrl'], $errors(['url' => 'whsec_8Fq2LmZx4RtY7vB1nKc3Wd9PaQ5sT0uV']), 'The secret pasted into the URL field');
+        self::assertSame(['secret' => 'error.hubSecret'], $errors(['secret' => 'https://hub.example.com/in/s_8Fq2LmZx4RtY7vB1nKc3Wd9P']), 'The URL pasted into the secret field');
+        self::assertSame(['url' => 'error.hubUrlInsecure'], $errors(['url' => 'http://localhost:3210/in/s_demoWebsiteLocalDev000001']));
+        self::assertSame([], $errors(['url' => 'http://localhost:3210/in/s_demoWebsiteLocalDev000001', 'allowInsecureHttp' => '1']));
+        self::assertSame([], $errors(['enabled' => '1', 'url' => '%env(CR_HUB_URL)%', 'secret' => '%env(CR_HUB_SECRET)%']));
+    }
+
+    /**
+     * K4: TYPO3 in Docker reaches the Hub at host.docker.internal, the browser at
+     * localhost. The optional Hub address for links is validated like an address,
+     * never with a token, user, query or fragment.
+     */
+    #[Test]
+    public function theHubAddressForLinksIsOptionalAndValidated(): void
+    {
+        $local = ['url' => 'http://host.docker.internal:3210/in/s_demoWebsiteLocalDev000001', 'allowInsecureHttp' => '1'];
+        $valid = $this->process('hub', $local + ['publicUrl' => ' http://localhost:3210 ']);
+        self::assertTrue($valid->isValid());
+        self::assertSame('http://localhost:3210', $valid->values['publicUrl']);
+
+        $errors = static fn(array $input): array => (new SettingsFormProcessor())->process('hub', $input, [], [])->errors;
+        self::assertSame([], $errors(['publicUrl' => 'https://hub.example.com']));
+        self::assertSame([], $errors(['publicUrl' => 'https://example.com/hub/']));
+        self::assertSame([], $errors(['publicUrl' => '%env(CR_HUB_PUBLIC_URL)%']));
+        self::assertSame(['publicUrl' => 'error.hubPublicUrlInsecure'], $errors(['publicUrl' => 'http://localhost:3210']));
+        foreach (['localhost:3210', 'javascript:alert(1)', 'https://user:pass@hub.example.com', 'https://hub.example.com/?token=1', 'https://hub.example.com/#x', 'ftp://hub.example.com'] as $invalid) {
+            self::assertSame(['publicUrl' => 'error.hubPublicUrl'], $errors(['publicUrl' => $invalid]), $invalid);
+        }
+    }
+
+    #[Test]
+    public function storedHubValuesAreWriteOnly(): void
+    {
+        $current = ['url' => 'https://hub.example.com/in/s_8Fq2LmZx4RtY7vB1nKc3Wd9P', 'secret' => 'whsec_8Fq2LmZx4RtY7vB1nKc3Wd9PaQ5sT0uV'];
+
+        $kept = $this->process('hub', ['enabled' => '1', 'url' => '', 'secret' => ''], $current);
+        self::assertTrue($kept->isValid());
+        self::assertSame($current['url'], $kept->values['url']);
+        self::assertSame($current['secret'], $kept->values['secret']);
+
+        $removed = $this->process('hub', ['enabled' => '0', 'urlRemove' => '1', 'secretRemove' => '1'], $current);
+        self::assertTrue($removed->isValid());
+        self::assertSame(['', ''], [$removed->values['url'], $removed->values['secret']]);
     }
 
     #[Test]

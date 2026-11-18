@@ -19,7 +19,7 @@ final class ConfiguredSecretsTest extends UnitTestCase
     }
 
     #[Test]
-    public function webhookMailAndDatabaseCredentialsAreCollected(): void
+    public function webhookHubMailAndDatabaseCredentialsAreCollected(): void
     {
         $GLOBALS['TYPO3_CONF_VARS']['MAIL'] = ['transport' => 'smtp', 'transport_smtp_server' => 'mail.example.com:587', 'transport_smtp_username' => 'mailer-user', 'transport_smtp_password' => 'mailer-password'];
         $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections'] = [
@@ -27,13 +27,16 @@ final class ConfiguredSecretsTest extends UnitTestCase
             'Logging' => ['driver' => 'mysqli', 'user' => 'logger', 'password' => ''],
         ];
         $secrets = new ConfiguredSecrets(
-            new SettingsProviderStub(['webhook' => ['url' => 'https://hooks.example.com/webhook/secret-path-value', 'secret' => 'hmac-secret-value']]),
+            new SettingsProviderStub([
+                'webhook' => ['url' => 'https://hooks.example.com/webhook/secret-path-value', 'secret' => 'hmac-secret-value'],
+                'hub' => ['url' => 'https://hub.example.com/in/s_8Fq2LmZx4RtY7vB1nKc3Wd9P', 'secret' => 'whsec_8Fq2LmZx4RtY7vB1nKc3Wd9PaQ5sT0uV'],
+            ]),
             new MailConfigurationInspector(),
         );
 
         $values = $secrets->get();
 
-        foreach (['hmac-secret-value', 'https://hooks.example.com/webhook/secret-path-value', 'mailer-user', 'mailer-password', 'database-password'] as $secret) {
+        foreach (['hmac-secret-value', 'https://hooks.example.com/webhook/secret-path-value', 'whsec_8Fq2LmZx4RtY7vB1nKc3Wd9PaQ5sT0uV', '/in/s_8Fq2LmZx4RtY7vB1nKc3Wd9P', 's_8Fq2LmZx4RtY7vB1nKc3Wd9P', 'mailer-user', 'mailer-password', 'database-password'] as $secret) {
             self::assertContains($secret, $values);
         }
         self::assertNotContains('typo3', $values, 'Database user names are too common to be redacted');

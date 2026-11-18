@@ -15,20 +15,27 @@ Reporting a problem
 #.  Check the detected object at the top of the dialog: its type, name,
     identifier and where it lives.
 #.  Enter a short title and describe what you tried to do, what you
-    expected and what happened instead.
-#.  Optionally add a screenshot.
-#.  Open :guilabel:`Review the technical data that will be sent` to see
-    exactly what the report contains.
+    expected and what happened instead. Never enter passwords, API keys,
+    access tokens, private keys, recovery codes or other secrets, see
+    :ref:`privacy-sensitive`.
+#.  Optionally add a screenshot. Review the visible page first: screenshots
+    may contain sensitive backend data. Cover it with the :guilabel:`Redact`
+    tool or remove the screenshot, see :ref:`usage-screenshot`.
+#.  Read :guilabel:`Check for sensitive information before sending` and open
+    :guilabel:`Review the technical data that will be sent` to see exactly
+    what the report contains.
 #.  Click :guilabel:`Send report`, or :guilabel:`Save and download` to
     save the report and download it as JSON.
 
 After sending, the dialog confirms that the report was saved and shows its
 ID and the delivery result per destination, including a ticket reference if
-the webhook receiver returned one. It offers:
+the webhook receiver returned one, or the reference of the report in
+:ref:`Context Reporter Hub <integration-hub>`. It offers:
 
 :guilabel:`Open report`
     Opens the report in :guilabel:`System > Context Reports`
-    (administrators only).
+    (administrators and users with access to the module, see
+    :ref:`configuration-access`).
 
 :guilabel:`Copy`
     Copies a short text summary, the Markdown version, the JSON document
@@ -38,8 +45,26 @@ the webhook receiver returned one. It offers:
     Downloads the Markdown version, the JSON document (including the
     screenshot) or the screenshot.
 
+When :ref:`Context Reporter Hub <integration-hub>` received the report but
+did not store its screenshot, for example because the storage of the Hub
+workspace is full, the dialog still confirms the report with its Hub
+reference and adds a separate notice
+:guilabel:`The screenshot was not stored in Context Reporter Hub.` with the
+reason, see :ref:`integration-hub-screenshots`.
+
 If the dialog is closed before the report is sent, the title and description
-are kept for 30 minutes, unless the backend is reloaded.
+are kept for 30 minutes, unless the backend is reloaded. The screenshot is not
+kept: with a screenshot, :guilabel:`Cancel`, the close button and
+:kbd:`Escape` first ask :guilabel:`Discard the screenshot?`
+(:guilabel:`Keep editing` or :guilabel:`Discard screenshot and close`).
+:kbd:`Escape` while an annotation is selected only removes the selection.
+
+After a screenshot is added with :guilabel:`Upload image`,
+:guilabel:`Capture screen` or by dropping a file, the keyboard focus moves to
+the image, so the tool keys (:kbd:`V`, :kbd:`R`, :kbd:`A`, :kbd:`D`, :kbd:`T`,
+:kbd:`B`) and :kbd:`Ctrl+Z` reach the editor. An image pasted into the title
+or the description leaves the focus there, so typing goes on. In narrow windows the tool buttons show icons
+only; their names stay available as tooltips and to screen readers.
 
 ..  _usage-entry-points:
 
@@ -220,10 +245,12 @@ example:
 *   :guilabel:`Parent page "Members area", applies to its subpages: Frontend
     access: Members`: a parent page with :guilabel:`Extend to subpages` passes
     its restrictions on. Only reporters who may edit that field see this.
-*   :guilabel:`Translation Deutsch: Hidden`,
-    :guilabel:`Not translated into: Français` or
+*   :guilabel:`Content element translation Deutsch: Hidden`,
+    :guilabel:`Content element not translated into: Français` or
     :guilabel:`Page not translated into: Français`, for the languages the
-    reporter may use. New translations are hidden by default in TYPO3.
+    reporter may use. Notices about the reported content element or record
+    name it, notices about its page say "Page". New translations are hidden by
+    default in TYPO3.
 *   :guilabel:`New in this workspace, not on the live website yet`, or
     changed or deleted in the workspace
 
@@ -355,6 +382,13 @@ Screenshots
 Screenshots are created and edited in the browser. Nothing is uploaded before
 the report is sent.
 
+..  important::
+    Nothing in a screenshot is detected or redacted automatically. Before
+    sending, cover everything that does not belong in the report yourself
+    with the :guilabel:`Redact` tool, or remove the screenshot: passwords, API
+    keys, access tokens, private keys, recovery codes and personal data that
+    is not needed. The dialog says so in the screenshot area.
+
 Capture screen
     The browser asks which tab, window or screen to share. The dialog hides
     while the picture is taken. Only one frame is captured and the capture
@@ -452,11 +486,13 @@ The detail view shows, in this order:
 *   the screenshot,
 *   the description, the reporter and the delivery history with destination,
     time, attempt, result, HTTP status code, safe error message, external
-    ticket reference and the user who triggered the delivery or download,
+    ticket reference and the user who triggered the delivery or download
+    (where it was sent, such as the webhook address, only for
+    administrators),
 *   :guilabel:`Technical details`, collapsed by default: all attached data as
     tables and as raw JSON,
-*   :guilabel:`Delete report`, separated from everything else. It asks for
-    confirmation.
+*   :guilabel:`Delete report` (administrators only), separated from
+    everything else. It asks for confirmation.
 
 The document header offers:
 
@@ -478,8 +514,8 @@ changed.
 Open and resolved reports
 =========================
 
-New reports are open. When a problem has been dealt with, an administrator
-marks the report as resolved; the report remembers who resolved it and when.
+New reports are open. When a problem has been dealt with, an administrator or
+a user with access to the module marks the report as resolved; the report remembers who resolved it and when.
 Resolved reports can be reopened. The review state is independent of the
 delivery state and is not part of downloads, emails or webhook payloads.
 Context Reporter deliberately has no assignments, priorities, comments or

@@ -16,10 +16,10 @@ redacted in the editor's browser.
 > The screenshot shows what the user sees. The TYPO3 context tells the
 > developer what the problem actually belongs to.
 
-Context Reporter is **not a ticket system**. Reports are downloaded, emailed
-or sent to a webhook, so they end up in the tools your team already uses. The
-local report history is an audit log with an open/resolved marker, not a
-workflow.
+Context Reporter is **not a ticket system**. Reports are downloaded, emailed,
+sent to a webhook or collected in the optional hosted Context Reporter Hub, so
+they end up where your team already works. The local report history is an
+audit log with an open/resolved marker, not a workflow.
 
 [Product website](https://typo3.priebera.sk/context-reporter) ·
 [Documentation](Documentation/Index.rst) ·
@@ -41,8 +41,9 @@ workflow.
 - **Why can't I edit it?** Reports of editors contain their permission facts: table and page permissions, edit locks, language, record and page type, fields that are not available, file permissions.
 - **Frontend problems, too:** report a page from the Page or Preview module in the language the editor is looking at; the report links the frontend URL of that language.
 - **Delivery:** email through the TYPO3 mail API, a signed webhook (HMAC-SHA256) for n8n, Make, Zapier or your own API, and downloads as JSON or Markdown.
+- **Context Reporter Hub (optional):** paste the webhook URL and signing secret of a Hub site, test the connection, and reports from all your installations go to one hosted inbox with the same signed webhook request. A delivery counts only when the Hub confirms it, and the reporter sees the Hub reference with a link.
 - **Ready for GitLab and Jira:** an importable n8n workflow verifies the signature, creates a GitLab issue and shows its number to the reporter; the documentation covers Jira as well.
-- **Report history:** System › Context Reports with filters, open/resolved state, delivery history, manual retry, Copy (summary, Markdown, JSON, link) and Download.
+- **Report history:** System › Context Reports with filters, open/resolved state, delivery history, manual retry, Copy (summary, Markdown, JSON, link) and Download. Administrators can grant it to editors through the backend group's module access; settings, tests, cleanup, deleting and the addresses reports are sent to stay with administrators.
 - **Settings, privacy and retention:** configurable reporter identity and browser details, reports kept forever by default or cleaned up after a number of days (also on the command line).
 - **English and German** backend labels.
 
@@ -52,6 +53,7 @@ workflow.
 
 | Context Reporter | TYPO3 | PHP |
 | --- | --- | --- |
+| 0.4 | 13.4 LTS, 14.3 LTS | 8.2, 8.3, 8.4, 8.5 |
 | 0.3 | 13.4 LTS, 14.3 LTS | 8.2, 8.3, 8.4, 8.5 |
 | 0.2 | 13.4 LTS, 14.3 LTS | 8.2, 8.3, 8.4, 8.5 |
 | 0.1 | 13.4 LTS, 14.3 LTS | 8.2, 8.3, 8.4, 8.5 |
@@ -71,10 +73,22 @@ For classic mode, see [Installation](Documentation/Installation/Index.rst):
 switch off the automatic installation of the Extension Manager before
 uploading the ZIP, then activate the extension.
 
+Updating from 0.3 needs a new Composer requirement and the database update
+(`composer update` alone stays on 0.3):
+
+```bash
+composer require priebera/typo3-context-reporter:^0.4
+vendor/bin/typo3 extension:setup
+vendor/bin/typo3 cache:flush
+```
+
+See [Upgrade](Documentation/Upgrade/Index.rst) and the
+[changelog](CHANGELOG.md) for what changes.
+
 ## Quick start
 
 1. Open **System › Context Reports** and click **Settings** (top right).
-2. Configure email or webhook delivery, check the status panel and send a test email or test webhook.
+2. Configure email, Context Reporter Hub or webhook delivery, check the status panel and send a test email, Hub connection test or test webhook.
 3. Click **Report a problem** in the backend toolbar and send a first report.
 
 Without a destination, reports are stored in the report history and can be
@@ -93,7 +107,7 @@ covers Jira.
 - Reports only reference pages, records, files and folders the reporter can access, including file mounts and the current workspace.
 - Secrets are write-only in the settings, and error messages, ticket references and log entries are sanitized.
 - Screenshots and reports stay in your TYPO3 database and go only to the destinations you configure.
-- Administrators are trusted with the webhook destination; the documentation explains how to pin it.
+- Administrators are trusted with the webhook and Hub destinations; the documentation explains how to pin them.
 
 Report security issues privately, see [SECURITY.md](SECURITY.md).
 

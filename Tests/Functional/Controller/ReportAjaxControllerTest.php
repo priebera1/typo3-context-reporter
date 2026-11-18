@@ -10,6 +10,9 @@ use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\Attributes\Test;
 use Priebera\ContextReporter\Controller\ReportAjaxController;
 use Priebera\ContextReporter\Controller\ReportDownloadController;
+use Priebera\ContextReporter\Database\DatabaseSchemaState;
+use Priebera\ContextReporter\Delivery\DeliveryNotPossibleException;
+use Priebera\ContextReporter\Delivery\DeliveryService;
 use Priebera\ContextReporter\Domain\Repository\DeliveryAttemptRepository;
 use Priebera\ContextReporter\Domain\Repository\ReportRepository;
 use Priebera\ContextReporter\Tests\Functional\AbstractContextReporterTestCase;
@@ -157,6 +160,17 @@ final class ReportAjaxControllerTest extends AbstractContextReporterTestCase
     }
 
     #[Test]
+    public function usersWithTheReportsModuleCanOpenTheSubmittedReport(): void
+    {
+        $this->loginBackendUser(self::REVIEWER);
+
+        $data = $this->submitReport('Reviewer report');
+
+        self::assertStringContainsString('/typo3/module/system/context-reports/show?', $data['historyUrl']);
+        self::assertStringContainsString('report=' . $data['report']['identifier'], $data['historyUrl']);
+    }
+
+    #[Test]
     public function administratorsCanOpenTheSubmittedReport(): void
     {
         $this->loginBackendUser(self::ADMIN);
@@ -209,6 +223,89 @@ final class ReportAjaxControllerTest extends AbstractContextReporterTestCase
         self::assertStringContainsString('SUP-42', $stored);
     }
 
+    /**
+     * The Hub stores a report before it answers: when the answer is lost, the reporter is not told that the report was not
+     * sent. The delivery stays failed (and can be retried), but is marked unconfirmed; a refused connection is not.
+     */
+    #[Test]
+    public function aHubDeliveryWhoseAnswerWasLostIsUnconfirmed(): void
+    {
+        $this->configureExtension(['hub' => ['enabled' => '1', 'url' => 'https://hub.example.com/in/s_8Fq2LmZx4RtY7vB1nKc3Wd9P', 'secret' => 'whsec_8Fq2LmZx4RtY7vB1nKc3Wd9PaQ5sT0uV']]);
+        $this->failWith('cURL error 28: Operation timed out after 5001 milliseconds with 0 bytes received');
+        $this->loginBackendUser(self::ADMIN);
+        $lost = $this->submitReport('Answer lost');
+        $this->failWith('cURL error 7: Failed to connect to hub.example.com port 443: Connection refused');
+        $refused = $this->submitReport('Hub not reachable');
+
+        self::assertSame('failed', $lost['deliveryState']);
+        self::assertFalse($lost['deliveries'][0]['successful']);
+        self::assertTrue($lost['deliveries'][0]['unconfirmed']);
+        self::assertFalse($refused['deliveries'][0]['successful']);
+        self::assertFalse($refused['deliveries'][0]['unconfirmed']);
+        $messages = $this->getConnectionPool()->getConnectionForTable('tx_contextreporter_delivery')
+            ->select(['message'], 'tx_contextreporter_delivery', ['destination' => 'hub'], [], ['uid' => 'ASC'])->fetchFirstColumn();
+        self::assertStringStartsWith('Not confirmed: No answer within the time limit (timeout)', (string)$messages[0]);
+        self::assertSame('The server could not be reached (connection refused or blocked) (cURL error 7).', $messages[1]);
+    }
+
+    #[Test]
+    public function theReporterSeesTheHubReferenceWithItsLink(): void
+    {
+        $this->configureExtension(['hub' => ['enabled' => '1', 'url' => 'https://hub.example.com/in/s_8Fq2LmZx4RtY7vB1nKc3Wd9P', 'secret' => 'whsec_8Fq2LmZx4RtY7vB1nKc3Wd9PaQ5sT0uV']]);
+        $this->respondWith(['reference' => 'LW-152', 'url' => 'https://hub.example.com/app/reports/LW-152']);
+        $this->loginBackendUser(self::ADMIN);
+
+        $prepared = $this->decode($this->prepare(['source' => 'toolbar']));
+        $result = $this->submitReport('Sent to the Hub');
+
+        self::assertSame([['identifier' => 'hub', 'label' => 'Context Reporter Hub', 'target' => 'https://hub.example.com']], $prepared['destinations']);
+        self::assertSame('delivered', $result['deliveryState']);
+        self::assertSame([[
+            'destination' => 'hub',
+            'label' => 'Context Reporter Hub',
+            'successful' => true,
+            'unconfirmed' => false,
+            'externalReference' => 'LW-152',
+            'externalUrl' => 'https://hub.example.com/app/reports/LW-152',
+            'screenshotNotStored' => null,
+        ]], $result['deliveries']);
+        foreach ([json_encode([$prepared['destinations'], $result], JSON_THROW_ON_ERROR)] as $output) {
+            self::assertStringNotContainsString('s_8Fq2LmZx4RtY7vB1nKc3Wd9P', $output);
+            self::assertStringNotContainsString('whsec_', $output);
+        }
+    }
+
+    /**
+     * The Hub received the report but not its screenshot (storage of the Hub
+     * workspace full): received with its reference, plus a notice for the reporter.
+     */
+    #[Test]
+    public function theReporterLearnsThatTheHubDidNotStoreTheScreenshot(): void
+    {
+        $this->configureExtension(['hub' => ['enabled' => '1', 'url' => 'https://hub.example.com/in/s_8Fq2LmZx4RtY7vB1nKc3Wd9P', 'secret' => 'whsec_8Fq2LmZx4RtY7vB1nKc3Wd9PaQ5sT0uV']]);
+        $this->respondWith([
+            'reference' => 'LW-152',
+            'url' => 'https://hub.example.com/app/reports/LW-152',
+            'screenshots' => ['received' => 1, 'stored' => 0, 'omitted' => 1, 'reasons' => ['storage_full']],
+            'storage' => 'full',
+        ]);
+        $this->loginBackendUser(self::ADMIN);
+
+        $result = $this->submitReport('Hub storage full');
+
+        self::assertSame('delivered', $result['deliveryState']);
+        self::assertTrue($result['deliveries'][0]['successful']);
+        self::assertSame('LW-152', $result['deliveries'][0]['externalReference']);
+        self::assertSame(['count' => 1, 'reason' => 'storage_full'], $result['deliveries'][0]['screenshotNotStored']);
+
+        $row = $this->getConnectionPool()->getConnectionForTable('tx_contextreporter_delivery')
+            ->select(['status', 'external_reference', 'hub_receipt'], 'tx_contextreporter_delivery', ['destination' => 'hub'])
+            ->fetchAssociative();
+        self::assertSame('succeeded', $row['status'] ?? null);
+        self::assertSame('LW-152', $row['external_reference'] ?? null);
+        self::assertSame('{"screenshots":{"received":1,"stored":0,"omitted":1,"reasons":["storage_full"]},"storage":"full"}', $row['hub_receipt'] ?? null);
+    }
+
     #[Test]
     public function submitReportsValidationProblemsWithStatusCodes(): void
     {
@@ -233,6 +330,94 @@ final class ReportAjaxControllerTest extends AbstractContextReporterTestCase
         self::assertSame('screenshot.format', $this->decode($notAnImage)['error']['code']);
 
         self::assertSame(0, $this->get(ReportRepository::class)->count());
+    }
+
+    /**
+     * K5: the browser sends the same prepared report again after the answer was
+     * lost; the server answers with the report it stored the first time.
+     */
+    #[Test]
+    public function aSubmissionRepeatedAfterALostAnswerCreatesOneReport(): void
+    {
+        $this->configureExtension(['webhook' => ['enabled' => '1', 'url' => 'https://hooks.example.com/report']]);
+        $this->respondWith(['reference' => 'SUP-1']);
+        $this->loginBackendUser(self::EDITOR);
+        $token = $this->decode($this->prepare(['source' => 'toolbar']))['draftToken'];
+
+        $first = $this->decode($this->submit(['draftToken' => $token, 'title' => 'Teaser is broken', 'action' => 'send'], true));
+        $again = $this->decode($this->submit(['draftToken' => $token, 'title' => 'Teaser is broken', 'action' => 'send'], true));
+
+        self::assertSame($first['report']['identifier'], $again['report']['identifier']);
+        self::assertSame($first['deliveries'], $again['deliveries']);
+        self::assertSame('delivered', $again['deliveryState']);
+        self::assertSame(1, $this->get(ReportRepository::class)->count());
+
+        // Another user cannot use the draft
+        $this->loginBackendUser(self::COLLEAGUE);
+        $foreign = $this->submit(['draftToken' => $token, 'title' => 'Teaser is broken', 'action' => 'send']);
+        self::assertSame(400, $foreign->getStatusCode());
+        self::assertSame('draftInvalid', $this->decode($foreign)['error']['code']);
+        self::assertSame(1, $this->get(ReportRepository::class)->count());
+    }
+
+    /**
+     * The code of this version runs against tables of the previous one (the
+     * schema update after the extension update was forgotten): nothing is sent
+     * that could not be recorded, the reporter gets no error page, and the
+     * retry after the update delivers exactly once.
+     */
+    #[Test]
+    public function aMissingSchemaUpdateStopsDeliveriesBeforeAnythingIsSent(): void
+    {
+        $connection = $this->getConnectionPool()->getConnectionForTable(DeliveryAttemptRepository::TABLE);
+        $connection->executeStatement(sprintf('ALTER TABLE %s DROP COLUMN %s', $connection->quoteIdentifier(DeliveryAttemptRepository::TABLE), $connection->quoteIdentifier('hub_receipt')));
+        $this->get(DatabaseSchemaState::class)->reset();
+        $this->configureExtension(['hub' => ['enabled' => '1', 'url' => 'https://hub.example.com/in/s_8Fq2LmZx4RtY7vB1nKc3Wd9P', 'secret' => 'whsec_8Fq2LmZx4RtY7vB1nKc3Wd9PaQ5sT0uV']]);
+        $sent = $this->countRequests(['reference' => 'LW-152', 'url' => 'https://hub.example.com/app/reports/LW-152']);
+        $this->loginBackendUser(self::ADMIN);
+
+        $token = $this->decode($this->prepare(['source' => 'toolbar']))['draftToken'];
+        $response = $this->submit(['draftToken' => $token, 'title' => 'Sent after an update', 'action' => 'send'], true);
+        self::assertSame(200, $response->getStatusCode());
+        $result = $this->decode($response);
+        self::assertSame(0, $sent->count, 'Nothing left the installation');
+        self::assertSame('failed', $result['deliveryState']);
+        self::assertFalse($result['deliveries'][0]['successful']);
+        $identifier = $result['report']['identifier'];
+        $report = $this->get(ReportRepository::class)->findByIdentifier($identifier);
+        self::assertNotNull($report);
+        $attempts = $this->get(DeliveryAttemptRepository::class)->findByReportUid($report->uid);
+        self::assertCount(1, $attempts);
+        self::assertSame(DeliveryService::SCHEMA_OUTDATED_MESSAGE, $attempts[0]->message);
+
+        // Submitting the same form again changes nothing and sends nothing
+        $again = $this->decode($this->submit(['draftToken' => $token, 'title' => 'Sent after an update', 'action' => 'send'], true));
+        self::assertSame($identifier, $again['report']['identifier']);
+        self::assertSame(0, $sent->count);
+        // Downloads and the screenshot still work, the retry waits for the update
+        self::assertSame(200, $this->download($identifier, 'json')->getStatusCode());
+        self::assertSame(200, $this->download($identifier, 'screenshot')->getStatusCode());
+        try {
+            $this->get(DeliveryService::class)->retry($report, 'hub', self::ADMIN);
+            self::fail('The retry must wait for the schema update');
+        } catch (DeliveryNotPossibleException $exception) {
+            self::assertSame(DeliveryNotPossibleException::SCHEMA_OUTDATED, $exception->getReason());
+        }
+        self::assertSame(0, $sent->count);
+
+        // What "Analyze Database Structure" / extension:setup adds
+        $connection->executeStatement(sprintf('ALTER TABLE %s ADD %s TEXT', $connection->quoteIdentifier(DeliveryAttemptRepository::TABLE), $connection->quoteIdentifier('hub_receipt')));
+        $this->get(DatabaseSchemaState::class)->reset();
+        $attempt = $this->get(DeliveryService::class)->retry($report, 'hub', self::ADMIN);
+        self::assertSame(1, $sent->count, 'Delivered exactly once');
+        self::assertSame('LW-152', $attempt->externalReference);
+        try {
+            $this->get(DeliveryService::class)->retry($report, 'hub', self::ADMIN);
+            self::fail('A delivered report is not sent again');
+        } catch (DeliveryNotPossibleException $exception) {
+            self::assertSame(DeliveryNotPossibleException::NOTHING_TO_RETRY, $exception->getReason());
+        }
+        self::assertSame(1, $sent->count);
     }
 
     #[Test]
@@ -286,6 +471,36 @@ final class ReportAjaxControllerTest extends AbstractContextReporterTestCase
         $response = $this->submit(['draftToken' => $token, 'title' => $title, 'description' => '', 'action' => 'send']);
         self::assertSame(200, $response->getStatusCode());
         return $this->decode($response);
+    }
+
+    /**
+     * Answers every request like respondWith() and counts the requests.
+     *
+     * @param array<string, mixed> $body
+     */
+    private function countRequests(array $body): \stdClass
+    {
+        $counter = new \stdClass();
+        $counter->count = 0;
+        $GLOBALS['TYPO3_CONF_VARS']['HTTP']['handler']['contextReporterTest'] = static function (callable $next) use ($body, $counter): \Closure {
+            return static function (RequestInterface $request, array $options) use ($body, $counter): PromiseInterface {
+                $counter->count++;
+                return Create::promiseFor(new Response(201, ['Content-Type' => 'application/json'], json_encode($body, JSON_THROW_ON_ERROR)));
+            };
+        };
+        return $counter;
+    }
+
+    /**
+     * Fails every request like the curl handler does when no answer arrives.
+     */
+    private function failWith(string $curlMessage): void
+    {
+        $GLOBALS['TYPO3_CONF_VARS']['HTTP']['handler']['contextReporterTest'] = static function (callable $next) use ($curlMessage): \Closure {
+            return static fn(RequestInterface $request, array $options): PromiseInterface => Create::rejectionFor(
+                new \GuzzleHttp\Exception\ConnectException($curlMessage . ' (see https://curl.haxx.se/libcurl/c/libcurl-errors.html) for ' . $request->getUri(), $request),
+            );
+        };
     }
 
     /**

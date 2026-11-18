@@ -34,7 +34,7 @@
                 <source>What did you try to do, what did you expect, and what happened instead?</source>
             </trans-unit>
             <trans-unit id="context_reporter.form.description.hint" resname="context_reporter.form.description.hint">
-                <source>Optional, but helpful.</source>
+                <source>Optional, but helpful. Never enter passwords, API keys or other secrets.</source>
             </trans-unit>
             <trans-unit id="context_reporter.form.description.counter" resname="context_reporter.form.description.counter">
                 <source>%s / %s</source>
@@ -43,7 +43,10 @@
                 <source>Screenshot (optional)</source>
             </trans-unit>
             <trans-unit id="context_reporter.screenshot.privacy" resname="context_reporter.screenshot.privacy">
-                <source>Screenshots are created and edited in your browser. Nothing is sent before you submit the report. Redact confidential information first.</source>
+                <source>Screenshots are created and edited in your browser. Nothing is sent before you submit the report.</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.screenshot.sensitive" resname="context_reporter.screenshot.sensitive">
+                <source>Screenshots may contain sensitive backend data. Review the visible page before sending. Nothing is redacted automatically: cover sensitive areas with the Redact tool or remove the screenshot.</source>
             </trans-unit>
             <trans-unit id="context_reporter.screenshot.capture" resname="context_reporter.screenshot.capture">
                 <source>Capture screen</source>
@@ -130,7 +133,16 @@
                 <source>Edit the note and press Enter</source>
             </trans-unit>
             <trans-unit id="context_reporter.editor.hint" resname="context_reporter.editor.hint">
-                <source>Drag to draw. Click an annotation to select it, then drag to move it or press Delete to remove it. Double-click a note to edit it. Redact paints an opaque black box into the image that is sent.</source>
+                <source>Drag to draw. Click an annotation to select it, then drag to move it or press Delete to remove it. Double-click a note to edit it. Redact paints an opaque black box into the image that is sent; only the areas you cover are redacted.</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.sensitive.title" resname="context_reporter.sensitive.title">
+                <source>Check for sensitive information before sending</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.sensitive.secrets" resname="context_reporter.sensitive.secrets">
+                <source>Do not include passwords, API keys, access tokens, private keys, recovery codes or other secrets in the report or screenshot. Remove the screenshot or cover sensitive information before you send the report.</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.sensitive.context" resname="context_reporter.sensitive.context">
+                <source>Depending on the privacy settings of your administrator, the report also contains technical context such as URLs, record identifiers, your username, browser and environment data and Findings. The technical data below shows what is sent.</source>
             </trans-unit>
             <trans-unit id="context_reporter.technical.summary" resname="context_reporter.technical.summary">
                 <source>Review the technical data that will be sent</source>
@@ -149,6 +161,18 @@
             </trans-unit>
             <trans-unit id="context_reporter.destinations.localOnly" resname="context_reporter.destinations.localOnly">
                 <source>The report will be saved in the TYPO3 report history.</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.discard.question" resname="context_reporter.discard.question">
+                <source>Discard the screenshot?</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.discard.hint" resname="context_reporter.discard.hint">
+                <source>Title and description are kept for 30 minutes when you close the dialog. The screenshot and its annotations are not.</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.discard.keep" resname="context_reporter.discard.keep">
+                <source>Keep editing</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.discard.confirm" resname="context_reporter.discard.confirm">
+                <source>Discard screenshot and close</source>
             </trans-unit>
             <trans-unit id="context_reporter.button.cancel" resname="context_reporter.button.cancel">
                 <source>Cancel</source>
@@ -177,6 +201,9 @@
             <trans-unit id="context_reporter.result.deliveryFailed" resname="context_reporter.result.deliveryFailed">
                 <source>Report %s was saved, but not every delivery succeeded.</source>
             </trans-unit>
+            <trans-unit id="context_reporter.result.receivedByHub" resname="context_reporter.result.receivedByHub">
+                <source>Report received as %s in Context Reporter Hub.</source>
+            </trans-unit>
             <trans-unit id="context_reporter.result.downloaded" resname="context_reporter.result.downloaded">
                 <source>Report %s was saved and downloaded.</source>
             </trans-unit>
@@ -189,8 +216,44 @@
             <trans-unit id="context_reporter.result.retryHint" resname="context_reporter.result.retryHint">
                 <source>An administrator can retry the delivery in System › Context Reports.</source>
             </trans-unit>
+            <trans-unit id="context_reporter.result.deliveryUnconfirmed" resname="context_reporter.result.deliveryUnconfirmed">
+                <source>Report %s was saved. Its delivery was not confirmed in time; it may still have arrived.</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.deliveryUnconfirmedTo" resname="context_reporter.result.deliveryUnconfirmedTo">
+                <source>Not confirmed by %s (it may have arrived)</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.unconfirmedHint" resname="context_reporter.result.unconfirmedHint">
+                <source>Retrying is safe: Context Reporter Hub keeps the report only once and then shows its reference.</source>
+            </trans-unit>
             <trans-unit id="context_reporter.result.openReport" resname="context_reporter.result.openReport">
                 <source>Open report</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.openInHub" resname="context_reporter.result.openInHub">
+                <source>Open in Context Reporter Hub</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.hubScreenshot.title" resname="context_reporter.result.hubScreenshot.title">
+                <source>The screenshot was not stored in Context Reporter Hub.</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.hubScreenshot.reason.storage_full" resname="context_reporter.result.hubScreenshot.reason.storage_full">
+                <source>The storage of the Hub workspace is full. Ask the developer or agency who looks after this site.</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.hubScreenshot.reason.too_large" resname="context_reporter.result.hubScreenshot.reason.too_large">
+                <source>The Hub did not accept the screenshot because it is too large.</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.hubScreenshot.reason.unsupported" resname="context_reporter.result.hubScreenshot.reason.unsupported">
+                <source>The Hub does not accept the image format of the screenshot.</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.hubScreenshot.reason.checksum_mismatch" resname="context_reporter.result.hubScreenshot.reason.checksum_mismatch">
+                <source>The screenshot did not arrive at the Hub intact.</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.hubScreenshot.reason.not_saved" resname="context_reporter.result.hubScreenshot.reason.not_saved">
+                <source>The Hub could not save the screenshot in time.</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.hubScreenshot.reason.other" resname="context_reporter.result.hubScreenshot.reason.other">
+                <source>The Hub did not give a known reason.</source>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.hubScreenshot.kept" resname="context_reporter.result.hubScreenshot.kept">
+                <source>The report itself was received. The screenshot is kept with the report in TYPO3.</source>
             </trans-unit>
             <trans-unit id="context_reporter.result.copy" resname="context_reporter.result.copy">
                 <source>Copy</source>

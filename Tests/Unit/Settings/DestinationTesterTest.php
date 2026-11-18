@@ -9,11 +9,13 @@ use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\Attributes\Test;
 use Priebera\ContextReporter\Configuration\ExtensionInfo;
 use Priebera\ContextReporter\Delivery\Email\MailConfigurationInspector;
+use Priebera\ContextReporter\Delivery\Http\BoundedHttpClient;
 use Priebera\ContextReporter\Delivery\Webhook\ResponseReferenceExtractor;
 use Priebera\ContextReporter\Delivery\Webhook\WebhookClient;
 use Priebera\ContextReporter\Delivery\Webhook\WebhookSignature;
 use Priebera\ContextReporter\Export\JsonReportExporter;
 use Priebera\ContextReporter\Settings\DestinationTester;
+use Priebera\ContextReporter\Settings\HubConnectionTest;
 use Priebera\ContextReporter\Tests\Unit\Fixtures\RecordingMailer;
 use Priebera\ContextReporter\Tests\Unit\Fixtures\SettingsProviderStub;
 use Psr\Http\Message\RequestInterface;
@@ -25,6 +27,8 @@ use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 final class DestinationTesterTest extends UnitTestCase
 {
     private const URL = 'https://hooks.example.com/webhook/5f1c-secret-path';
+    private const HUB_URL = 'https://hub.example.com/in/s_8Fq2LmZx4RtY7vB1nKc3Wd9P';
+    private const HUB_SECRET = 'whsec_8Fq2LmZx4RtY7vB1nKc3Wd9PaQ5sT0uV';
 
     /**
      * @var list<array{request: RequestInterface, options: array<string, mixed>}>
@@ -110,7 +114,7 @@ final class DestinationTesterTest extends UnitTestCase
         self::assertFalse($request->hasHeader('X-Context-Reporter-Report'));
         self::assertMatchesRegularExpression('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/', $request->getHeaderLine('X-Context-Reporter-Delivery'));
         self::assertTrue(WebhookSignature::verify($request->getHeaderLine(WebhookSignature::HEADER), 'hmac-secret', $body));
-        self::assertSame(5, $this->sentRequests[0]['options']['timeout']);
+        self::assertSame(5.0, $this->sentRequests[0]['options']['timeout']);
         self::assertFalse($this->sentRequests[0]['options']['allow_redirects']);
 
         $payload = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
@@ -120,6 +124,26 @@ final class DestinationTesterTest extends UnitTestCase
         self::assertArrayNotHasKey('report', $payload);
         self::assertStringNotContainsString('hmac-secret', $body);
         self::assertStringNotContainsString('key-123', $body);
+    }
+
+    /**
+     * A11 (independent review 2026-11-07): a webhook URL that is a Hub intake
+     * address is tested like the Hub; any other endpoint keeps passing with any 2xx.
+     */
+    #[Test]
+    public function testWebhookToAHubIntakeAddressNeedsTheConfirmationOfTheHub(): void
+    {
+        foreach ([new Response(204), new Response(200, ['Content-Type' => 'text/html'], '<html>Sign in</html>')] as $answer) {
+            $this->respondWith($answer);
+            $outcome = $this->createTester(['webhook' => ['enabled' => '1', 'url' => self::HUB_URL, 'secret' => self::HUB_SECRET]])->sendTestWebhook();
+            self::assertFalse($outcome->successful);
+            self::assertStringContainsString('not the confirmation of Context Reporter Hub', $outcome->message);
+
+            $this->respondWith($answer);
+            self::assertTrue($this->createTester(['webhook' => ['enabled' => '1', 'url' => 'https://hooks.example.com/hook']])->sendTestWebhook()->successful);
+        }
+        $this->respondWith(new Response(200, ['Content-Type' => 'application/json'], '{"status":"ok","message":"Test delivery received."}'));
+        self::assertTrue($this->createTester(['webhook' => ['enabled' => '1', 'url' => self::HUB_URL, 'secret' => self::HUB_SECRET]])->sendTestWebhook()->successful);
     }
 
     #[Test]
@@ -144,6 +168,82 @@ final class DestinationTesterTest extends UnitTestCase
         self::assertSame('HTTP 401: Token [redacted] is not valid for [url]', $outcome->message);
     }
 
+    #[Test]
+    public function hubConnectionTestIsTheSignedTestWebhookToTheHubSite(): void
+    {
+        // What the Hub answers: no "reference" or "id", so nothing looks like a ticket
+        $this->respondWith(new Response(200, ['Content-Type' => 'application/json; charset=utf-8'], '{"status":"ok","message":"Test delivery received. This site is connected to Context Reporter Hub."}'));
+        $tester = $this->createTester([
+            'general' => ['projectName' => 'Agency Portal', 'projectIdentifier' => 'portal', 'environment' => 'Staging'],
+            'webhook' => ['enabled' => '1', 'url' => self::URL, 'secret' => 'webhook-secret', 'authHeaderValue' => 'Bearer webhook-token'],
+            'hub' => ['enabled' => '0', 'url' => self::HUB_URL, 'secret' => self::HUB_SECRET],
+        ]);
+
+        $outcome = $tester->sendTestToHub();
+
+        self::assertTrue($outcome->successful, $outcome->message);
+        self::assertSame('HTTP 200', $outcome->message);
+        self::assertSame('', $outcome->externalReference);
+        self::assertSame('', $outcome->externalUrl);
+        self::assertCount(1, $this->sentRequests);
+        $request = $this->sentRequests[0]['request'];
+        $body = (string)$request->getBody();
+        self::assertSame(self::HUB_URL, (string)$request->getUri());
+        self::assertSame('test', $request->getHeaderLine('X-Context-Reporter-Event'));
+        self::assertTrue(WebhookSignature::verify($request->getHeaderLine(WebhookSignature::HEADER), self::HUB_SECRET, $body));
+        self::assertFalse($request->hasHeader('Authorization'));
+        $payload = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame('test', $payload['event']);
+        self::assertSame(['name' => 'Agency Portal', 'identifier' => 'portal', 'environment' => 'Staging'], $payload['test']['project']);
+        self::assertSame('context-reporter.report.v1', $payload['test']['reportSchema']);
+        self::assertSame('1.2.3', $payload['generator']['version']);
+        self::assertStringNotContainsString(self::HUB_SECRET, $body);
+    }
+
+    /**
+     * A 2xx alone (a proxy, a login page, a generic webhook receiver) does not
+     * mean the site is connected to the Hub.
+     */
+    #[Test]
+    public function hubConnectionTestNeedsTheConfirmationOfTheHub(): void
+    {
+        foreach ([new Response(204), new Response(200, ['Content-Type' => 'text/html'], '<html>Sign in</html>'), new Response(200, [], '{"status":"queued"}')] as $answer) {
+            $this->respondWith($answer);
+            $outcome = $this->createTester(['hub' => ['url' => self::HUB_URL, 'secret' => self::HUB_SECRET]])->sendTestToHub();
+            self::assertFalse($outcome->successful);
+            self::assertSame($answer->getStatusCode(), $outcome->responseCode);
+            self::assertStringContainsString('not the confirmation of Context Reporter Hub', $outcome->message);
+            self::assertSame('notConfirmed', HubConnectionTest::failureReason($outcome->responseCode));
+        }
+    }
+
+    #[Test]
+    public function hubConnectionTestNeedsAWebhookUrlAndASecret(): void
+    {
+        $withoutUrl = $this->createTester(['hub' => ['secret' => self::HUB_SECRET]])->sendTestToHub();
+        self::assertFalse($withoutUrl->successful);
+        self::assertSame('No usable Context Reporter Hub webhook URL is configured.', $withoutUrl->message);
+
+        $withoutSecret = $this->createTester(['hub' => ['url' => self::HUB_URL, 'secret' => 'not-a-hub-secret']])->sendTestToHub();
+        self::assertFalse($withoutSecret->successful);
+        self::assertSame('No usable Context Reporter Hub signing secret is configured.', $withoutSecret->message);
+        self::assertSame([], $this->sentRequests);
+    }
+
+    #[Test]
+    public function hubConnectionTestFailuresAreRedacted(): void
+    {
+        $this->respondWith(new Response(401, ['Content-Type' => 'application/json'], '{"error":"invalid_signature","message":"Expected a signature with ' . self::HUB_SECRET . ' for ' . self::HUB_URL . '"}'));
+
+        $outcome = $this->createTester(['hub' => ['url' => self::HUB_URL, 'secret' => self::HUB_SECRET]])->sendTestToHub();
+
+        self::assertFalse($outcome->successful);
+        self::assertSame(401, $outcome->responseCode);
+        self::assertStringStartsWith('HTTP 401: {"error":"invalid_signature"', $outcome->message);
+        self::assertStringNotContainsString(self::HUB_SECRET, $outcome->message);
+        self::assertStringNotContainsString('s_8Fq2LmZx4RtY7vB1nKc3Wd9P', $outcome->message);
+    }
+
     /**
      * @param array<string, mixed> $configuration
      */
@@ -153,7 +253,7 @@ final class DestinationTesterTest extends UnitTestCase
             new SettingsProviderStub($configuration),
             $mailer ?? new RecordingMailer(),
             new MailConfigurationInspector(),
-            new WebhookClient(new RequestFactory(new GuzzleClientFactory()), new ResponseReferenceExtractor(), new ExtensionInfo('1.2.3')),
+            new WebhookClient(new BoundedHttpClient(new RequestFactory(new GuzzleClientFactory())), new ResponseReferenceExtractor(), new ExtensionInfo('1.2.3')),
             new JsonReportExporter(),
             new ExtensionInfo('1.2.3'),
         );

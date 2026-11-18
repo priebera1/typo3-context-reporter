@@ -17,20 +17,22 @@ services:
     resource: '../Classes/*'
     exclude:
       # Value objects, enums, exceptions and static helpers are not services
-      - '../Classes/Configuration/{EmailSettings,ExtensionSettings,ReporterPrivacySettings,WebhookSettings}.php'
+      - '../Classes/Configuration/{EmailSettings,ExtensionSettings,HubIntake,ReporterPrivacySettings,WebhookSettings}.php'
       - '../Classes/Context/{CollectionRequest,CollectionScope,ReportTarget}.php'
       - '../Classes/Context/Location/BackendLocation.php'
       - '../Classes/Context/Routing/ResolvedRoute.php'
       - '../Classes/Context/Subject/{ResolvedSubject,SubjectNotAvailableException}.php'
       - '../Classes/Delivery/{DeliveryId,DeliveryNotPossibleException,DeliveryOutcome,DeliveryRequest,DestinationSummary,SafeErrorMessage}.php'
-      - '../Classes/Delivery/Email/MailTransportDescription.php'
+      - '../Classes/Delivery/Email/{MailTransportDescription,ReportEmailModel}.php'
+      - '../Classes/Delivery/Http/HttpExchange.php'
       - '../Classes/Delivery/Webhook/WebhookSignature.php'
       - '../Classes/Domain/*.php'
+      - '../Classes/Hub/{HubAcknowledgement,HubLink,HubReceipt}.php'
       - '../Classes/Presentation/SubjectPresentation.php'
       - '../Classes/Retention/{CleanupPreview,CleanupResult,StorageStatistics}.php'
       - '../Classes/Report/{InvalidReportInputException,InvalidScreenshotException,PreparedReport,RateLimitExceededException,ReportInputNormalizer,ReportSubmission,Screenshot,SubmissionResult}.php'
       - '../Classes/Security/InvalidDraftTokenException.php'
-      - '../Classes/Settings/{EmailStatus,SecretState,SettingsFormResult,StatusMessage,WebhookStatus}.php'
+      - '../Classes/Settings/{EmailStatus,HubConnectionTest,HubStatus,SecretState,SettingsFormResult,StatusMessage,WebhookStatus}.php'
 
   Priebera\ContextReporter\Context\ContextDocumentBuilder:
     arguments:

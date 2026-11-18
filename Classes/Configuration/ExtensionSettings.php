@@ -25,5 +25,7 @@ final readonly class ExtensionSettings
         public ReporterPrivacySettings $reporterPrivacy,
         public EmailSettings $email,
         public WebhookSettings $webhook,
+        /** The site in Context Reporter Hub: a signed webhook without authentication header */
+        public WebhookSettings $hub,
     ) {}
 }

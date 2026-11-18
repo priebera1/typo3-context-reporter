@@ -1,12 +1,14 @@
 "pages"
 ,"uid","pid","title","slug","doktype","hidden","deleted","perms_userid","perms_groupid","perms_user","perms_group","perms_everybody","sys_language_uid","l10n_parent","editlock","TSconfig"
 ,60,2,"Locked page","/about/locked",1,0,0,1,14,31,1,0,0,0,1,""
+,62,2,"Gesperrte Seite","/about/locked-de",1,0,0,1,14,31,1,0,1,60,0,""
 ,61,2,"Restricted form","/about/restricted-form",1,0,0,1,1,31,31,0,0,0,0,"TCEFORM.tt_content.header.disabled = 1
 TCEFORM.tt_content.subheader.types.text.disabled = 1
 TCEFORM.tt_content.bodytext.types.html.disabled = 1"
 "tt_content"
 ,"uid","pid","CType","header","bodytext","colPos","sys_language_uid","l18n_parent","editlock"
-,92,60,"html","Locked markup","",0,1,0,1
+,92,60,"html","Locked markup","",0,0,0,1
+,94,60,"html","Gesperrtes Markup","",0,1,92,1
 ,93,61,"text","Element with restricted form","",0,0,0,0
 "sys_filemounts"
 ,"uid","pid","title","identifier","read_only"

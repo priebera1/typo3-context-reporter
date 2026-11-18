@@ -26,11 +26,23 @@ final readonly class WebhookSettings
         public bool $includeScreenshot,
         public int $timeoutSeconds,
         public bool $allowInsecureHttp,
+        public string $publicUrl = '',
     ) {}
 
     public function isUsable(): bool
     {
         return $this->enabled && $this->url !== '';
+    }
+
+    /**
+     * Context Reporter Hub: the address on which links into the Hub are trusted.
+     * The "Hub address for links" when set (TYPO3 may reach the Hub at another
+     * address than the browser, e.g. host.docker.internal), otherwise the
+     * webhook URL, whose /in/s_… part is ignored (HubLink::trusted()).
+     */
+    public function getHubLinkBase(): string
+    {
+        return $this->publicUrl !== '' ? $this->publicUrl : $this->url;
     }
 
     /**
@@ -66,6 +78,8 @@ final readonly class WebhookSettings
         if (strlen($path) >= self::MIN_DERIVED_SECRET_LENGTH) {
             $secrets[] = $path;
         }
+        // The site token of a Context Reporter Hub URL, also on its own (an answer or proxy may echo it)
+        $secrets[] = HubIntake::siteToken($this->url);
         $secrets[] = $query;
         parse_str($query, $parameters);
         array_walk_recursive($parameters, static function (mixed $value) use (&$secrets): void {

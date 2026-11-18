@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace Priebera\ContextReporter\Delivery\Destination;
 
 use Priebera\ContextReporter\Configuration\ExtensionSettingsProvider;
+use Priebera\ContextReporter\Configuration\HubIntake;
 use Priebera\ContextReporter\Delivery\DeliveryOutcome;
 use Priebera\ContextReporter\Delivery\DeliveryRequest;
 use Priebera\ContextReporter\Delivery\DestinationInterface;
-use Priebera\ContextReporter\Delivery\SafeErrorMessage;
-use Priebera\ContextReporter\Delivery\Webhook\WebhookClient;
-use Priebera\ContextReporter\Export\JsonReportExporter;
-use Priebera\ContextReporter\Export\ReportPayloadFactory;
+use Priebera\ContextReporter\Delivery\Webhook\WebhookReportSender;
+use Priebera\ContextReporter\Hub\HubAcknowledgement;
 use Symfony\Component\DependencyInjection\Attribute\AsTaggedItem;
 
 /**
@@ -25,13 +24,11 @@ use Symfony\Component\DependencyInjection\Attribute\AsTaggedItem;
 final readonly class WebhookDestination implements DestinationInterface
 {
     public const IDENTIFIER = 'webhook';
-    public const EVENT = 'report.created';
+    public const EVENT = WebhookReportSender::EVENT;
 
     public function __construct(
         private ExtensionSettingsProvider $settingsProvider,
-        private WebhookClient $client,
-        private ReportPayloadFactory $payloadFactory,
-        private JsonReportExporter $jsonExporter,
+        private WebhookReportSender $sender,
     ) {}
 
     public function getIdentifier(): string
@@ -49,30 +46,20 @@ final readonly class WebhookDestination implements DestinationInterface
         return $this->settingsProvider->get()->webhook->getDisplayTarget();
     }
 
+    /**
+     * Any 2xx answer is a delivery, except for a webhook URL that is a Context
+     * Reporter Hub intake address (/in/s_…, how 0.3 connected the Hub): that
+     * delivery counts only with the Hub's acknowledgement, like the Hub
+     * destination (a proxy or login page answering 200 confirms nothing), and
+     * keeps what the Hub answered about the screenshot.
+     */
     public function deliver(DeliveryRequest $request): DeliveryOutcome
     {
-        $settings = $this->settingsProvider->get()->webhook;
-        $report = $request->report;
-
-        try {
-            $screenshot = $settings->includeScreenshot ? $request->getScreenshotContent() : null;
-            $body = $this->jsonExporter->export([
-                'event' => self::EVENT,
-                'delivery' => [
-                    'id' => $request->deliveryId,
-                    'attempt' => $request->attempt,
-                    'sentAt' => (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM),
-                ],
-                'report' => $this->payloadFactory->create($report, $request->reportUrl, $screenshot),
-            ], pretty: false);
-        } catch (\Throwable $exception) {
-            return DeliveryOutcome::failure(SafeErrorMessage::fromThrowable($exception, $settings->getSecrets()));
+        $webhook = $this->settingsProvider->get()->webhook;
+        if (!HubIntake::isIntakeUrl($webhook->url)) {
+            return $this->sender->send($webhook, $request);
         }
-
-        return $this->client->post($settings, self::EVENT, $body, [
-            'X-Context-Reporter-Report' => $report->identifier,
-            'X-Context-Reporter-Delivery' => $request->deliveryId,
-            'X-Context-Reporter-Attempt' => (string)$request->attempt,
-        ]);
+        $exchange = $this->sender->exchange($webhook, $request);
+        return $exchange instanceof DeliveryOutcome ? $exchange : HubAcknowledgement::outcome($exchange, $webhook);
     }
 }

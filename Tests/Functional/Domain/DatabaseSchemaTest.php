@@ -269,11 +269,17 @@ final class DatabaseSchemaTest extends AbstractContextReporterTestCase
     /**
      * A PNG that the screenshot validator accepts, padded with every byte value to the given size
      */
+    /**
+     * A valid PNG of exactly $size bytes: the fixture with an ancillary chunk
+     * full of all byte values before IEND.
+     */
     private function createScreenshotContent(int $size): string
     {
         $png = (string)file_get_contents(self::SCREENSHOT);
         $allBytes = implode('', array_map(chr(...), range(0, 255)));
-        return substr($png . str_repeat($allBytes, intdiv($size, 256) + 1), 0, $size);
+        $padding = substr(str_repeat($allBytes, intdiv($size, 256) + 1), 0, $size - strlen($png) - 12);
+        $chunk = pack('N', strlen($padding)) . 'prVt' . $padding . pack('N', crc32('prVt' . $padding));
+        return substr($png, 0, -12) . $chunk . substr($png, -12);
     }
 
     private function getConnection(): Connection

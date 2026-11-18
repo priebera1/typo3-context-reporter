@@ -31,9 +31,10 @@ annotated and redacted in the editor's browser.
 The screenshot shows what the user sees. The TYPO3 context tells the
 developer what the problem actually belongs to.
 
-Reports are downloaded, emailed or sent to a webhook, so they end up in the
-tools a team already uses. Context Reporter is not a ticket system. It
-supports TYPO3 13.4 LTS and TYPO3 14.3 LTS.
+Reports are downloaded, emailed, sent to a webhook or collected in the
+optional hosted Context Reporter Hub, so they end up where a team already
+works. Context Reporter is not a ticket system. It supports TYPO3 13.4 LTS and
+TYPO3 14.3 LTS.
 
 ----
 

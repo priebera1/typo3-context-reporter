@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Priebera\ContextReporter\Delivery;
 
+use Priebera\ContextReporter\Hub\HubReceipt;
+
 /**
  * @internal
  */
@@ -15,11 +17,15 @@ final readonly class DeliveryOutcome
         public ?int $responseCode,
         public string $externalReference,
         public string $externalUrl,
+        public ?HubReceipt $hubReceipt = null,
     ) {}
 
-    public static function success(string $message = '', ?int $responseCode = null, string $externalReference = '', string $externalUrl = ''): self
+    /**
+     * @param HubReceipt|null $hubReceipt Optional details of the Hub's acknowledgement (screenshot stored or not, storage state)
+     */
+    public static function success(string $message = '', ?int $responseCode = null, string $externalReference = '', string $externalUrl = '', ?HubReceipt $hubReceipt = null): self
     {
-        return new self(true, $message, $responseCode, $externalReference, $externalUrl);
+        return new self(true, $message, $responseCode, $externalReference, $externalUrl, $hubReceipt);
     }
 
     public static function failure(string $message, ?int $responseCode = null): self

@@ -6,9 +6,12 @@ namespace Priebera\ContextReporter\Controller;
 
 use Priebera\ContextReporter\Backend\BackendLinkBuilder;
 use Priebera\ContextReporter\Backend\BackendUserNames;
+use Priebera\ContextReporter\Configuration\ExtensionSettingsProvider;
 use Priebera\ContextReporter\Context\ReportTarget;
+use Priebera\ContextReporter\Database\DatabaseSchemaState;
 use Priebera\ContextReporter\Delivery\DeliveryNotPossibleException;
 use Priebera\ContextReporter\Delivery\DeliveryService;
+use Priebera\ContextReporter\Delivery\Destination\HubDestination;
 use Priebera\ContextReporter\Delivery\SafeErrorMessage;
 use Priebera\ContextReporter\Delivery\Webhook\ExternalReferenceSanitizer;
 use Priebera\ContextReporter\Domain\DeliveryAttempt;
@@ -23,9 +26,15 @@ use Priebera\ContextReporter\Export\ContextDetailsFormatter;
 use Priebera\ContextReporter\Export\MarkdownReportExporter;
 use Priebera\ContextReporter\Export\ReportCopyTexts;
 use Priebera\ContextReporter\Export\ReportPayloadFactory;
+use Priebera\ContextReporter\Hub\HubAcknowledgement;
+use Priebera\ContextReporter\Hub\HubLink;
 use Priebera\ContextReporter\Presentation\SubjectPresenter;
 use Priebera\ContextReporter\Report\ReportIdGenerator;
 use Priebera\ContextReporter\Security\ConfiguredSecrets;
+use Priebera\ContextReporter\Security\ReportAccessPolicy;
+use Priebera\ContextReporter\Settings\DeliveryStatusProvider;
+use Priebera\ContextReporter\Settings\HubConnectionTestRepository;
+use Priebera\ContextReporter\UpdateNotice\UpdateNoticeService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Backend\Attribute\AsController;
@@ -42,10 +51,12 @@ use TYPO3\CMS\Core\Type\ContextualFeedbackSeverity;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
- * System > Context Reports: report history and delivery audit.
+ * System > Context Reports: report history and delivery audit, for
+ * administrators and users an administrator granted the module. Deleting a
+ * report and everything in the settings stay administrator-only.
  * This is deliberately not a ticket system: reports cannot be edited,
- * assigned or commented on. Administrators can only mark a report as
- * resolved (and reopen it) to keep track of what has been dealt with.
+ * assigned or commented on. They can only be marked as resolved (and
+ * reopened) to keep track of what has been dealt with.
  *
  * @internal
  */
@@ -73,12 +84,27 @@ final readonly class ReportModuleController
         private SubjectPresenter $subjectPresenter,
         private PageRenderer $pageRenderer,
         private ConfiguredSecrets $secrets,
+        private DeliveryStatusProvider $statusProvider,
+        private ExtensionSettingsProvider $settingsProvider,
+        private HubConnectionTestRepository $hubConnectionTests,
+        private ReportAccessPolicy $accessPolicy,
+        private DatabaseSchemaState $schema,
+        private ?UpdateNoticeService $updateNotice = null,
     ) {}
+
+    /**
+     * The report history: administrators and users an administrator granted this
+     * module. Checked again per action (TYPO3 checks the module route, too).
+     */
+    private function canUseModule(): bool
+    {
+        return $this->accessPolicy->canUseReportsModule($this->getBackendUser());
+    }
 
     public function indexAction(ServerRequestInterface $request): ResponseInterface
     {
-        if (!$this->isAdmin()) {
-            return $this->accessDenied();
+        if (!$this->canUseModule()) {
+            return $this->accessDenied($request);
         }
         $query = $request->getQueryParams();
         $state = DeliveryState::tryFrom(is_string($query['state'] ?? null) ? $query['state'] : '');
@@ -128,8 +154,11 @@ final readonly class ReportModuleController
         }
         $pageParameters = $reviewParameters + $deliveryParameters;
 
+        $isAdmin = $this->isAdmin();
         $view = $this->createView($request);
-        $this->addLinkButton($view, $this->buildModuleUrl('settings'), 'button.settings', 'actions-cog', 1, ButtonBar::BUTTON_POSITION_RIGHT);
+        if ($isAdmin) {
+            $this->addLinkButton($view, $this->buildModuleUrl('settings'), 'button.settings', 'actions-cog', 1, ButtonBar::BUTTON_POSITION_RIGHT);
+        }
         $view->assignMultiple([
             'items' => $items,
             'filters' => $filters,
@@ -142,7 +171,13 @@ final readonly class ReportModuleController
             },
             'total' => $total,
             'destinations' => $this->deliveryService->describeEnabledDestinations(),
-            'settingsUrl' => $this->buildModuleUrl('settings', ['tab' => 'email']),
+            // Where reports go and the settings are for administrators only
+            'showTargets' => $isAdmin,
+            'settingsUrl' => $isAdmin ? $this->buildModuleUrl('settings', ['tab' => 'email']) : '',
+            'hub' => $this->buildHubCard($isAdmin),
+            // "New version available": administrators only, never an error (UpdateNoticeService)
+            'updateNotice' => $isAdmin ? $this->updateNotice?->buildFor($this->getBackendUser()) : null,
+            'missingColumns' => implode(', ', $this->schema->getMissingColumns()),
             'pagination' => [
                 'current' => $page,
                 'count' => $pageCount,
@@ -155,8 +190,8 @@ final readonly class ReportModuleController
 
     public function showAction(ServerRequestInterface $request): ResponseInterface
     {
-        if (!$this->isAdmin()) {
-            return $this->accessDenied();
+        if (!$this->canUseModule()) {
+            return $this->accessDenied($request);
         }
         $report = $this->findReport($request->getQueryParams()['report'] ?? null);
         if ($report === null) {
@@ -170,16 +205,23 @@ final readonly class ReportModuleController
         ));
         // Details may have been stored by earlier versions or under other secrets: sanitize them again
         $secrets = $this->secrets->get();
+        // Where reports go is for administrators only, like the destinations of the history (showTargets): the
+        // address of a webhook or the Hub can be an internal host. The format of a download is no address.
+        $isAdmin = $this->isAdmin();
         $attemptItems = [];
         foreach (array_reverse($attempts) as $attempt) {
             $attemptItems[] = [
                 'attempt' => $attempt,
+                'target' => $isAdmin || $attempt->isDownload() ? $attempt->target : '',
                 'message' => SafeErrorMessage::sanitize($attempt->message, $secrets),
                 'externalReference' => ExternalReferenceSanitizer::reference($attempt->externalReference, $secrets),
-                'externalUrl' => ExternalReferenceSanitizer::url($attempt->externalUrl, $secrets),
+                'externalUrl' => $this->externalUrl($attempt, $secrets),
                 'label' => $this->translate('destination.' . $attempt->destination),
                 'successful' => $attempt->status === DeliveryStatus::Succeeded,
                 'triggeredBy' => $names[$attempt->triggeredBy]['label'] ?? '',
+                // Received by the Hub without its screenshot, and how full the Hub workspace was
+                'hubScreenshotReason' => $this->omittedScreenshotReason($attempt),
+                'hubStorage' => $this->criticalHubStorage($attempt),
                 'canRetry' => false,
             ];
         }
@@ -221,10 +263,12 @@ final readonly class ReportModuleController
             'screenshotSize' => $report->screenshot !== null ? MarkdownReportExporter::formatBytes($report->screenshot->size) : '',
             'subjectUrl' => $this->buildSubjectUrl($report, $request),
             'subjectUrlIcon' => $report->document->getSubjectType() === SubjectType::Record ? 'actions-open' : 'actions-window-open',
+            // The file list opens at the folder of a reported file, not at the file itself
+            'subjectUrlLabel' => $report->document->getSubjectType() === SubjectType::File ? 'show.openContainingFolder' : 'show.openSubject',
             'metadataUrl' => $this->buildMetadataUrl($report, $request),
             'frontendUrl' => $subject->frontendUrl,
             'retryUrl' => $this->buildModuleUrl('retry'),
-            'deleteUrl' => $this->buildModuleUrl('delete'),
+            'deleteUrl' => $this->isAdmin() ? $this->buildModuleUrl('delete') : '',
             'indexUrl' => $this->buildModuleUrl(),
         ]);
         return $view->renderResponse('ReportModule/Show');
@@ -232,8 +276,8 @@ final readonly class ReportModuleController
 
     public function retryAction(ServerRequestInterface $request): ResponseInterface
     {
-        if (!$this->isAdmin()) {
-            return $this->accessDenied();
+        if (!$this->canUseModule()) {
+            return $this->accessDenied($request);
         }
         $body = $request->getParsedBody();
         $report = $this->findReport(is_array($body) ? ($body['report'] ?? null) : null);
@@ -247,15 +291,19 @@ final readonly class ReportModuleController
         } catch (DeliveryNotPossibleException $exception) {
             return $this->redirectToReport($request, sprintf($this->translate('message.retry.' . $exception->getReason()), $label), ContextualFeedbackSeverity::WARNING, $report);
         }
-        return $attempt->status === DeliveryStatus::Succeeded
-            ? $this->redirectToReport($request, sprintf($this->translate('message.retry.succeeded'), $label), ContextualFeedbackSeverity::OK, $report)
+        if ($attempt->status === DeliveryStatus::Succeeded) {
+            return $this->redirectToReport($request, sprintf($this->translate('message.retry.succeeded'), $label), ContextualFeedbackSeverity::OK, $report);
+        }
+        // The Hub may have stored it (its answer was lost): not "failed again", and retrying stays safe
+        return HubAcknowledgement::isUnconfirmed($attempt->message)
+            ? $this->redirectToReport($request, sprintf($this->translate('message.retry.unconfirmed'), $label, $attempt->message), ContextualFeedbackSeverity::WARNING, $report)
             : $this->redirectToReport($request, sprintf($this->translate('message.retry.failed'), $label, $attempt->message), ContextualFeedbackSeverity::ERROR, $report);
     }
 
     public function deleteAction(ServerRequestInterface $request): ResponseInterface
     {
         if (!$this->isAdmin()) {
-            return $this->accessDenied();
+            return $this->accessDenied($request, 'message.deleteDenied', $this->canUseModule());
         }
         $body = $request->getParsedBody();
         $report = $this->findReport(is_array($body) ? ($body['report'] ?? null) : null);
@@ -279,8 +327,8 @@ final readonly class ReportModuleController
 
     private function changeReviewState(ServerRequestInterface $request, ReviewState $target): ResponseInterface
     {
-        if (!$this->isAdmin()) {
-            return $this->accessDenied();
+        if (!$this->canUseModule()) {
+            return $this->accessDenied($request);
         }
         $body = $request->getParsedBody();
         $report = $this->findReport(is_array($body) ? ($body['report'] ?? null) : null);
@@ -406,6 +454,90 @@ final readonly class ReportModuleController
             ReportDownloadController::ROUTE,
             ['report' => $report->identifier, 'format' => $format] + $parameters,
         );
+    }
+
+    /**
+     * The stored link of a delivery, checked again: without secrets, and for
+     * the Hub only on the trusted Hub address configured now.
+     *
+     * @param list<string> $secrets
+     */
+    private function externalUrl(DeliveryAttempt $attempt, array $secrets): string
+    {
+        $url = ExternalReferenceSanitizer::url($attempt->externalUrl, $secrets);
+        return $attempt->destination === HubDestination::IDENTIFIER ? HubAcknowledgement::trustedLink($url, $this->settingsProvider->get()->hub) : $url;
+    }
+
+    /**
+     * The reason the Hub gave for not storing the screenshot of a report it
+     * received; empty when it stored it or did not say.
+     */
+    private function omittedScreenshotReason(DeliveryAttempt $attempt): string
+    {
+        $receipt = $attempt->hubReceipt;
+        return $attempt->status === DeliveryStatus::Succeeded && $receipt !== null && $receipt->hasOmittedScreenshots()
+            ? $receipt->getPrimaryReason()
+            : '';
+    }
+
+    /**
+     * "critical" or "full" when the Hub answered that its workspace storage
+     * was at least 90 % used; otherwise empty.
+     */
+    private function criticalHubStorage(DeliveryAttempt $attempt): string
+    {
+        $receipt = $attempt->hubReceipt;
+        return $attempt->status === DeliveryStatus::Succeeded && $receipt !== null && $receipt->isStorageCritical()
+            ? (string)$receipt->storage
+            : '';
+    }
+
+    /**
+     * What this installation knows about its Hub connection without asking the
+     * Hub: configuration state, the last test and the last Hub deliveries.
+     *
+     * @return array<string, mixed>
+     */
+    private function buildHubCard(bool $canManage): array
+    {
+        $status = $this->statusProvider->getHubStatus();
+        $secrets = $this->secrets->get();
+        $deliveries = [];
+        foreach (['lastSuccess' => DeliveryStatus::Succeeded, 'lastFailure' => DeliveryStatus::Failed] as $key => $deliveryStatus) {
+            $latest = $this->attempts->findLatestByDestination(HubDestination::IDENTIFIER, $deliveryStatus);
+            $deliveries[$key] = $latest === null ? null : [
+                'attempt' => $latest['attempt'],
+                'reportIdentifier' => $latest['reportIdentifier'],
+                'reportUrl' => $this->buildModuleUrl('show', ['report' => $latest['reportIdentifier']]),
+                'message' => SafeErrorMessage::sanitize($latest['attempt']->message, $secrets),
+                'externalReference' => ExternalReferenceSanitizer::reference($latest['attempt']->externalReference, $secrets),
+                'externalUrl' => $this->externalUrl($latest['attempt'], $secrets),
+                'hubStorage' => $this->criticalHubStorage($latest['attempt']),
+            ];
+        }
+        $lastSuccess = $deliveries['lastSuccess'];
+        $lastFailure = $deliveries['lastFailure'];
+        return [
+            'configured' => $status->canSendTest(),
+            'enabled' => $status->enabled,
+            'ready' => $status->isReady(),
+            // Like the destination targets of the history: for administrators only
+            'target' => $canManage ? $status->endpointTarget : '',
+            'lastSuccess' => $lastSuccess,
+            'lastFailure' => $lastFailure,
+            // A failure followed by a successful delivery is history, not the current state
+            'failureIsCurrent' => $lastFailure !== null && ($lastSuccess === null || $lastFailure['attempt']->uid > $lastSuccess['attempt']->uid),
+            'lastTest' => $status->canSendTest() ? $this->hubConnectionTests->findLatest($this->settingsProvider->get()->hub) : null,
+            // The Hub is write-only for TYPO3: nothing is read back, the reporter opens the Hub instead
+            // Other users of the history get it only on the "Hub address for links"; the address of the webhook URL can be internal
+            'hubUrl' => $status->canSendTest() && ($canManage || $this->settingsProvider->get()->hub->publicUrl !== '')
+                ? HubLink::app($this->settingsProvider->get()->hub->getHubLinkBase())
+                : '',
+            // Settings and the connection test are for administrators only
+            'canManage' => $canManage,
+            'settingsUrl' => $canManage ? $this->buildModuleUrl('settings', ['tab' => 'hub']) : '',
+            'testUrl' => $canManage ? $this->buildModuleUrl('testHub') : '',
+        ];
     }
 
     private function redirectToReport(ServerRequestInterface $request, string $message, ContextualFeedbackSeverity $severity, Report $report): ResponseInterface

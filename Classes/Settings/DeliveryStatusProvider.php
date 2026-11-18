@@ -10,7 +10,7 @@ use Priebera\ContextReporter\Configuration\ExtensionSettingsProvider;
 use Priebera\ContextReporter\Delivery\Email\MailConfigurationInspector;
 
 /**
- * Explains whether email and webhook deliveries can work with the saved
+ * Explains whether email, webhook and Hub deliveries can work with the saved
  * configuration and why not. Secrets are only described by their state.
  *
  * @internal
@@ -45,6 +45,10 @@ final readonly class DeliveryStatusProvider
         }
         if ($transport->localCatcher) {
             $messages[] = new StatusMessage(StatusMessage::INFO, $transport->ddev ? 'email.ddev' : 'email.localCatcher');
+        }
+        if ($settings->htmlVersion && !$settings->usesShippedTemplate()) {
+            // The formatted version would show what the custom template leaves out
+            $messages[] = new StatusMessage(StatusMessage::INFO, 'email.customTemplatePlainText');
         }
 
         $configuredSender = $this->string($raw, 'senderAddress');
@@ -125,6 +129,53 @@ final readonly class DeliveryStatusProvider
             timeout: $settings->timeoutSeconds,
             includeScreenshot: $settings->includeScreenshot,
             allowInsecureHttp: $settings->allowInsecureHttp,
+            messages: $messages,
+        );
+    }
+
+    public function getHubStatus(): HubStatus
+    {
+        $settings = $this->settingsProvider->get();
+        $hub = $settings->hub;
+        $raw = $this->getRawSection('hub');
+
+        $endpoint = SecretState::of($this->string($raw, 'url'), $hub->url);
+        $signature = SecretState::of($this->string($raw, 'secret'), $hub->secret);
+        $endpointVariable = $this->variable($raw, 'url');
+        $signatureVariable = $this->variable($raw, 'secret');
+
+        $messages = [];
+        if (!$hub->enabled) {
+            $messages[] = new StatusMessage(StatusMessage::WARNING, 'hub.disabled');
+        }
+        match ($endpoint) {
+            SecretState::NotConfigured => $messages[] = new StatusMessage(StatusMessage::DANGER, 'hub.noEndpoint'),
+            SecretState::EnvironmentUnavailable => $messages[] = new StatusMessage(StatusMessage::DANGER, 'hub.endpointEnvironment', [$endpointVariable]),
+            SecretState::Invalid => $messages[] = new StatusMessage(StatusMessage::DANGER, 'hub.endpointInvalid'),
+            default => null,
+        };
+        if ($endpoint->isUsable() && strtolower((string)parse_url($hub->url, PHP_URL_SCHEME)) === 'http') {
+            $messages[] = new StatusMessage(StatusMessage::WARNING, 'hub.insecure');
+        }
+        match ($signature) {
+            SecretState::NotConfigured => $messages[] = new StatusMessage(StatusMessage::DANGER, 'hub.noSecret'),
+            SecretState::EnvironmentUnavailable => $messages[] = new StatusMessage(StatusMessage::DANGER, 'hub.secretEnvironment', [$signatureVariable]),
+            SecretState::Invalid => $messages[] = new StatusMessage(StatusMessage::DANGER, 'hub.secretInvalid'),
+            default => null,
+        };
+        // Sites first connected with the webhook settings: the Hub would receive every report twice
+        if ($hub->url !== '' && $settings->webhook->isUsable() && $settings->webhook->url === $hub->url) {
+            $messages[] = new StatusMessage(StatusMessage::WARNING, 'hub.alsoWebhook');
+        }
+
+        return new HubStatus(
+            enabled: $hub->enabled,
+            endpoint: $endpoint,
+            endpointVariable: $endpointVariable,
+            endpointTarget: $endpoint === SecretState::Configured ? $hub->getDisplayTarget() : '',
+            signature: $signature,
+            signatureVariable: $signatureVariable,
+            includeScreenshot: $hub->includeScreenshot,
             messages: $messages,
         );
     }

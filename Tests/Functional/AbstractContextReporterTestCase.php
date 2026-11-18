@@ -5,18 +5,22 @@ declare(strict_types=1);
 namespace Priebera\ContextReporter\Tests\Functional;
 
 use Priebera\ContextReporter\Configuration\ExtensionSettingsProvider;
+use Priebera\ContextReporter\Configuration\SettingsRepository;
 use Priebera\ContextReporter\Domain\ContextDocument;
 use Priebera\ContextReporter\Presentation\FindingsBuilder;
+use Priebera\ContextReporter\UpdateNotice\LatestReleaseProvider;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Cache\CacheManager;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Configuration\SiteWriter;
+use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Core\SystemEnvironmentBuilder;
 use TYPO3\CMS\Core\Http\NormalizedParams;
 use TYPO3\CMS\Core\Http\ServerRequest;
 use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Localization\LanguageServiceFactory;
+use TYPO3\CMS\Core\Registry;
 use TYPO3\CMS\Core\Resource\StorageRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
@@ -32,6 +36,8 @@ abstract class AbstractContextReporterTestCase extends FunctionalTestCase
     protected const EDITOR = 2;
     protected const BLOCKED_EDITOR = 3;
     protected const COLLEAGUE = 4;
+    /** Editor whose group was granted the module System > Context Reports (not the settings) */
+    protected const REVIEWER = 30;
     /** Editor whose user TSconfig does not list the report action in options.file_list.primaryActions */
     protected const LIST_EDITOR = 6;
 
@@ -62,12 +68,31 @@ abstract class AbstractContextReporterTestCase extends FunctionalTestCase
             $this->get(ExtensionConfiguration::class)->get('backend');
         } catch (\Throwable) {
         }
+        $this->cacheLatestRelease(null);
         $this->get(SiteWriter::class)->write('main', [
             'rootPageId' => 1,
             'base' => 'https://www.example.com/',
             'languages' => [
                 ['languageId' => 0, 'title' => 'English', 'navigationTitle' => 'English', 'locale' => 'en_US.UTF-8', 'base' => '/', 'flag' => 'us'],
                 ['languageId' => 1, 'title' => 'Deutsch', 'navigationTitle' => 'Deutsch', 'locale' => 'de_DE.UTF-8', 'base' => '/de/', 'flag' => 'de'],
+            ],
+        ]);
+    }
+
+    /**
+     * The release check of the update notice (System › Context Reports, administrators) reads this cached answer
+     * instead of asking Context Reporter Hub: by default "no release known", so no test reaches the network and no
+     * test that counts outgoing requests sees the check.
+     */
+    protected function cacheLatestRelease(?string $version, int $age = 60): void
+    {
+        $now = $this->get(Context::class)->getPropertyFromAspect('date', 'timestamp');
+        $this->get(Registry::class)->set(SettingsRepository::REGISTRY_NAMESPACE, LatestReleaseProvider::REGISTRY_KEY, [
+            'checkedAt' => (is_int($now) ? $now : time()) - $age,
+            'release' => $version === null ? null : [
+                'version' => $version,
+                'releasedAt' => '2027-01-15',
+                'releaseUrl' => 'https://github.com/priebera1/typo3-context-reporter/blob/' . $version . '/CHANGELOG.md',
             ],
         ]);
     }

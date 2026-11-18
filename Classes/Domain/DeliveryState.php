@@ -26,7 +26,8 @@ enum DeliveryState: string
         }
         $failed = count(array_filter(
             $latestStatusPerDestination,
-            static fn(DeliveryStatus $status): bool => $status === DeliveryStatus::Failed,
+            // Not confirmed: failed, or still sending (or interrupted while sending)
+            static fn(DeliveryStatus $status): bool => $status !== DeliveryStatus::Succeeded,
         ));
         return match (true) {
             $failed === 0 => self::Delivered,

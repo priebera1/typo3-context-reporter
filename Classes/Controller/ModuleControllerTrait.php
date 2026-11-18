@@ -76,7 +76,8 @@ trait ModuleControllerTrait
     }
 
     /**
-     * The module is restricted to administrators; every action checks it again.
+     * Settings, connection tests and deleting reports: administrators only. Every
+     * such action checks it again.
      */
     private function isAdmin(): bool
     {
@@ -84,9 +85,24 @@ trait ModuleControllerTrait
         return $backendUser !== null && $backendUser->isAdmin();
     }
 
-    private function accessDenied(): ResponseInterface
+    /**
+     * A TYPO3 module page that says why the action is not available (403). The authorization itself is decided by
+     * the caller; this only renders the answer. Without a request (or for fragments loaded by script) the answer
+     * is a plain 403 text.
+     *
+     * @param 'message.accessDenied'|'message.settingsDenied'|'message.deleteDenied' $messageKey
+     */
+    private function accessDenied(?ServerRequestInterface $request = null, string $messageKey = 'message.accessDenied', bool $backToHistory = false): ResponseInterface
     {
-        return new HtmlResponse(htmlspecialchars($this->translate('message.accessDenied')), 403);
+        if ($request === null) {
+            return new HtmlResponse(htmlspecialchars($this->translate($messageKey)), 403);
+        }
+        $view = $this->createView($request);
+        $view->assignMultiple([
+            'messageKey' => $messageKey,
+            'backUrl' => $backToHistory ? $this->buildModuleUrl() : '',
+        ]);
+        return $view->renderResponse('ReportModule/AccessDenied')->withStatus(403);
     }
 
     private function getBackendUserId(): int

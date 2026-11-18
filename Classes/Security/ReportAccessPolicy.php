@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Priebera\ContextReporter\Security;
 
+use Priebera\ContextReporter\Backend\BackendLinkBuilder;
 use Priebera\ContextReporter\Configuration\ExtensionSettingsProvider;
 use Priebera\ContextReporter\Domain\Report;
+use TYPO3\CMS\Backend\Module\ModuleProvider;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 
 /**
@@ -13,8 +15,10 @@ use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
  *
  * Reporting is available to every backend user unless the extension is
  * disabled or user TSconfig sets "options.contextReporter.enable = 0".
- * Stored reports are visible to administrators; reporters may download
- * their own reports.
+ * Stored reports are visible to administrators and to users an administrator
+ * granted the module System > Context Reports (core's module access, user or
+ * group "Modules"); reporters may download their own reports. The settings
+ * stay administrator-only.
  *
  * @internal
  */
@@ -22,7 +26,23 @@ final readonly class ReportAccessPolicy
 {
     public function __construct(
         private ExtensionSettingsProvider $settingsProvider,
+        private ?ModuleProvider $moduleProvider = null,
     ) {}
+
+    /**
+     * The report history (System > Context Reports): administrators, and users
+     * with core's module access to it. Never the settings.
+     */
+    public function canUseReportsModule(mixed $backendUser): bool
+    {
+        if (!$backendUser instanceof BackendUserAuthentication || self::getUserId($backendUser) <= 0) {
+            return false;
+        }
+        if ($backendUser->isAdmin()) {
+            return true;
+        }
+        return $this->moduleProvider !== null && $this->moduleProvider->accessGranted(BackendLinkBuilder::REPORT_MODULE, $backendUser);
+    }
 
     public function canReport(mixed $backendUser): bool
     {
@@ -41,7 +61,7 @@ final readonly class ReportAccessPolicy
         if (!$backendUser instanceof BackendUserAuthentication || self::getUserId($backendUser) <= 0) {
             return false;
         }
-        if ($backendUser->isAdmin()) {
+        if ($backendUser->isAdmin() || $this->canUseReportsModule($backendUser)) {
             return true;
         }
         return $report->reporterUid === self::getUserId($backendUser) && $this->canReport($backendUser);

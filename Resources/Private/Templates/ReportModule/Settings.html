@@ -25,7 +25,7 @@
         <p class="cr-settings-header__meta cr-muted">
             <f:if condition="{lastChange.time}">
                 <f:then>
-                    <f:variable name="savedAt"><f:format.date format="Y-m-d H:i">{lastChange.time}</f:format.date></f:variable>
+                    <f:variable name="savedAt"><f:format.date format="Y-m-d H:i T">{lastChange.time}</f:format.date></f:variable>
                     <f:if condition="{lastChange.user}">
                         <f:then><f:translate key="{ll}settings.lastSaved" arguments="{0: savedAt, 1: lastChange.user}" /></f:then>
                         <f:else><f:translate key="{ll}settings.lastSavedAt" arguments="{0: savedAt}" /></f:else>
@@ -35,6 +35,13 @@
             </f:if>
         </p>
     </div>
+
+    <f:if condition="{missingColumns}">
+        <f:be.infobox title="{f:translate(key: '{ll}schema.outdated.title')}" state="{severityWarning}">
+            <p><f:translate key="{ll}schema.outdated.message" arguments="{0: missingColumns}" /></p>
+            <p><f:translate key="{ll}schema.outdated.howto" /></p>
+        </f:be.infobox>
+    </f:if>
 
     <f:if condition="{legacyConfiguration}">
         <f:then>
@@ -65,6 +72,12 @@
                 <div class="row">
                     <div class="col-lg-7"><f:render section="Form" arguments="{_all}" /></div>
                     <div class="col-lg-5"><f:render section="EmailStatus" arguments="{_all}" /></div>
+                </div>
+            </f:case>
+            <f:case value="hub">
+                <div class="row">
+                    <div class="col-lg-7"><f:render section="Form" arguments="{_all}" /></div>
+                    <div class="col-lg-5"><f:render section="HubStatus" arguments="{_all}" /></div>
                 </div>
             </f:case>
             <f:case value="webhook">
@@ -238,6 +251,57 @@
     </section>
 </f:section>
 
+<f:section name="HubStatus">
+    <section class="card cr-card cr-settings-status" aria-labelledby="cr-settings-status-title">
+        <f:render section="StatusHeader" arguments="{_all}" />
+        <div class="card-body">
+            <f:render section="StatusMessages" arguments="{_all}" />
+            <dl class="cr-facts cr-facts--stacked">
+                <div class="cr-facts__item">
+                    <dt><f:translate key="{ll}settings.status.hub.connection" /></dt>
+                    <dd>
+                        <span class="badge badge-{connectionTest.class}">{connectionTest.label}</span>
+                        <f:if condition="{connectionTest.time}">
+                            <span class="cr-muted"><f:format.date format="Y-m-d H:i T">{connectionTest.time}</f:format.date></span>
+                        </f:if>
+                        <f:if condition="{connectionTest.details}">
+                            <span class="d-block cr-muted cr-small">{connectionTest.details}</span>
+                        </f:if>
+                    </dd>
+                </div>
+                <div class="cr-facts__item">
+                    <dt><f:translate key="{ll}settings.status.hub.endpoint" /></dt>
+                    <dd>{endpoint}</dd>
+                </div>
+                <div class="cr-facts__item">
+                    <dt><f:translate key="{ll}settings.status.hub.signature" /></dt>
+                    <dd>{signature}</dd>
+                </div>
+                <div class="cr-facts__item">
+                    <dt><f:translate key="{ll}settings.status.hub.screenshot" /></dt>
+                    <dd>{screenshot}</dd>
+                </div>
+            </dl>
+            <p class="cr-muted cr-small"><f:translate key="{ll}settings.status.hub.referenceNote" /></p>
+            <p class="cr-muted cr-small"><f:translate key="{ll}settings.status.webhook.secretsNote" /></p>
+        </div>
+        <div class="card-footer">
+            <form action="{testUrl}" method="post">
+                <button type="submit" class="btn btn-default" {f:if(condition: canTest, else: 'disabled')} aria-describedby="cr-settings-test-hint">
+                    <core:icon identifier="actions-play" size="small" />
+                    <f:translate key="{ll}settings.test.hub" />
+                </button>
+            </form>
+            <p class="cr-muted cr-small" id="cr-settings-test-hint">
+                <f:if condition="{canTest}">
+                    <f:then><f:translate key="{ll}settings.test.hubHint" /></f:then>
+                    <f:else><f:translate key="{ll}settings.test.hubUnavailable" /></f:else>
+                </f:if>
+            </p>
+        </div>
+    </section>
+</f:section>
+
 <f:section name="PrivacyInfo">
     <section class="card cr-card" aria-labelledby="cr-settings-privacy-title">
         <div class="card-header">
@@ -251,6 +315,7 @@
             <p><f:translate key="{ll}settings.privacy.always.text" /></p>
             <h3 class="cr-settings-subheading"><f:translate key="{ll}settings.privacy.never.title" /></h3>
             <p><f:translate key="{ll}settings.privacy.never.text" /></p>
+            <p><f:translate key="{ll}settings.privacy.minimisation" /></p>
             <p class="cr-muted cr-small"><f:translate key="{ll}settings.privacy.preview" /></p>
         </div>
     </section>
@@ -282,7 +347,7 @@
                     <dt><f:translate key="{ll}settings.storage.oldest" /></dt>
                     <dd>
                         <f:if condition="{statistics.oldestReport}">
-                            <f:then><f:format.date format="Y-m-d H:i">{statistics.oldestReport}</f:format.date></f:then>
+                            <f:then><f:format.date format="Y-m-d H:i T">{statistics.oldestReport}</f:format.date></f:then>
                             <f:else><f:translate key="{ll}settings.status.none" /></f:else>
                         </f:if>
                     </dd>

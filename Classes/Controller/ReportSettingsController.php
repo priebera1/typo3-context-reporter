@@ -8,11 +8,17 @@ use Priebera\ContextReporter\Backend\BackendUserNames;
 use Priebera\ContextReporter\Configuration\ExtensionSettingsProvider;
 use Priebera\ContextReporter\Configuration\SettingsRepository;
 use Priebera\ContextReporter\Configuration\SystemConfiguration;
+use Priebera\ContextReporter\Database\DatabaseSchemaState;
 use Priebera\ContextReporter\Delivery\Email\MailTransportDescription;
+use Priebera\ContextReporter\Delivery\SafeErrorMessage;
 use Priebera\ContextReporter\Export\MarkdownReportExporter;
 use Priebera\ContextReporter\Retention\RetentionService;
+use Priebera\ContextReporter\Security\ConfiguredSecrets;
+use Priebera\ContextReporter\Security\ReportAccessPolicy;
 use Priebera\ContextReporter\Settings\DeliveryStatusProvider;
 use Priebera\ContextReporter\Settings\DestinationTester;
+use Priebera\ContextReporter\Settings\HubConnectionTest;
+use Priebera\ContextReporter\Settings\HubConnectionTestRepository;
 use Priebera\ContextReporter\Settings\SettingsFieldBuilder;
 use Priebera\ContextReporter\Settings\SettingsFormProcessor;
 use Priebera\ContextReporter\Settings\StatusMessage;
@@ -53,14 +59,18 @@ final readonly class ReportSettingsController
         private SettingsFieldBuilder $fieldBuilder,
         private DeliveryStatusProvider $statusProvider,
         private DestinationTester $tester,
+        private HubConnectionTestRepository $hubConnectionTests,
+        private ConfiguredSecrets $secrets,
         private RetentionService $retention,
+        private ReportAccessPolicy $accessPolicy,
         private BackendUserNames $userNames,
+        private DatabaseSchemaState $schema,
     ) {}
 
     public function settingsAction(ServerRequestInterface $request): ResponseInterface
     {
         if (!$this->isAdmin()) {
-            return $this->accessDenied();
+            return $this->accessDenied($request, 'message.settingsDenied', $this->accessPolicy->canUseReportsModule($this->getBackendUser()));
         }
         return $this->renderSettings($request, $this->getTab($request->getQueryParams()['tab'] ?? null));
     }
@@ -68,7 +78,7 @@ final readonly class ReportSettingsController
     public function saveSettingsAction(ServerRequestInterface $request): ResponseInterface
     {
         if (!$this->isAdmin()) {
-            return $this->accessDenied();
+            return $this->accessDenied($request, 'message.settingsDenied', $this->accessPolicy->canUseReportsModule($this->getBackendUser()));
         }
         $body = $request->getParsedBody();
         $body = is_array($body) ? $body : [];
@@ -97,7 +107,7 @@ final readonly class ReportSettingsController
     public function testEmailAction(ServerRequestInterface $request): ResponseInterface
     {
         if (!$this->isAdmin()) {
-            return $this->accessDenied();
+            return $this->accessDenied($request, 'message.settingsDenied', $this->accessPolicy->canUseReportsModule($this->getBackendUser()));
         }
         $status = $this->statusProvider->getEmailStatus();
         $outcome = $this->tester->sendTestEmail();
@@ -117,7 +127,7 @@ final readonly class ReportSettingsController
     public function testWebhookAction(ServerRequestInterface $request): ResponseInterface
     {
         if (!$this->isAdmin()) {
-            return $this->accessDenied();
+            return $this->accessDenied($request, 'message.settingsDenied', $this->accessPolicy->canUseReportsModule($this->getBackendUser()));
         }
         $outcome = $this->tester->sendTestWebhook();
         return $outcome->successful
@@ -125,10 +135,48 @@ final readonly class ReportSettingsController
             : $this->redirectWithMessage($request, $outcome->message, ContextualFeedbackSeverity::ERROR, 'settings', ['tab' => 'webhook'], $this->translate('settings.test.webhookFailed'));
     }
 
+    /**
+     * Sends the test delivery to the saved Hub site and remembers the outcome
+     * for the status panel.
+     */
+    public function testHubAction(ServerRequestInterface $request): ResponseInterface
+    {
+        if (!$this->isAdmin()) {
+            return $this->accessDenied($request, 'message.settingsDenied', $this->accessPolicy->canUseReportsModule($this->getBackendUser()));
+        }
+        // The Hub card of the report history sends the test, too, and shows the result there
+        $body = $request->getParsedBody();
+        [$action, $parameters] = is_array($body) && ($body['returnTo'] ?? null) === 'index' ? ['', []] : ['settings', ['tab' => 'hub']];
+        if (!$this->statusProvider->getHubStatus()->canSendTest()) {
+            return $this->redirectWithMessage($request, $this->translate('settings.test.hubUnavailable'), ContextualFeedbackSeverity::WARNING, $action, $parameters);
+        }
+        $outcome = $this->tester->sendTestToHub();
+        $this->hubConnectionTests->record($this->settingsProvider->get()->hub, $outcome);
+        if ($outcome->successful) {
+            return $this->redirectWithMessage(
+                $request,
+                sprintf($this->translate('settings.test.hubSucceededDetail'), $outcome->message),
+                ContextualFeedbackSeverity::OK,
+                $action,
+                $parameters,
+                $this->translate('settings.test.hubSucceeded'),
+            );
+        }
+        $reason = HubConnectionTest::failureReason($outcome->responseCode);
+        return $this->redirectWithMessage(
+            $request,
+            $this->translate('settings.test.hub.failed.' . $reason . '.hint') . ' ' . sprintf($this->translate('settings.test.hubFailedDetail'), $outcome->message),
+            ContextualFeedbackSeverity::ERROR,
+            $action,
+            $parameters,
+            $this->translate('settings.test.hub.failed.' . $reason),
+        );
+    }
+
     public function cleanupAction(ServerRequestInterface $request): ResponseInterface
     {
         if (!$this->isAdmin()) {
-            return $this->accessDenied();
+            return $this->accessDenied($request, 'message.settingsDenied', $this->accessPolicy->canUseReportsModule($this->getBackendUser()));
         }
         $body = $request->getParsedBody();
         $days = is_array($body) && is_string($body['days'] ?? null) && ctype_digit($body['days']) ? (int)$body['days'] : -1;
@@ -157,7 +205,7 @@ final readonly class ReportSettingsController
         $this->addLinkButton($view, $this->buildModuleUrl(), 'button.reports', 'actions-view-go-back', 1);
         if ($errors !== []) {
             $message = $this->translate('settings.invalid');
-            if (in_array($tab, ['webhook'], true)) {
+            if (in_array($tab, ['hub', 'webhook'], true)) {
                 $message .= ' ' . $this->translate('settings.invalidSecrets');
             }
             $view->addFlashMessage($message, '', ContextualFeedbackSeverity::ERROR);
@@ -180,10 +228,12 @@ final readonly class ReportSettingsController
             'saveUrl' => $this->buildModuleUrl('saveSettings'),
             'lastChange' => $this->describeLastChange(),
             'legacyConfiguration' => $this->systemConfiguration->hasLegacyExtensionConfiguration(),
+            'missingColumns' => implode(', ', $this->schema->getMissingColumns()),
             'overriddenPaths' => implode(', ', $this->systemConfiguration->getOverriddenPaths()),
         ]);
         match ($tab) {
             'email' => $view->assignMultiple($this->getEmailData()),
+            'hub' => $view->assignMultiple($this->getHubData()),
             'webhook' => $view->assignMultiple($this->getWebhookData()),
             'reporting' => $view->assignMultiple($this->getStorageData()),
             default => null,
@@ -245,12 +295,57 @@ final readonly class ReportSettingsController
     /**
      * @return array<string, mixed>
      */
+    private function getHubData(): array
+    {
+        $status = $this->statusProvider->getHubStatus();
+        $state = fn(string $state, string $variable): string => sprintf($this->translate('settings.secret.state.' . $state), $variable);
+        $endpoint = $status->endpointTarget !== ''
+            ? $status->endpointTarget . '/…'
+            : $state($status->endpoint->value, $status->endpointVariable);
+        $test = $status->canSendTest() ? $this->hubConnectionTests->findLatest($this->settingsProvider->get()->hub) : null;
+        return [
+            'status' => $this->describeStatus($status->enabled, $status->isReady(), $status->messages),
+            'hub' => $status,
+            'endpoint' => $endpoint,
+            'signature' => $state($status->signature->value, $status->signatureVariable),
+            'screenshot' => $this->translate($status->includeScreenshot ? 'settings.status.included' : 'settings.status.notIncluded'),
+            'connectionTest' => $this->describeHubConnectionTest($test),
+            'canTest' => $status->canSendTest(),
+            'testUrl' => $this->buildModuleUrl('testHub'),
+        ];
+    }
+
+    /**
+     * @return array{label: string, class: string, time: ?\DateTimeImmutable, details: string}
+     */
+    private function describeHubConnectionTest(?HubConnectionTest $test): array
+    {
+        if ($test === null || !$test->current) {
+            return [
+                'label' => $this->translate($test === null ? 'settings.status.hub.notTested' : 'settings.status.hub.changedSinceTest'),
+                'class' => 'default',
+                'time' => null,
+                'details' => '',
+            ];
+        }
+        return [
+            'label' => $this->translate($test->successful ? 'settings.status.hub.testSucceeded' : 'settings.test.hub.failed.' . HubConnectionTest::failureReason($test->responseCode)),
+            'class' => $test->successful ? 'success' : 'danger',
+            'time' => $test->testedAt,
+            // Stored details are sanitized again, like the delivery history
+            'details' => $test->successful ? '' : SafeErrorMessage::sanitize($test->message, $this->secrets->get()),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
     private function getStorageData(): array
     {
         $statistics = $this->retention->getStatistics();
         $preview = $this->retention->preview();
         $orphans = $preview->orphanedAttachments + $preview->orphanedDeliveries;
-        $cutoff = $preview->cutoff?->format('Y-m-d H:i') ?? '';
+        $cutoff = $preview->cutoff?->format('Y-m-d H:i T') ?? '';
         return [
             'statistics' => $statistics,
             'screenshotSize' => MarkdownReportExporter::formatBytes($statistics->screenshotBytes),

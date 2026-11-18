@@ -70,6 +70,7 @@ final readonly class RecordAccess
         if ($page === null
             || !$backendUser->isInWebMount($page)
             || !$backendUser->doesUserHaveAccess($page, Permission::PAGE_SHOW)
+            || !$this->hasLanguageAccess('pages', $page, $backendUser)
         ) {
             return null;
         }
@@ -300,11 +301,30 @@ final readonly class RecordAccess
         $record = $this->findInCurrentWorkspace($table, $uid, $backendUser);
         if ($record === null
             || !$this->isAllowedLocation($table, (int)($record['pid'] ?? 0), $backendUser)
+            || !$this->hasLanguageAccess($table, $record, $backendUser)
             || !$this->allowsFilesOfRecord($table, $record, $backendUser)
         ) {
             return null;
         }
         return $record;
+    }
+
+    /**
+     * Records in a language the user may not use are hidden by TYPO3's page and
+     * list modules ("allowed_languages" of the backend groups); a report must not
+     * reveal their title, type or page either. "All languages" (-1) and records
+     * of tables without a language field are not restricted.
+     *
+     * @param array<string, mixed> $row
+     */
+    private function hasLanguageAccess(string $table, array $row, BackendUserAuthentication $backendUser): bool
+    {
+        $languageField = $this->tca->getLanguageField($table);
+        if ($languageField === '' || !isset($row[$languageField])) {
+            return true;
+        }
+        $languageId = (int)$row[$languageField];
+        return $languageId <= 0 || $backendUser->checkLanguageAccess($languageId);
     }
 
     /**

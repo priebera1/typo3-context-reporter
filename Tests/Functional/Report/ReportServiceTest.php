@@ -12,8 +12,11 @@ use Priebera\ContextReporter\Context\Location\BackendLocationFactory;
 use Priebera\ContextReporter\Delivery\DeliveryNotPossibleException;
 use Priebera\ContextReporter\Delivery\DeliveryService;
 use Priebera\ContextReporter\Delivery\Webhook\WebhookSignature;
+use Priebera\ContextReporter\Domain\DeliveryAttempt;
 use Priebera\ContextReporter\Domain\DeliveryState;
 use Priebera\ContextReporter\Domain\DeliveryStatus;
+use Priebera\ContextReporter\Domain\Report;
+use Priebera\ContextReporter\Domain\ReportSource;
 use Priebera\ContextReporter\Domain\Repository\DeliveryAttemptRepository;
 use Priebera\ContextReporter\Domain\Repository\ReportRepository;
 use Priebera\ContextReporter\Report\InvalidReportInputException;
@@ -31,6 +34,8 @@ use TYPO3\CMS\Core\Database\ConnectionPool;
 final class ReportServiceTest extends AbstractContextReporterTestCase
 {
     private const SCREENSHOT = __DIR__ . '/../../Unit/Fixtures/Images/screenshot.png';
+    private const HUB_URL = 'https://hub.example.com/in/s_8Fq2LmZx4RtY7vB1nKc3Wd9P';
+    private const HUB_SECRET = 'whsec_8Fq2LmZx4RtY7vB1nKc3Wd9PaQ5sT0uV';
 
     private string $mailbox = '';
 
@@ -144,6 +149,60 @@ final class ReportServiceTest extends AbstractContextReporterTestCase
     }
 
     #[Test]
+    public function hubAndWebhookReceiveTheSameSignedReportAndTheHubReferenceIsKept(): void
+    {
+        $this->configureExtension([
+            'webhook' => ['enabled' => '1', 'url' => 'https://hooks.example.com/report', 'secret' => 'webhook-secret'],
+            'hub' => ['enabled' => '1', 'url' => self::HUB_URL, 'secret' => self::HUB_SECRET],
+        ]);
+        $editor = $this->loginBackendUser(self::EDITOR);
+        // The Hub rejects the first delivery (secret rotated in the Hub), the webhook accepts
+        $this->webhookResponses = [
+            new Response(401, ['Content-Type' => 'application/json; charset=utf-8'], '{"error":"invalid_signature","message":"The signature does not match."}'),
+            new Response(201, ['Content-Type' => 'application/json'], '{"reference":"SUP-9","url":"https://desk.example.com/9"}'),
+        ];
+
+        $prepared = $this->prepare($editor, ['type' => 'record', 'table' => 'tt_content', 'uid' => 10]);
+        $result = $this->get(ReportService::class)->submit(new ReportSubmission($prepared->draftToken, 'Hub report', '', (string)file_get_contents(self::SCREENSHOT), true), $editor);
+
+        $report = $result->report;
+        self::assertSame(['hub', 'webhook'], array_map(static fn(DeliveryAttempt $attempt): string => $attempt->destination, $result->attempts));
+        [$hub, $webhook] = $result->attempts;
+        self::assertSame(DeliveryStatus::Failed, $hub->status);
+        self::assertSame(401, $hub->responseCode);
+        self::assertSame('https://hub.example.com', $hub->target);
+        self::assertSame('SUP-9', $webhook->externalReference);
+        self::assertSame(DeliveryState::Partial, $result->getDeliveryState());
+
+        [$toHub, $toWebhook] = $this->webhookRequests;
+        self::assertSame(self::HUB_URL, (string)$toHub->getUri());
+        self::assertTrue(WebhookSignature::verify($toHub->getHeaderLine(WebhookSignature::HEADER), self::HUB_SECRET, (string)$toHub->getBody()));
+        self::assertTrue(WebhookSignature::verify($toWebhook->getHeaderLine(WebhookSignature::HEADER), 'webhook-secret', (string)$toWebhook->getBody()));
+        $hubPayload = json_decode((string)$toHub->getBody(), true, 512, JSON_THROW_ON_ERROR)['report'];
+        self::assertSame(json_decode((string)$toWebhook->getBody(), true, 512, JSON_THROW_ON_ERROR)['report'], $hubPayload);
+        self::assertSame($report->identifier, $hubPayload['id']);
+        self::assertSame(base64_encode((string)file_get_contents(self::SCREENSHOT)), $hubPayload['attachments'][0]['contentBase64']);
+
+        // A retry is the same report ID: the Hub creates the report once and answers its reference
+        $this->webhookResponses = [new Response(200, ['Content-Type' => 'application/json; charset=utf-8'], '{"reference":"LW-152","url":"https://hub.example.com/app/reports/LW-152"}')];
+        $this->loginBackendUser(self::ADMIN);
+        $stored = $this->get(ReportRepository::class)->findByIdentifier($report->identifier);
+        self::assertNotNull($stored);
+        $retry = $this->get(DeliveryService::class)->retry($stored, 'hub', self::ADMIN);
+
+        self::assertSame(DeliveryStatus::Succeeded, $retry->status);
+        self::assertSame(2, $retry->attempt);
+        self::assertSame('LW-152', $retry->externalReference);
+        self::assertSame('https://hub.example.com/app/reports/LW-152', $retry->externalUrl);
+        self::assertSame($report->identifier, $this->webhookRequests[2]->getHeaderLine('X-Context-Reporter-Report'));
+        self::assertSame('2', $this->webhookRequests[2]->getHeaderLine('X-Context-Reporter-Attempt'));
+        self::assertSame(DeliveryState::Delivered, $this->get(ReportRepository::class)->findByIdentifier($report->identifier)?->deliveryState);
+        $attemptRows = json_encode($this->get(ConnectionPool::class)->getConnectionForTable(DeliveryAttemptRepository::TABLE)->select(['*'], DeliveryAttemptRepository::TABLE)->fetchAllAssociative(), JSON_THROW_ON_ERROR);
+        self::assertStringNotContainsString(self::HUB_SECRET, $attemptRows);
+        self::assertStringNotContainsString('s_8Fq2LmZx4RtY7vB1nKc3Wd9P', $attemptRows);
+    }
+
+    #[Test]
     public function fileChecksAreSealedStoredAndDelivered(): void
     {
         $admin = $this->loginBackendUser(self::ADMIN);
@@ -250,6 +309,92 @@ final class ReportServiceTest extends AbstractContextReporterTestCase
 
         $this->expectException(RateLimitExceededException::class);
         $service->submit(new ReportSubmission($this->prepare($editor, ['type' => 'page', 'uid' => 2])->draftToken, 'Second', '', null, true), $editor);
+    }
+
+    /**
+     * K5: the answer to a submission can be lost (network, proxy, closed laptop)
+     * after the report was stored and delivered. Sending the same prepared report
+     * again returns the stored report: no second report, no second delivery.
+     */
+    #[Test]
+    public function aRepeatedSubmissionReturnsTheStoredReportWithoutDeliveringAgain(): void
+    {
+        $editor = $this->loginBackendUser(self::EDITOR);
+        $this->webhookResponses = [new Response(201, ['Content-Type' => 'application/json'], '{"reference":"SUP-1"}')];
+        $prepared = $this->prepare($editor, ['type' => 'page', 'uid' => 2]);
+        $service = $this->get(ReportService::class);
+
+        $first = $service->submit(new ReportSubmission($prepared->draftToken, 'Teaser is broken', '', (string)file_get_contents(self::SCREENSHOT), true), $editor);
+        $again = $service->submit(new ReportSubmission($prepared->draftToken, 'Teaser is broken', '', (string)file_get_contents(self::SCREENSHOT), true), $editor);
+        $edited = $service->submit(new ReportSubmission($prepared->draftToken, 'Edited after the error', '', null, false), $editor);
+
+        self::assertTrue(ReportIdGenerator::isValid($prepared->reportIdentifier));
+        self::assertSame($prepared->reportIdentifier, $first->report->identifier, 'The identifier is reserved when the dialog opens');
+        self::assertFalse($first->replayed);
+        foreach ([$again, $edited] as $result) {
+            self::assertTrue($result->replayed);
+            self::assertSame($first->report->identifier, $result->report->identifier);
+            self::assertSame('Teaser is broken', $result->report->title, 'The stored report wins');
+            self::assertSame(['email', 'webhook'], array_map(static fn(DeliveryAttempt $attempt): string => $attempt->destination, $result->attempts));
+            self::assertSame(DeliveryState::Delivered, $result->getDeliveryState());
+        }
+        self::assertSame(1, $this->countReports());
+        self::assertCount(1, $this->webhookRequests, 'Delivered once');
+        self::assertSame(1, substr_count((string)file_get_contents($this->mailbox), 'Subject: [Functional Test Portal] Teaser is broken'), 'One email');
+        self::assertCount(2, $this->get(DeliveryAttemptRepository::class)->findByReportUid((int)$first->report->uid));
+
+        // A new dialog is a new report
+        $next = $service->submit(new ReportSubmission($this->prepare($editor, ['type' => 'page', 'uid' => 2])->draftToken, 'Another problem', '', null, false), $editor);
+        self::assertNotSame($first->report->identifier, $next->report->identifier);
+        self::assertSame(2, $this->countReports());
+    }
+
+    #[Test]
+    public function aRepeatedSubmissionIsNotRateLimited(): void
+    {
+        $this->configureExtension(['reporting' => ['maxReportsPerUserPerHour' => '1']]);
+        $editor = $this->loginBackendUser(self::EDITOR);
+        $token = $this->prepare($editor, ['type' => 'page', 'uid' => 2])->draftToken;
+        $service = $this->get(ReportService::class);
+
+        $first = $service->submit(new ReportSubmission($token, 'First', '', null, true), $editor);
+        $again = $service->submit(new ReportSubmission($token, 'First', '', null, true), $editor);
+
+        self::assertSame($first->report->identifier, $again->report->identifier);
+        self::assertSame(1, $this->countReports());
+    }
+
+    /**
+     * The reserved identifier is only a suggestion: when another user's report
+     * has it, the report gets a new one and the other report is never returned.
+     */
+    #[Test]
+    public function aReportOfAnotherUserIsNeverReturned(): void
+    {
+        $this->configureExtension([]);
+        $editor = $this->loginBackendUser(self::EDITOR);
+        $prepared = $this->prepare($editor, ['type' => 'page', 'uid' => 2]);
+        $colleague = $this->loginBackendUser(self::COLLEAGUE);
+        $colleaguePrepared = $this->prepare($colleague, ['type' => 'page', 'uid' => 2]);
+        $this->get(ReportRepository::class)->add(new Report(
+            identifier: $prepared->reportIdentifier,
+            createdAt: new \DateTimeImmutable(),
+            reporterUid: self::COLLEAGUE,
+            source: ReportSource::Toolbar,
+            title: 'The colleague\'s report',
+            description: '',
+            document: $colleaguePrepared->document,
+        ));
+
+        $editor = $this->loginBackendUser(self::EDITOR);
+        $result = $this->get(ReportService::class)->submit(new ReportSubmission($prepared->draftToken, 'My report', '', null, true), $editor);
+
+        self::assertFalse($result->replayed);
+        self::assertNotSame($prepared->reportIdentifier, $result->report->identifier);
+        self::assertSame('My report', $result->report->title);
+        self::assertSame(self::EDITOR, $result->report->reporterUid);
+        self::assertSame(self::COLLEAGUE, $this->get(ReportRepository::class)->findByIdentifier($prepared->reportIdentifier)?->reporterUid);
+        self::assertSame(2, $this->countReports());
     }
 
     /**

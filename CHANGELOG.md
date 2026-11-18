@@ -3,6 +3,59 @@
 All notable changes to this project are documented in this file. The project
 follows [semantic versioning](https://semver.org/).
 
+## [0.4.0] - 2026-11-18
+
+### Added
+
+* **Context Reporter Hub.** A new destination sends the reports of all your TYPO3 installations to one hosted Hub inbox. Paste the webhook URL and signing secret of a Hub site in the new settings section "Context Reporter Hub". After sending, the reporter sees the Hub reference of the report (for example `LW-152`) with a link to it, and the report history shows it too.
+* **Hub connection test and status.** "Test connection" checks the URL and secret without creating a report. The status panel explains problems in plain words (wrong secret, unknown or disconnected site, Hub not reachable) and points out a webhook that still sends to the same Hub site. A Hub card in System › Context Reports shows the last delivery, the last failure and the last test.
+* **Formatted report emails.** Recipients get a formatted email together with a plain-text version for email programs without formatting. It is on by default and can be switched off for ticket systems or parsers that expect plain text. New markers for plain-text templates include the Hub reference.
+* **Report history for editors.** Administrators can grant System › Context Reports to backend groups. Editors with access see all reports, their review state and delivery results, and can retry deliveries and download reports. Settings, connection tests, cleanup, deleting reports and the addresses that reports are sent to stay with administrators.
+* **New version notice.** Administrators see one line in System › Context Reports when a newer stable release is available, with a link to the release notes. Nothing is downloaded or installed, the check sends no data about the installation, and the environment variable `CONTEXT_REPORTER_RELEASE_CHECK_URL=off` switches it off.
+* **Privacy guidance.** The report dialog reminds reporters not to include passwords or other secrets and to cover sensitive parts of a screenshot with the Redact tool. A new documentation section, "Sensitive information in reports", explains what a report contains and where it goes.
+* **Hub address for links**, for installations that reach the Hub at another address than the browser, for example through an internal host name.
+
+### Changed
+
+* **Reliable delivery.** Webhook and Hub deliveries have a firm total time limit, so a slow endpoint no longer holds up the backend. Sending a report again after a lost answer, submitting the same report twice at once, or retrying a delivery twice at the same time no longer delivers it twice; when such requests get in each other's way, the delivery stays in the history and can be retried.
+* **Confirmed Hub deliveries.** A report counts as received only when the Hub confirms it. If the confirmation is lost on the way, the reporter reads "Not confirmed by Context Reporter Hub (it may have arrived)" and the delivery can be retried safely: the Hub keeps one report per report ID.
+* **Safer updates.** If the database update is missing after updating the extension, reports are still saved, nothing is sent, and System › Context Reports shows "Database update required". After the update, each held delivery is sent once on retry.
+* **Understandable errors.** Failed deliveries say what went wrong (for example "No answer within the time limit" or "The host name could not be resolved") instead of technical library messages.
+* **Email order and content.** The Hub is delivered before the email, so the email can name the Hub reference. The plain-text email labels each link by what it opens and only lists attachments that are attached. A custom plain-text template is sent as plain text only, so the email contains exactly what the template contains.
+* **Report dialog.** The dialog asks before it discards a screenshot, the keyboard moves straight to the screenshot editor, and the editor toolbar fits narrow windows and phones.
+* Times in System › Context Reports name the server's time zone, and translation notices name the object, for example "Content element not translated into: German".
+
+### Fixed
+
+* After an update without the database step, the report dialog could show a server error although the report had been sent.
+* Damaged or incomplete screenshots were stored as broken images; they are now refused with a message.
+* Ticket references in webhook answers that arrive in several pieces were sometimes lost.
+* The plain-text email mentioned a JSON attachment when none was attached, and did not mention the screenshot.
+* The link of a reported file now reads "Open containing folder in TYPO3", because it opens the folder.
+* The report dialog now announces a missing title to screen readers.
+
+### Security
+
+* Administrator-only actions are checked on the server for every request; users without access see a TYPO3 page that says why.
+* Reporters whose backend groups restrict the languages ("Allowed languages") can no longer report translations in other languages.
+* The Hub's answers are checked strictly: links are only shown when they point into the Hub, and only known values are kept.
+* Passwords, tokens and the site token of a Hub webhook URL are hidden in delivery errors, the history and log entries, also when an answer repeats them.
+* Webhook URLs with a user name and password (`https://user:password@…`) are refused; credentials belong in the authentication header.
+
+### Compatibility
+
+* TYPO3 13.4 LTS and TYPO3 14.3 LTS, PHP 8.2, 8.3, 8.4 and 8.5, with the same package. Tested with MariaDB 10.11, MySQL 8.0 and SQLite; PostgreSQL has not been tested.
+* The report format stays `context-reporter.report.v1`, and the webhook request is unchanged.
+* The database gets one new column (`tx_contextreporter_delivery.hub_receipt`); run the database update after updating.
+
+### Upgrade notes
+
+* Update with `composer require priebera/typo3-context-reporter:^0.4` (`composer update` stays on 0.3), then run `vendor/bin/typo3 extension:setup` and `vendor/bin/typo3 cache:flush`. In classic mode, upload the new ZIP with "Overwrite" and run "Analyze Database Structure". Until the database is updated, reports are saved but not sent. See "Upgrade" in the documentation.
+* Backend groups that already list the module "Context Reports" now get the report history. Check which groups list it.
+* A webhook whose URL is a Hub address ending in `/in/s_…` (how 0.3 connected the Hub) now counts as delivered only with the Hub's confirmation. Moving the connection to the new "Context Reporter Hub" section is recommended; switch the webhook off afterwards, so reports are not sent twice.
+* Report emails include a formatted version by default. Switch off "Send a formatted HTML version" if a ticket system or parser reads them. Emails with a custom plain-text template stay plain text.
+* A stored webhook URL with a user name and password is no longer used: move the credentials to the authentication header. The sender address of report emails needs a full domain (for example `typo3@example.com`); otherwise the TYPO3 default sender is used.
+
 ## [0.3.0] - 2026-10-02
 
 ### Added

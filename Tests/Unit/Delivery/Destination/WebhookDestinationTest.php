@@ -12,8 +12,10 @@ use PHPUnit\Framework\Attributes\Test;
 use Priebera\ContextReporter\Configuration\ExtensionInfo;
 use Priebera\ContextReporter\Delivery\DeliveryRequest;
 use Priebera\ContextReporter\Delivery\Destination\WebhookDestination;
+use Priebera\ContextReporter\Delivery\Http\BoundedHttpClient;
 use Priebera\ContextReporter\Delivery\Webhook\ResponseReferenceExtractor;
 use Priebera\ContextReporter\Delivery\Webhook\WebhookClient;
+use Priebera\ContextReporter\Delivery\Webhook\WebhookReportSender;
 use Priebera\ContextReporter\Delivery\Webhook\WebhookSignature;
 use Priebera\ContextReporter\Export\JsonReportExporter;
 use Priebera\ContextReporter\Export\ReportPayloadFactory;
@@ -27,6 +29,8 @@ use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 final class WebhookDestinationTest extends UnitTestCase
 {
     private const URL = 'https://hooks.example.com/webhook/5f1c-secret-path';
+    private const HUB_URL = 'https://hub.example.com/in/s_8Fq2LmZx4RtY7vB1nKc3Wd9P';
+    private const HUB_SECRET = 'whsec_8Fq2LmZx4RtY7vB1nKc3Wd9PaQ5sT0uV';
 
     /**
      * @var list<array{request: RequestInterface, options: array<string, mixed>}>
@@ -76,7 +80,7 @@ final class WebhookDestinationTest extends UnitTestCase
         self::assertStringStartsWith('t=' . $request->getHeaderLine('X-Context-Reporter-Timestamp') . ',', $request->getHeaderLine(WebhookSignature::HEADER));
         self::assertFalse($options['allow_redirects']);
         self::assertFalse($options['http_errors']);
-        self::assertSame(10, $options['timeout']);
+        self::assertSame(10.0, $options['timeout']);
 
         $envelope = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('report.created', $envelope['event']);
@@ -114,6 +118,79 @@ final class WebhookDestinationTest extends UnitTestCase
         self::assertSame($reference, $outcome->externalReference);
         self::assertSame($url, $outcome->externalUrl);
         self::assertSame('HTTP 201', $outcome->message);
+    }
+
+    /**
+     * The generic webhook keeps its meaning: any 2xx is delivered. An answer that
+     * cannot be used only means there is no reference.
+     */
+    #[Test]
+    public function aGenericWebhookIsDeliveredWithAnyTwoHundredAnswer(): void
+    {
+        $this->respondWith(new Response(200, ['Content-Type' => 'application/json'], '{"reference":"SUP-1"'));
+        $malformed = $this->createDestination([])->deliver($this->createRequest());
+        self::assertTrue($malformed->successful);
+        self::assertSame('', $malformed->externalReference);
+
+        $this->respondWith(new Response(200, ['Content-Type' => 'application/json'], '{"reference":"SUP-1","pad":"' . str_repeat('a', 70000) . '"}'));
+        $tooLarge = $this->createDestination([])->deliver($this->createRequest());
+        self::assertTrue($tooLarge->successful);
+        self::assertSame(200, $tooLarge->responseCode);
+        self::assertSame('', $tooLarge->externalReference);
+        self::assertSame('HTTP 200 (the answer was larger than 64 KB and was not read)', $tooLarge->message);
+    }
+
+    /**
+     * A11 (audit 2026-11-07): installations updated from 0.3 send to Context
+     * Reporter Hub through the webhook (the only way 0.3 had). A webhook URL
+     * that is a Hub intake address (/in/s_…) is delivered only with the Hub's
+     * acknowledgement, like the Hub destination: a proxy or login page that
+     * answers 200 is no confirmation, and what the Hub answers about the
+     * screenshot is kept.
+     *
+     * @return \Generator<string, array{Response}>
+     */
+    public static function answersThatAreNoHubAcknowledgement(): \Generator
+    {
+        yield 'empty' => [new Response(200, ['Content-Type' => 'application/json'], '')];
+        yield 'login page' => [new Response(200, ['Content-Type' => 'text/html'], '<html><title>Sign in</title></html>')];
+        yield 'no reference' => [new Response(200, ['Content-Type' => 'application/json'], '{"status":"ok"}')];
+        yield 'not a Hub reference' => [new Response(201, ['Content-Type' => 'application/json'], '{"reference":"ticket 42"}')];
+        yield 'cut off' => [new Response(200, ['Content-Type' => 'application/json'], '{"reference":"LW-1"')];
+    }
+
+    #[Test]
+    #[DataProvider('answersThatAreNoHubAcknowledgement')]
+    public function aWebhookToAHubIntakeAddressNeedsTheHubAcknowledgement(Response $answer): void
+    {
+        $this->respondWith($answer);
+        $outcome = $this->createDestination(['url' => self::HUB_URL, 'secret' => self::HUB_SECRET])->deliver($this->createRequest());
+        self::assertFalse($outcome->successful);
+        self::assertSame('', $outcome->externalReference);
+        self::assertStringContainsString('the Hub did not confirm the report', $outcome->message);
+
+        // The same answer from any other endpoint is a delivery
+        $this->respondWith($answer);
+        self::assertTrue($this->createDestination([])->deliver($this->createRequest())->successful);
+    }
+
+    #[Test]
+    public function aWebhookToAHubIntakeAddressKeepsTheHubReceipt(): void
+    {
+        $this->respondWith(new Response(200, ['Content-Type' => 'application/json'], (string)json_encode([
+            'reference' => 'LW-152',
+            'url' => 'https://hub.example.com/app/reports/LW-152',
+            'screenshots' => ['received' => 1, 'stored' => 0, 'omitted' => 1, 'reasons' => ['storage_full']],
+            'storage' => 'full',
+        ])));
+        $outcome = $this->createDestination(['url' => self::HUB_URL, 'secret' => self::HUB_SECRET])->deliver($this->createRequest());
+        self::assertTrue($outcome->successful);
+        self::assertSame('LW-152', $outcome->externalReference);
+        self::assertSame('https://hub.example.com/app/reports/LW-152', $outcome->externalUrl);
+        $receipt = $outcome->hubReceipt;
+        self::assertNotNull($receipt);
+        self::assertTrue($receipt->hasOmittedScreenshots());
+        self::assertSame('storage_full', $receipt->getPrimaryReason());
     }
 
     #[Test]
@@ -183,7 +260,7 @@ final class WebhookDestinationTest extends UnitTestCase
 
         self::assertFalse($outcome->successful);
         self::assertNull($outcome->responseCode);
-        self::assertStringStartsWith('ConnectException: cURL error 28: Operation timed out', $outcome->message);
+        self::assertSame('No answer within the time limit (timeout) (cURL error 28).', $outcome->message);
         self::assertStringNotContainsString('secret-path', $outcome->message);
     }
 
@@ -205,9 +282,11 @@ final class WebhookDestinationTest extends UnitTestCase
     {
         return new WebhookDestination(
             new SettingsProviderStub(['webhook' => array_merge(['enabled' => '1', 'url' => self::URL], $webhookConfiguration)]),
-            new WebhookClient(new RequestFactory(new GuzzleClientFactory()), new ResponseReferenceExtractor(), new ExtensionInfo('1.2.3')),
-            new ReportPayloadFactory(new ExtensionInfo('1.2.3')),
-            new JsonReportExporter(),
+            new WebhookReportSender(
+                new WebhookClient(new BoundedHttpClient(new RequestFactory(new GuzzleClientFactory())), new ResponseReferenceExtractor(), new ExtensionInfo('1.2.3')),
+                new ReportPayloadFactory(new ExtensionInfo('1.2.3')),
+                new JsonReportExporter(),
+            ),
         );
     }
 

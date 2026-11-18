@@ -38,11 +38,76 @@ are part of the report, because they identify the object. Choose the
 destinations of the reports accordingly.
 
 What the reporter writes and what the screenshot shows is up to the
-reporter. The dialog asks reporters to redact confidential information before
-they send a screenshot.
+reporter, see :ref:`privacy-sensitive`.
 
 Backend URLs are reduced to allowlisted parameters. CSRF tokens and return
 URLs are removed in the browser and again on the server.
+
+..  _privacy-sensitive:
+
+Sensitive information in reports
+================================
+
+Context Reporter is meant for reporting technical problems, not for passing
+on secrets. It does not detect secrets in the title, the description or the
+screenshot and does not redact anything automatically.
+
+Reporters should never include:
+
+*   passwords
+*   API keys
+*   access tokens and refresh tokens
+*   private keys
+*   recovery codes
+*   database credentials
+*   SMTP credentials
+*   authentication cookies
+*   other secrets or credentials
+
+Before sending a report:
+
+*   Review the title and the description.
+*   Review the visible backend screen in the screenshot. Cover sensitive areas
+    with the :guilabel:`Redact` tool, which paints opaque boxes into the image
+    (only the areas the reporter covers are redacted), or remove the
+    screenshot when sensitive data is visible.
+*   Open :guilabel:`Review the technical data that will be sent` to see
+    everything that is stored and sent.
+
+The report dialog says this above the technical data (:guilabel:`Check for
+sensitive information before sending`) and next to the screenshot. Depending
+on the :ref:`privacy settings <configuration-privacy>`, a report also
+contains:
+
+*   TYPO3 page, record and file identifiers and labels
+*   URLs: backend links, the website address and the backend route
+*   the reporter: by default the user ID and the username, where enabled the
+    real name, the email address and the backend groups
+*   browser and environment information (TYPO3, PHP, database platform,
+    server operating system, and where enabled browser details)
+*   the :guilabel:`Findings` and the diagnostic context they are based on
+*   where enabled, recent backend errors of the reporter
+
+A report is stored in the TYPO3 database. The destinations that are
+configured send it on:
+
+*   **Email** to the configured recipients, with the screenshot when
+    :confval:`setting-email-attachscreenshot` is on and the JSON file when
+    :confval:`setting-email-attachjson` is on.
+*   **Context Reporter Hub** to the connected Hub site, with the screenshot
+    when :confval:`setting-hub-includescreenshot` is on.
+*   **Webhook** to the configured endpoint, with the screenshot when
+    :confval:`setting-webhook-includescreenshot` is on.
+
+Administrators should configure only destinations they trust and enable only
+the reporter and diagnostic information their organisation needs.
+
+The signature of Hub deliveries and of webhook deliveries with a signing
+secret (HMAC-SHA256) proves to the receiver that a delivery comes from this TYPO3
+installation and was not changed, so the receiver can reject forged submissions
+(the Hub always checks it). It does
+not encrypt or hide the content of a report and does not make secrets safe
+to include in it.
 
 ..  _privacy-visibility:
 
@@ -252,10 +317,12 @@ Protection of reports
         its record. Records of other workspaces are rejected, also when their
         UIDs appear in the URL of the editing form.
 
-*   Reports are stored in the TYPO3 database. Only administrators can open
-    the report history, change settings, send test deliveries, run the
-    cleanup and mark reports as resolved; every one of these actions checks
-    this again and requires the backend route token. Deleting a report and
+*   Reports are stored in the TYPO3 database. Administrators, and backend
+    users whose group grants the module :guilabel:`Context Reports`
+    (:ref:`configuration-access`), can open the report history, mark reports
+    as resolved and retry deliveries. Only administrators can change settings,
+    send test deliveries, run the cleanup and delete reports. Every one of
+    these actions checks this again and requires the backend route token. Deleting a report and
     running the cleanup need a confirmation. Reporters can download their own
     reports.
 *   Downloads are sent with ``Cache-Control: private, no-store``,
@@ -270,16 +337,22 @@ Protection of reports
 Secrets and error messages
 ==========================
 
-*   The webhook URL, secret and authentication header can be read from
-    environment variables, see :ref:`configuration-environment`. Values that
-    are entered in the settings are stored in :sql:`sys_registry`.
+*   The webhook URL, secret and authentication header and the Hub webhook
+    URL and secret can be read from environment variables, see
+    :ref:`configuration-environment`. Values that are entered in the settings
+    are stored in :sql:`sys_registry`.
 *   Secrets are write-only in the settings: the page shows whether a value is
-    configured, never the value. Stored webhook URLs are reduced to scheme
-    and host.
+    configured, never the value. Stored webhook and Hub URLs are reduced to
+    scheme and host. The result of the last Hub connection test is stored
+    with a keyed fingerprint of the URL and secret, not with the values.
 *   Error messages are sanitized before they are stored or shown: URLs and
     configured secrets (also URL-encoded), the path and query of the webhook
-    URL, and the SMTP user name, password and DSN of the TYPO3 mail
+    URL, the site token of a Hub webhook URL (``s_…``, also when it appears
+    on its own), and the SMTP user name, password and DSN of the TYPO3 mail
     configuration are removed.
+*   Where reports are sent (the address of the webhook and the Hub, the
+    number of email recipients) is only shown to administrators, also in the
+    report history that editors can be granted.
 *   A ticket reference returned by a webhook receiver is dropped when it is a
     URL or contains a configured secret. A returned link loses query
     parameters such as ``token`` or ``signature``, and is dropped when it
@@ -293,14 +366,44 @@ Secrets and error messages
     used to send other files of the installation, such as :file:`.env`, by
     email.
 *   The email status shows the mail transport without credentials.
+*   The HTML version of the report email contains the same data as the
+    shipped plain-text template, and it is only sent with that template: with
+    a custom template the email is plain text only, so it never contains more
+    than the template. The HTML version loads nothing: no images, fonts,
+    scripts or other remote
+    resources, and no tracking. Report texts are escaped; only generated
+    backend and Hub links (http and https) are links, and a Hub link only on
+    the trusted Hub address.
+
+..  _privacy-hub-overview:
+
+Nothing is read back from the Hub
+=================================
+
+The connection to Context Reporter Hub is write-only: TYPO3 sends reports and
+the signed connection test, and reads nothing from the Hub. The
+:ref:`Hub card <integration-hub-card>` of :guilabel:`System > Context Reports`
+shows only what is stored in this installation (the last deliveries and the
+last connection test). Links into the Hub come from the Hub's answer to a
+delivery and are only kept when they point into the Hub app on the trusted Hub
+address (:confval:`setting-hub-publicurl`, otherwise the address of the
+webhook URL), without credentials, query or fragment.
+
+The :ref:`update check <privacy-update-check>` is separate from the Hub
+connection: a public request to ``hub.priebera.sk`` for the latest release
+number, without the webhook URL, the secret or any data about the installation.
+It works the same with or without a Hub connection.
 
 ..  _privacy-webhook-boundary:
 
 Webhook: trusted administrators
 ===============================
 
-The webhook is configured by TYPO3 administrators, and Context Reporter
-trusts them with outbound requests:
+The webhook and the :ref:`Context Reporter Hub <integration-hub>` connection
+are configured by TYPO3 administrators, and Context Reporter trusts them with
+outbound requests. The Hub connection only accepts URLs whose path ends in
+``/in/s_…`` and no authentication header, but any host; the following applies
+to it as well:
 
 *   **Destinations:** an administrator chooses the URL that receives the
     reports. Context Reporter requires HTTPS (unless
@@ -345,9 +448,40 @@ If administrators should not have these possibilities:
     take precedence over values that were saved in the settings before.
 *   Or switch the webhook off in the system configuration
     (``['webhook']['enabled'] = false``).
+*   Pin or switch off the Hub connection the same way, with the keys
+    ``enabled``, ``url``, ``secret`` and ``allowInsecureHttp`` of
+    ``['hub']``, see :ref:`integration-hub-pin`.
 *   Restrict outbound connections of the web server at the network level,
     for example with a firewall or an egress proxy, if the server must not
     reach internal services.
+
+..  _privacy-update-check:
+
+Update check
+============
+
+For the :ref:`new version notice <upgrade-notice>`, the web server sends a plain
+``GET`` request to
+``https://hub.priebera.sk/api/extension/v1/releases/latest``. It needs no Hub
+account or connection and contains nothing about the installation: no
+installation ID, host name, TYPO3 or PHP version, user or report data. The
+endpoint answers the latest stable version, its release date and a link to its
+release notes; the extension compares the versions itself.
+
+*   The request is only made while an administrator opens
+    :guilabel:`System > Context Reports`, at most every 12 hours (after a
+    failure at most every hour). The answer is kept in the TYPO3 registry.
+*   It has a total time limit of 2 seconds, follows no redirects and reads at
+    most 16 KB. An unreachable endpoint, an error or an unexpected answer
+    simply means that no notice is shown.
+*   The answer is checked: only a stable version number is accepted, and the
+    link is only used when it is an ``https`` address of GitHub, the TYPO3
+    Extension Repository, Packagist, docs.typo3.org or priebera.sk; otherwise
+    the notice links to the extension's page in the TYPO3 Extension Repository.
+*   The address cannot be changed in the backend. To switch the check off, set
+    the environment variable ``CONTEXT_REPORTER_RELEASE_CHECK_URL=off`` for the
+    web server. The same variable can name another endpoint for staging or
+    tests (``https``, or ``http`` on a local development host only).
 
 ..  _privacy-retention:
 
