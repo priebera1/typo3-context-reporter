@@ -79,6 +79,7 @@ final class ExtensionSettingsFactory
             ),
             email: $this->createEmailSettings($this->section($configuration, 'email')),
             webhook: $this->createWebhookSettings($this->section($configuration, 'webhook')),
+            hub: $this->createHubSettings($this->section($configuration, 'hub')),
         );
     }
 
@@ -100,13 +101,14 @@ final class ExtensionSettingsFactory
         return new EmailSettings(
             enabled: $this->bool($email, 'enabled', false),
             recipients: $recipients,
-            senderAddress: GeneralUtility::validEmail($senderAddress) ? $senderAddress : '',
+            senderAddress: self::isUsableSenderAddress($senderAddress) ? $senderAddress : '',
             senderName: $this->singleLine($this->string($email, 'senderName')),
             subjectTemplate: $subject !== '' ? $subject : self::DEFAULT_SUBJECT,
             bodyTemplateFile: $bodyTemplate !== '' ? $bodyTemplate : self::DEFAULT_BODY_TEMPLATE,
             attachScreenshot: $this->bool($email, 'attachScreenshot', true),
             attachJson: $this->bool($email, 'attachJson', true),
             replyToReporter: $this->bool($email, 'replyToReporter', false),
+            htmlVersion: $this->bool($email, 'htmlVersion', true),
         );
     }
 
@@ -141,13 +143,64 @@ final class ExtensionSettingsFactory
         );
     }
 
+    /**
+     * The Hub gets the webhook request with its own URL and secret. Values that
+     * cannot belong to a Hub site are dropped, so the destination stays off.
+     *
+     * @param array<array-key, mixed> $hub
+     */
+    private function createHubSettings(array $hub): WebhookSettings
+    {
+        $allowInsecureHttp = $this->bool($hub, 'allowInsecureHttp', false);
+        $url = $this->sanitizeUrl($this->resolve($this->string($hub, 'url')), $allowInsecureHttp);
+        $secret = $this->resolve($this->string($hub, 'secret'));
+        $publicUrl = $this->sanitizeUrl($this->resolve($this->string($hub, 'publicUrl')), $allowInsecureHttp);
+
+        return new WebhookSettings(
+            enabled: $this->bool($hub, 'enabled', false),
+            url: HubIntake::isIntakeUrl($url) ? $url : '',
+            secret: HubIntake::isSigningSecret($secret) ? $secret : '',
+            authHeaderName: '',
+            authHeaderValue: '',
+            includeScreenshot: $this->bool($hub, 'includeScreenshot', true),
+            timeoutSeconds: HubIntake::TIMEOUT_SECONDS,
+            allowInsecureHttp: $allowInsecureHttp,
+            publicUrl: HubIntake::isPublicUrl($publicUrl) ? rtrim($publicUrl, '/') : '',
+        );
+    }
+
+    /**
+     * A sender address that mail servers accept: valid for TYPO3 and with a
+     * domain that has a dot, so "a@b" or "typo3@localhost" fall back to the
+     * TYPO3 default sender instead of failing at the mail server.
+     */
+    public static function isUsableSenderAddress(string $address): bool
+    {
+        if (!GeneralUtility::validEmail($address)) {
+            return false;
+        }
+        $domain = substr($address, (int)strrpos($address, '@') + 1);
+        return preg_match('/^[^.\s]+(\.[^.\s]+)+$/D', $domain) === 1;
+    }
+
+    /**
+     * Credentials in the URL (https://user:password@host/) are refused for every
+     * endpoint: they end up in logs and proxies; the authentication header is
+     * the place for them.
+     */
+    public static function hasUserInfo(string $url): bool
+    {
+        $parts = parse_url($url);
+        return is_array($parts) && (isset($parts['user']) || isset($parts['pass']));
+    }
+
     private function sanitizeUrl(string $url, bool $allowInsecureHttp): string
     {
         if ($url === '' || preg_match('/\s/', $url)) {
             return '';
         }
         $parts = parse_url($url);
-        if (!is_array($parts) || ($parts['host'] ?? '') === '') {
+        if (!is_array($parts) || ($parts['host'] ?? '') === '' || isset($parts['user']) || isset($parts['pass'])) {
             return '';
         }
         $scheme = strtolower($parts['scheme'] ?? '');

@@ -24,8 +24,8 @@
                 <target state="translated">Kein Zustellziel ist aktiviert. Berichte werden hier gespeichert und können heruntergeladen werden.</target>
             </trans-unit>
             <trans-unit id="index.configureDestinations" resname="index.configureDestinations">
-                <source>Configure email or webhook delivery</source>
-                <target state="translated">E-Mail- oder Webhook-Zustellung einrichten</target>
+                <source>Configure delivery by email, to Context Reporter Hub or to a webhook</source>
+                <target state="translated">Zustellung per E-Mail, an Context Reporter Hub oder an einen Webhook einrichten</target>
             </trans-unit>
             <trans-unit id="index.hasScreenshot" resname="index.hasScreenshot">
                 <source>Has a screenshot</source>
@@ -54,6 +54,106 @@
             <trans-unit id="index.emptyOpen.message" resname="index.emptyOpen.message">
                 <source>All reports have been resolved. Choose "Resolved" or "All" to see them.</source>
                 <target state="translated">Alle Berichte sind erledigt. Wählen Sie „Erledigt“ oder „Alle“, um sie anzuzeigen.</target>
+            </trans-unit>
+            <trans-unit id="hub.title" resname="hub.title">
+                <source>Context Reporter Hub</source>
+                <target state="translated">Context Reporter Hub</target>
+            </trans-unit>
+            <trans-unit id="hub.state.on" resname="hub.state.on">
+                <source>Delivery on</source>
+                <target state="translated">Zustellung an</target>
+            </trans-unit>
+            <trans-unit id="hub.state.off" resname="hub.state.off">
+                <source>Delivery switched off</source>
+                <target state="translated">Zustellung ausgeschaltet</target>
+            </trans-unit>
+            <trans-unit id="hub.state.failing" resname="hub.state.failing">
+                <source>Last delivery failed</source>
+                <target state="translated">Letzte Zustellung fehlgeschlagen</target>
+            </trans-unit>
+            <trans-unit id="hub.local.lastSuccess" resname="hub.local.lastSuccess">
+                <source>Last delivery to the Hub</source>
+                <target state="translated">Letzte Zustellung an den Hub</target>
+            </trans-unit>
+            <trans-unit id="hub.local.none" resname="hub.local.none">
+                <source>No report has been sent to the Hub yet.</source>
+                <target state="translated">Noch keine Meldung an den Hub gesendet.</target>
+            </trans-unit>
+            <trans-unit id="hub.local.lastFailure" resname="hub.local.lastFailure">
+                <source>Last failed delivery</source>
+                <target state="translated">Letzte fehlgeschlagene Zustellung</target>
+            </trans-unit>
+            <trans-unit id="hub.local.failureResolved" resname="hub.local.failureResolved">
+                <source>(later deliveries succeeded)</source>
+                <target state="translated">(spätere Zustellungen erfolgreich)</target>
+            </trans-unit>
+            <trans-unit id="hub.local.lastTest" resname="hub.local.lastTest">
+                <source>Last connection test</source>
+                <target state="translated">Letzter Verbindungstest</target>
+            </trans-unit>
+            <trans-unit id="hub.local.test.succeeded" resname="hub.local.test.succeeded">
+                <source>succeeded</source>
+                <target state="translated">erfolgreich</target>
+            </trans-unit>
+            <trans-unit id="hub.local.test.failed" resname="hub.local.test.failed">
+                <source>failed</source>
+                <target state="translated">fehlgeschlagen</target>
+            </trans-unit>
+            <trans-unit id="hub.storage.critical" resname="hub.storage.critical">
+                <source>At this delivery, the storage of the Hub workspace was at least 90 % used.</source>
+                <target state="translated">Bei dieser Zustellung war der Speicher des Hub-Workspaces zu mindestens 90 % belegt.</target>
+            </trans-unit>
+            <trans-unit id="hub.storage.full" resname="hub.storage.full">
+                <source>At this delivery, the storage of the Hub workspace was full. The Hub may not store screenshots until space is available again.</source>
+                <target state="translated">Bei dieser Zustellung war der Speicher des Hub-Workspaces voll. Der Hub speichert Screenshots möglicherweise erst wieder, wenn Platz frei ist.</target>
+            </trans-unit>
+            <trans-unit id="hub.button.open" resname="hub.button.open">
+                <source>Open Context Reporter Hub</source>
+                <target state="translated">Context Reporter Hub öffnen</target>
+            </trans-unit>
+            <trans-unit id="hub.button.settings" resname="hub.button.settings">
+                <source>Hub settings</source>
+                <target state="translated">Hub-Einstellungen</target>
+            </trans-unit>
+            <trans-unit id="hub.button.test" resname="hub.button.test">
+                <source>Test connection</source>
+                <target state="translated">Verbindung testen</target>
+            </trans-unit>
+            <trans-unit id="hub.note" resname="hub.note">
+                <source>Context Reporter only sends reports to the Hub and reads nothing back: open the Hub to see the status of reports. The facts above are stored in this TYPO3 installation.</source>
+                <target state="translated">Context Reporter sendet Berichte nur an den Hub und liest nichts zurück: Öffnen Sie den Hub, um den Status der Berichte zu sehen. Die Angaben oben sind in dieser TYPO3-Installation gespeichert.</target>
+            </trans-unit>
+            <trans-unit id="hub.cta.text" resname="hub.cta.text">
+                <source>Optional hosted inbox for the reports of all your TYPO3 sites: triage them with your team and hand them off to GitLab, GitHub or Jira. Reports, screenshots, email and the webhook work without it.</source>
+                <target state="translated">Optionaler gehosteter Posteingang für die Meldungen all Ihrer TYPO3-Websites: gemeinsam sichten und an GitLab, GitHub oder Jira übergeben. Meldungen, Screenshots, E-Mail und Webhook funktionieren auch ohne.</target>
+            </trans-unit>
+            <trans-unit id="hub.cta.connect" resname="hub.cta.connect">
+                <source>Connect Hub</source>
+                <target state="translated">Hub verbinden</target>
+            </trans-unit>
+            <trans-unit id="updateNotice.title" resname="updateNotice.title">
+                <source>Context Reporter %s is available.</source>
+                <target state="translated">Context Reporter %s ist verfügbar.</target>
+            </trans-unit>
+            <trans-unit id="updateNotice.installed" resname="updateNotice.installed">
+                <source>You are using %s.</source>
+                <target state="translated">Sie verwenden %s.</target>
+            </trans-unit>
+            <trans-unit id="updateNotice.link" resname="updateNotice.link">
+                <source>What's new</source>
+                <target state="translated">Was ist neu</target>
+            </trans-unit>
+            <trans-unit id="updateNotice.newTab" resname="updateNotice.newTab">
+                <source>(opens in a new tab)</source>
+                <target state="translated">(öffnet in einem neuen Tab)</target>
+            </trans-unit>
+            <trans-unit id="updateNotice.dismiss" resname="updateNotice.dismiss">
+                <source>Hide the notice about Context Reporter %s</source>
+                <target state="translated">Hinweis zu Context Reporter %s ausblenden</target>
+            </trans-unit>
+            <trans-unit id="updateNotice.dismissFailed" resname="updateNotice.dismissFailed">
+                <source>The notice could not be hidden. Try again.</source>
+                <target state="translated">Der Hinweis konnte nicht ausgeblendet werden. Versuchen Sie es erneut.</target>
             </trans-unit>
             <trans-unit id="filter.label" resname="filter.label">
                 <source>Filter by delivery state</source>
@@ -199,6 +299,10 @@
                 <source>Open in TYPO3</source>
                 <target state="translated">In TYPO3 öffnen</target>
             </trans-unit>
+            <trans-unit id="show.openContainingFolder" resname="show.openContainingFolder">
+                <source>Open containing folder in TYPO3</source>
+                <target state="translated">Ordner der Datei in TYPO3 öffnen</target>
+            </trans-unit>
             <trans-unit id="show.openMetadata" resname="show.openMetadata">
                 <source>Edit metadata</source>
                 <target state="translated">Metadaten bearbeiten</target>
@@ -319,9 +423,41 @@
                 <source>The report has not been delivered anywhere. It is stored in this history only.</source>
                 <target state="translated">Die Meldung wurde nirgendwohin zugestellt. Sie ist nur in diesem Verlauf gespeichert.</target>
             </trans-unit>
+            <trans-unit id="delivery.hubScreenshot.notStored" resname="delivery.hubScreenshot.notStored">
+                <source>The Hub received the report but did not store its screenshot.</source>
+                <target state="translated">Der Hub hat die Meldung empfangen, ihren Screenshot aber nicht gespeichert.</target>
+            </trans-unit>
+            <trans-unit id="delivery.hubScreenshot.reason.storage_full" resname="delivery.hubScreenshot.reason.storage_full">
+                <source>The storage of the Hub workspace is full.</source>
+                <target state="translated">Der Speicher des Hub-Workspaces ist voll.</target>
+            </trans-unit>
+            <trans-unit id="delivery.hubScreenshot.reason.too_large" resname="delivery.hubScreenshot.reason.too_large">
+                <source>It is too large for the Hub.</source>
+                <target state="translated">Er ist für den Hub zu groß.</target>
+            </trans-unit>
+            <trans-unit id="delivery.hubScreenshot.reason.unsupported" resname="delivery.hubScreenshot.reason.unsupported">
+                <source>The Hub does not accept its image format.</source>
+                <target state="translated">Der Hub nimmt sein Bildformat nicht an.</target>
+            </trans-unit>
+            <trans-unit id="delivery.hubScreenshot.reason.checksum_mismatch" resname="delivery.hubScreenshot.reason.checksum_mismatch">
+                <source>It did not arrive at the Hub intact.</source>
+                <target state="translated">Er ist nicht unbeschädigt beim Hub angekommen.</target>
+            </trans-unit>
+            <trans-unit id="delivery.hubScreenshot.reason.not_saved" resname="delivery.hubScreenshot.reason.not_saved">
+                <source>The Hub could not save it in time.</source>
+                <target state="translated">Der Hub konnte ihn nicht rechtzeitig speichern.</target>
+            </trans-unit>
+            <trans-unit id="delivery.hubScreenshot.reason.other" resname="delivery.hubScreenshot.reason.other">
+                <source>The Hub did not give a known reason.</source>
+                <target state="translated">Der Hub hat keinen bekannten Grund angegeben.</target>
+            </trans-unit>
             <trans-unit id="destination.email" resname="destination.email">
                 <source>Email</source>
                 <target state="translated">E-Mail</target>
+            </trans-unit>
+            <trans-unit id="destination.hub" resname="destination.hub">
+                <source>Context Reporter Hub</source>
+                <target state="translated">Context Reporter Hub</target>
             </trans-unit>
             <trans-unit id="destination.webhook" resname="destination.webhook">
                 <source>Webhook</source>
@@ -387,9 +523,33 @@
                 <source>Report %s was deleted.</source>
                 <target state="translated">Meldung %s wurde gelöscht.</target>
             </trans-unit>
+            <trans-unit id="message.accessDenied.title" resname="message.accessDenied.title">
+                <source>No access to Context Reports</source>
+                <target state="translated">Kein Zugriff auf Context Reports</target>
+            </trans-unit>
             <trans-unit id="message.accessDenied" resname="message.accessDenied">
-                <source>Only administrators can use Context Reports.</source>
-                <target state="translated">Nur Administratoren können Context Reports verwenden.</target>
+                <source>Your backend user groups do not include the Context Reports module. An administrator can grant it in a backend user group under Access Lists › Modules.</source>
+                <target state="translated">Ihre Backend-Benutzergruppen enthalten das Modul Context Reports nicht. Ein Administrator kann es in einer Backend-Benutzergruppe unter Zugriffslisten › Module freigeben.</target>
+            </trans-unit>
+            <trans-unit id="message.settingsDenied.title" resname="message.settingsDenied.title">
+                <source>The settings are for administrators</source>
+                <target state="translated">Die Einstellungen sind Administratoren vorbehalten</target>
+            </trans-unit>
+            <trans-unit id="message.settingsDenied" resname="message.settingsDenied">
+                <source>Only administrators can see and change the Context Reporter settings, send test deliveries and clean up reports.</source>
+                <target state="translated">Nur Administratoren können die Einstellungen von Context Reporter sehen und ändern, Testzustellungen senden und Berichte bereinigen.</target>
+            </trans-unit>
+            <trans-unit id="message.deleteDenied.title" resname="message.deleteDenied.title">
+                <source>Deleting reports is for administrators</source>
+                <target state="translated">Das Löschen von Berichten ist Administratoren vorbehalten</target>
+            </trans-unit>
+            <trans-unit id="message.deleteDenied" resname="message.deleteDenied">
+                <source>Only administrators can delete reports. Mark the report as resolved instead.</source>
+                <target state="translated">Nur Administratoren können Berichte löschen. Markieren Sie den Bericht stattdessen als erledigt.</target>
+            </trans-unit>
+            <trans-unit id="message.accessDenied.back" resname="message.accessDenied.back">
+                <source>Back to the reports</source>
+                <target state="translated">Zurück zu den Berichten</target>
             </trans-unit>
             <trans-unit id="message.resolved" resname="message.resolved">
                 <source>Report %s was marked as resolved.</source>
@@ -411,13 +571,37 @@
                 <source>Delivery via %s failed again: %s</source>
                 <target state="translated">Zustellung per %s ist erneut fehlgeschlagen: %s</target>
             </trans-unit>
+            <trans-unit id="message.retry.unconfirmed" resname="message.retry.unconfirmed">
+                <source>Delivery via %s was not confirmed again: %s</source>
+                <target state="translated">Zustellung per %s wurde erneut nicht bestätigt: %s</target>
+            </trans-unit>
             <trans-unit id="message.retry.destinationUnavailable" resname="message.retry.destinationUnavailable">
                 <source>Delivery via %s is not enabled or not configured.</source>
                 <target state="translated">Zustellung per %s ist nicht aktiv oder nicht konfiguriert.</target>
             </trans-unit>
+            <trans-unit id="schema.outdated.title" resname="schema.outdated.title">
+                <source>Database update required</source>
+                <target state="translated">Datenbank-Aktualisierung erforderlich</target>
+            </trans-unit>
+            <trans-unit id="schema.outdated.message" resname="schema.outdated.message">
+                <source>The database tables of Context Reporter are older than the installed version (missing: %s). Reports are saved and can be downloaded, but nothing is sent to email, the webhook or Context Reporter Hub until the tables are updated.</source>
+                <target state="translated">Die Datenbanktabellen von Context Reporter sind älter als die installierte Version (fehlt: %s). Berichte werden gespeichert und können heruntergeladen werden, aber nichts wird per E-Mail, an den Webhook oder an Context Reporter Hub gesendet, bis die Tabellen aktualisiert sind.</target>
+            </trans-unit>
+            <trans-unit id="schema.outdated.howto" resname="schema.outdated.howto">
+                <source>An administrator updates them with Admin Tools › Maintenance › Analyze Database Structure, or with vendor/bin/typo3 extension:setup, and then flushes the caches. Afterwards, retry the deliveries marked "Not sent" in the report history.</source>
+                <target state="translated">Ein Administrator aktualisiert sie mit Admin Tools › Wartung › Datenbankstruktur analysieren oder mit vendor/bin/typo3 extension:setup und leert danach die Caches. Wiederholen Sie anschließend die mit „Not sent“ markierten Zustellungen in der Berichtsliste.</target>
+            </trans-unit>
+            <trans-unit id="message.retry.schemaOutdated" resname="message.retry.schemaOutdated">
+                <source>Delivery via %s is not possible yet: the database tables of Context Reporter need an update (Admin Tools › Maintenance › Analyze Database Structure).</source>
+                <target state="translated">Die Zustellung per %s ist noch nicht möglich: Die Datenbanktabellen von Context Reporter müssen aktualisiert werden (Admin Tools › Wartung › Datenbankstruktur analysieren).</target>
+            </trans-unit>
             <trans-unit id="message.retry.nothingToRetry" resname="message.retry.nothingToRetry">
                 <source>There is no failed delivery via %s to retry.</source>
                 <target state="translated">Es gibt keine fehlgeschlagene Zustellung per %s, die wiederholt werden kann.</target>
+            </trans-unit>
+            <trans-unit id="message.retry.inProgress" resname="message.retry.inProgress">
+                <source>A delivery via %s is already being sent or was just retried by someone else. Nothing was sent again; the history shows its result.</source>
+                <target state="translated">Eine Zustellung per %s wird bereits gesendet oder wurde gerade von jemand anderem wiederholt. Es wurde nichts erneut gesendet; der Verlauf zeigt das Ergebnis.</target>
             </trans-unit>
             <trans-unit id="settings.heading" resname="settings.heading">
                 <source>Context Reporter settings</source>
@@ -458,6 +642,10 @@
             <trans-unit id="settings.tab.email" resname="settings.tab.email">
                 <source>Email</source>
                 <target state="translated">E-Mail</target>
+            </trans-unit>
+            <trans-unit id="settings.tab.hub" resname="settings.tab.hub">
+                <source>Context Reporter Hub</source>
+                <target state="translated">Context Reporter Hub</target>
             </trans-unit>
             <trans-unit id="settings.tab.webhook" resname="settings.tab.webhook">
                 <source>Webhook</source>
@@ -564,8 +752,8 @@
                 <target state="translated">Eigener Umgebungsname</target>
             </trans-unit>
             <trans-unit id="settings.privacy.intro" resname="settings.privacy.intro">
-                <source>Which personal and technical data a report contains. The data is stored here and included in downloads, emails and webhook deliveries.</source>
-                <target state="translated">Welche persönlichen und technischen Daten ein Bericht enthält. Die Daten werden hier gespeichert und in Downloads, E-Mails und Webhook-Zustellungen übernommen.</target>
+                <source>Which personal and technical data a report contains. The data is stored here and included in downloads, emails, Context Reporter Hub and webhook deliveries.</source>
+                <target state="translated">Welche persönlichen und technischen Daten ein Bericht enthält. Die Daten werden hier gespeichert und in Downloads, E-Mails, Zustellungen an Context Reporter Hub und Webhook-Zustellungen übernommen.</target>
             </trans-unit>
             <trans-unit id="settings.privacy.reporterHeading" resname="settings.privacy.reporterHeading">
                 <source>Reporting backend user</source>
@@ -662,6 +850,10 @@
             <trans-unit id="settings.privacy.never.text" resname="settings.privacy.never.text">
                 <source>Field values of records other than the title, form contents, file contents and file metadata values, cookies, sessions, request headers, passwords and API keys. Exception: the optional recent backend errors contain log messages as TYPO3 and extensions wrote them, which can include confidential diagnostic text.</source>
                 <target state="translated">Feldwerte von Datensätzen außer dem Titel, Formularinhalte, Dateiinhalte und Werte von Datei-Metadaten, Cookies, Sessions, Request-Header, Passwörter und API-Schlüssel. Ausnahme: Die optionalen aktuellen Backend-Fehler enthalten Protokollmeldungen so, wie TYPO3 und Extensions sie geschrieben haben; diese können vertrauliche Diagnosetexte enthalten.</target>
+            </trans-unit>
+            <trans-unit id="settings.privacy.minimisation" resname="settings.privacy.minimisation">
+                <source>Enable only the reporter and diagnostic information your organisation needs. Report contents and, where enabled, screenshots are delivered outside this TYPO3 installation when email, Context Reporter Hub or webhook destinations are enabled.</source>
+                <target state="translated">Aktivieren Sie nur die Angaben zur meldenden Person und die Diagnosedaten, die Ihre Organisation benötigt. Berichtsinhalte und, wo aktiviert, Screenshots werden außerhalb dieser TYPO3-Installation zugestellt, wenn E-Mail, Context Reporter Hub oder Webhook als Ziel aktiviert sind.</target>
             </trans-unit>
             <trans-unit id="settings.privacy.preview" resname="settings.privacy.preview">
                 <source>The report dialog shows all data before it is sent.</source>
@@ -852,8 +1044,8 @@
                 <target state="translated">Berichte per E-Mail senden</target>
             </trans-unit>
             <trans-unit id="settings.email.enabled.description" resname="settings.email.enabled.description">
-                <source>Every new report is sent to the recipients as a plain text email.</source>
-                <target state="translated">Jeder neue Bericht wird als Text-E-Mail an die Empfänger gesendet.</target>
+                <source>Recipients get every new report as a formatted email with a plain-text version for email programs that do not show formatting. The formatted version can be switched off below.</source>
+                <target state="translated">Die Empfänger erhalten jeden neuen Bericht als formatierte E-Mail, mit einer Textversion für E-Mail-Programme, die keine Formatierung anzeigen. Die formatierte Version lässt sich unten ausschalten.</target>
             </trans-unit>
             <trans-unit id="settings.email.recipients" resname="settings.email.recipients">
                 <source>Recipients</source>
@@ -892,8 +1084,16 @@
                 <target state="translated">Textvorlage</target>
             </trans-unit>
             <trans-unit id="settings.email.bodyTemplate.description" resname="settings.email.bodyTemplate.description">
-                <source>A .txt file with markers below Resources/Private/ of an extension, e.g. EXT:my_sitepackage/Resources/Private/Templates/Email/ContextReport.txt.</source>
-                <target state="translated">Eine .txt-Datei mit Markern unterhalb von Resources/Private/ einer Extension, z. B. EXT:my_sitepackage/Resources/Private/Templates/Email/ContextReport.txt.</target>
+                <source>The plain-text version: a .txt file with markers below Resources/Private/ of an extension, e.g. EXT:my_sitepackage/Resources/Private/Templates/Email/ContextReport.txt.</source>
+                <target state="translated">Die Textversion: eine .txt-Datei mit Markern unterhalb von Resources/Private/ einer Extension, z. B. EXT:my_sitepackage/Resources/Private/Templates/Email/ContextReport.txt.</target>
+            </trans-unit>
+            <trans-unit id="settings.email.htmlVersion" resname="settings.email.htmlVersion">
+                <source>Send a formatted HTML version</source>
+                <target state="translated">Formatierte HTML-Version senden</target>
+            </trans-unit>
+            <trans-unit id="settings.email.htmlVersion.description" resname="settings.email.htmlVersion.description">
+                <source>On: recipients see a formatted email, and email programs without formatting show the plain-text version. Off: plain text only, for example when a ticket system or parser reads the emails. With a custom text template, emails are always plain text only, so they contain exactly what the template contains.</source>
+                <target state="translated">Ein: Die Empfänger sehen eine formatierte E-Mail, E-Mail-Programme ohne Formatierung zeigen die Textversion. Aus: nur Text, zum Beispiel wenn ein Ticketsystem oder Parser die E-Mails liest. Mit einer eigenen Textvorlage werden E-Mails immer nur als Text gesendet und enthalten genau, was die Vorlage enthält.</target>
             </trans-unit>
             <trans-unit id="settings.email.attachScreenshot" resname="settings.email.attachScreenshot">
                 <source>Attach the screenshot</source>
@@ -918,6 +1118,70 @@
             <trans-unit id="settings.email.replyToReporter.description" resname="settings.email.replyToReporter.description">
                 <source>Sets the reporter as Reply-To. Requires "Email address" in the privacy settings.</source>
                 <target state="translated">Setzt die meldende Person als Reply-To. Erfordert „E-Mail-Adresse“ in den Datenschutzeinstellungen.</target>
+            </trans-unit>
+            <trans-unit id="settings.hub.intro" resname="settings.hub.intro">
+                <source>Sends every new report to the inbox of a site in Context Reporter Hub. The Hub receives the signed webhook request and answers with the reference of the report in the Hub.</source>
+                <target state="translated">Sendet jeden neuen Bericht an den Posteingang einer Website in Context Reporter Hub. Der Hub erhält die signierte Webhook-Anfrage und antwortet mit der Referenz des Berichts im Hub.</target>
+            </trans-unit>
+            <trans-unit id="settings.hub.enabled" resname="settings.hub.enabled">
+                <source>Send reports to Context Reporter Hub</source>
+                <target state="translated">Berichte an Context Reporter Hub senden</target>
+            </trans-unit>
+            <trans-unit id="settings.hub.enabled.description" resname="settings.hub.enabled.description">
+                <source>Every new report is sent to the Hub. The reporter then sees its Hub reference with a link to the report in the Hub.</source>
+                <target state="translated">Jeder neue Bericht wird an den Hub gesendet. Die meldende Person sieht danach die Hub-Referenz mit einem Link zum Bericht im Hub.</target>
+            </trans-unit>
+            <trans-unit id="settings.hub.url" resname="settings.hub.url">
+                <source>Webhook URL</source>
+                <target state="translated">Webhook-URL</target>
+            </trans-unit>
+            <trans-unit id="settings.hub.url.description" resname="settings.hub.url.description">
+                <source>Copy it from the site in Context Reporter Hub; it ends in /in/s_…. Or %env(NAME)% to read it from an environment variable. A stored URL is not shown again, because its path identifies the site.</source>
+                <target state="translated">Kopieren Sie sie von der Website in Context Reporter Hub; sie endet auf /in/s_…. Oder %env(NAME)%, um sie aus einer Umgebungsvariablen zu lesen. Eine gespeicherte URL wird nicht erneut angezeigt, da ihr Pfad die Website identifiziert.</target>
+            </trans-unit>
+            <trans-unit id="settings.hub.url.placeholder" resname="settings.hub.url.placeholder">
+                <source>https://…/in/s_… or %env(NAME)%</source>
+                <target state="translated">https://…/in/s_… oder %env(NAME)%</target>
+            </trans-unit>
+            <trans-unit id="settings.hub.url.remove" resname="settings.hub.url.remove">
+                <source>Remove the stored webhook URL</source>
+                <target state="translated">Gespeicherte Webhook-URL entfernen</target>
+            </trans-unit>
+            <trans-unit id="settings.hub.secret" resname="settings.hub.secret">
+                <source>Signing secret</source>
+                <target state="translated">Signaturschlüssel</target>
+            </trans-unit>
+            <trans-unit id="settings.hub.secret.description" resname="settings.hub.secret.description">
+                <source>The Hub shows it once when the site is created; it starts with whsec_. Or %env(NAME)%. Every delivery is signed with it.</source>
+                <target state="translated">Der Hub zeigt ihn einmalig beim Anlegen der Website an; er beginnt mit whsec_. Oder %env(NAME)%. Jede Zustellung wird damit signiert.</target>
+            </trans-unit>
+            <trans-unit id="settings.hub.secret.placeholder" resname="settings.hub.secret.placeholder">
+                <source>whsec_… or %env(NAME)%</source>
+                <target state="translated">whsec_… oder %env(NAME)%</target>
+            </trans-unit>
+            <trans-unit id="settings.hub.publicUrl" resname="settings.hub.publicUrl">
+                <source>Hub address for links</source>
+                <target state="translated">Hub-Adresse für Links</target>
+            </trans-unit>
+            <trans-unit id="settings.hub.publicUrl.description" resname="settings.hub.publicUrl.description">
+                <source>Optional. The address at which you open Context Reporter Hub in the browser, e.g. https://hub.example.com. Links to the Hub are only shown on this address; when it is empty, on the address of the webhook URL. Only needed when TYPO3 reaches the Hub at another address than the browser, e.g. a webhook URL with an internal address such as https://hub.internal.example/in/s_… while the browser opens https://hub.example.com.</source>
+                <target state="translated">Optional. Die Adresse, unter der Sie Context Reporter Hub im Browser öffnen, z. B. https://hub.example.com. Links in den Hub werden nur auf dieser Adresse angezeigt; ist sie leer, auf der Adresse der Webhook-URL. Nur nötig, wenn TYPO3 den Hub unter einer anderen Adresse erreicht als der Browser, z. B. eine Webhook-URL mit einer internen Adresse wie https://hub.internal.example/in/s_…, während der Browser https://hub.example.com öffnet.</target>
+            </trans-unit>
+            <trans-unit id="settings.hub.includeScreenshot" resname="settings.hub.includeScreenshot">
+                <source>Include the screenshot</source>
+                <target state="translated">Screenshot mitsenden</target>
+            </trans-unit>
+            <trans-unit id="settings.hub.includeScreenshot.description" resname="settings.hub.includeScreenshot.description">
+                <source>Sends the screenshot to Context Reporter Hub together with the report; the Hub stores it with the report. Screenshots can show sensitive backend data.</source>
+                <target state="translated">Sendet den Screenshot zusammen mit dem Bericht an Context Reporter Hub; der Hub speichert ihn mit dem Bericht. Screenshots können sensible Daten aus dem Backend zeigen.</target>
+            </trans-unit>
+            <trans-unit id="settings.hub.allowInsecureHttp" resname="settings.hub.allowInsecureHttp">
+                <source>Allow http for a local Hub</source>
+                <target state="translated">http für einen lokalen Hub erlauben</target>
+            </trans-unit>
+            <trans-unit id="settings.hub.allowInsecureHttp.description" resname="settings.hub.allowInsecureHttp.description">
+                <source>Only for a Hub that runs on your computer for development: reports and signatures are then sent unencrypted.</source>
+                <target state="translated">Nur für einen Hub, der zur Entwicklung auf Ihrem Rechner läuft: Berichte und Signaturen werden dann unverschlüsselt gesendet.</target>
             </trans-unit>
             <trans-unit id="settings.webhook.intro" resname="settings.webhook.intro">
                 <source>New reports are posted as JSON to an endpoint, e.g. n8n, Make, Zapier or your own service.</source>
@@ -1163,6 +1427,10 @@
                 <source>This is a DDEV project: emails are captured by Mailpit and do not reach real mailboxes.</source>
                 <target state="translated">Dies ist ein DDEV-Projekt: E-Mails werden von Mailpit abgefangen und erreichen keine echten Postfächer.</target>
             </trans-unit>
+            <trans-unit id="settings.status.email.customTemplatePlainText" resname="settings.status.email.customTemplatePlainText">
+                <source>A custom text template is set, so emails are sent as plain text only and contain exactly what the template contains. The formatted version is only sent with the shipped template.</source>
+                <target state="translated">Eine eigene Textvorlage ist gesetzt, daher werden E-Mails nur als Text gesendet und enthalten genau, was die Vorlage enthält. Die formatierte Version wird nur mit der mitgelieferten Vorlage gesendet.</target>
+            </trans-unit>
             <trans-unit id="settings.status.email.defaultSender" resname="settings.status.email.defaultSender">
                 <source>No sender address is set here or in the TYPO3 mail settings, so TYPO3 uses "%s". Mail servers may reject it.</source>
                 <target state="translated">Weder hier noch in den TYPO3-Mail-Einstellungen ist eine Absenderadresse gesetzt, daher verwendet TYPO3 „%s“. Mailserver lehnen das möglicherweise ab.</target>
@@ -1170,6 +1438,74 @@
             <trans-unit id="settings.status.email.senderInvalid" resname="settings.status.email.senderInvalid">
                 <source>The configured sender address is not valid, so TYPO3 uses "%s".</source>
                 <target state="translated">Die eingerichtete Absenderadresse ist ungültig, daher verwendet TYPO3 „%s“.</target>
+            </trans-unit>
+            <trans-unit id="settings.status.hub.connection" resname="settings.status.hub.connection">
+                <source>Connection test</source>
+                <target state="translated">Verbindungstest</target>
+            </trans-unit>
+            <trans-unit id="settings.status.hub.notTested" resname="settings.status.hub.notTested">
+                <source>Not tested yet</source>
+                <target state="translated">Noch nicht getestet</target>
+            </trans-unit>
+            <trans-unit id="settings.status.hub.changedSinceTest" resname="settings.status.hub.changedSinceTest">
+                <source>Not tested with the current webhook URL and secret</source>
+                <target state="translated">Mit der aktuellen Webhook-URL und dem Schlüssel noch nicht getestet</target>
+            </trans-unit>
+            <trans-unit id="settings.status.hub.testSucceeded" resname="settings.status.hub.testSucceeded">
+                <source>Accepted by the Hub</source>
+                <target state="translated">Vom Hub angenommen</target>
+            </trans-unit>
+            <trans-unit id="settings.status.hub.endpoint" resname="settings.status.hub.endpoint">
+                <source>Webhook URL</source>
+                <target state="translated">Webhook-URL</target>
+            </trans-unit>
+            <trans-unit id="settings.status.hub.signature" resname="settings.status.hub.signature">
+                <source>Signing secret</source>
+                <target state="translated">Signaturschlüssel</target>
+            </trans-unit>
+            <trans-unit id="settings.status.hub.screenshot" resname="settings.status.hub.screenshot">
+                <source>Screenshot</source>
+                <target state="translated">Screenshot</target>
+            </trans-unit>
+            <trans-unit id="settings.status.hub.referenceNote" resname="settings.status.hub.referenceNote">
+                <source>For every report the Hub accepts, the reporter and the report history show the Hub reference (for example LW-152) with a link to the report in the Hub.</source>
+                <target state="translated">Für jeden Bericht, den der Hub annimmt, sehen die meldende Person und der Berichtsverlauf die Hub-Referenz (z. B. LW-152) mit einem Link zum Bericht im Hub.</target>
+            </trans-unit>
+            <trans-unit id="settings.status.hub.disabled" resname="settings.status.hub.disabled">
+                <source>Delivery to the Hub is switched off: reports are not sent to Context Reporter Hub.</source>
+                <target state="translated">Die Zustellung an den Hub ist ausgeschaltet: Berichte werden nicht an Context Reporter Hub gesendet.</target>
+            </trans-unit>
+            <trans-unit id="settings.status.hub.noEndpoint" resname="settings.status.hub.noEndpoint">
+                <source>No webhook URL of a Hub site is configured.</source>
+                <target state="translated">Es ist keine Webhook-URL einer Hub-Website konfiguriert.</target>
+            </trans-unit>
+            <trans-unit id="settings.status.hub.endpointEnvironment" resname="settings.status.hub.endpointEnvironment">
+                <source>The webhook URL refers to the environment variable %s, which is not set or does not contain the webhook URL of a Hub site.</source>
+                <target state="translated">Die Webhook-URL verweist auf die Umgebungsvariable %s, die nicht gesetzt ist oder keine Webhook-URL einer Hub-Website enthält.</target>
+            </trans-unit>
+            <trans-unit id="settings.status.hub.endpointInvalid" resname="settings.status.hub.endpointInvalid">
+                <source>The configured webhook URL is not the webhook URL of a Hub site (…/in/s_…), or it uses http while http is not allowed.</source>
+                <target state="translated">Die konfigurierte Webhook-URL ist keine Webhook-URL einer Hub-Website (…/in/s_…), oder sie verwendet http, obwohl http nicht erlaubt ist.</target>
+            </trans-unit>
+            <trans-unit id="settings.status.hub.insecure" resname="settings.status.hub.insecure">
+                <source>The webhook URL uses unencrypted http. Use this only with a local Hub for development.</source>
+                <target state="translated">Die Webhook-URL verwendet unverschlüsseltes http. Verwenden Sie das nur mit einem lokalen Hub zur Entwicklung.</target>
+            </trans-unit>
+            <trans-unit id="settings.status.hub.noSecret" resname="settings.status.hub.noSecret">
+                <source>No signing secret is configured. The Hub rejects unsigned deliveries.</source>
+                <target state="translated">Es ist kein Signaturschlüssel konfiguriert. Der Hub lehnt unsignierte Zustellungen ab.</target>
+            </trans-unit>
+            <trans-unit id="settings.status.hub.secretEnvironment" resname="settings.status.hub.secretEnvironment">
+                <source>The signing secret refers to the environment variable %s, which is not set or does not contain a Hub signing secret.</source>
+                <target state="translated">Der Signaturschlüssel verweist auf die Umgebungsvariable %s, die nicht gesetzt ist oder keinen Signaturschlüssel des Hubs enthält.</target>
+            </trans-unit>
+            <trans-unit id="settings.status.hub.secretInvalid" resname="settings.status.hub.secretInvalid">
+                <source>The configured signing secret is not a Hub signing secret (whsec_…).</source>
+                <target state="translated">Der konfigurierte Signaturschlüssel ist kein Signaturschlüssel des Hubs (whsec_…).</target>
+            </trans-unit>
+            <trans-unit id="settings.status.hub.alsoWebhook" resname="settings.status.hub.alsoWebhook">
+                <source>The webhook sends to the same Hub site. Switch the webhook off, otherwise every report is sent to the Hub twice.</source>
+                <target state="translated">Der Webhook sendet an dieselbe Hub-Website. Schalten Sie den Webhook aus, sonst wird jeder Bericht zweimal an den Hub gesendet.</target>
             </trans-unit>
             <trans-unit id="settings.status.webhook.endpoint" resname="settings.status.webhook.endpoint">
                 <source>Endpoint</source>
@@ -1255,6 +1591,102 @@
                 <source>The test email could not be sent</source>
                 <target state="translated">Die Test-E-Mail konnte nicht gesendet werden</target>
             </trans-unit>
+            <trans-unit id="settings.test.hub" resname="settings.test.hub">
+                <source>Test connection</source>
+                <target state="translated">Verbindung testen</target>
+            </trans-unit>
+            <trans-unit id="settings.test.hubHint" resname="settings.test.hubHint">
+                <source>Sends a signed test delivery without report data to the Hub, also while delivery to the Hub is switched off. The Hub then shows the site as connected; nothing is added to its inbox or to the delivery history.</source>
+                <target state="translated">Sendet eine signierte Testzustellung ohne Berichtsdaten an den Hub, auch wenn die Zustellung an den Hub ausgeschaltet ist. Der Hub zeigt die Website danach als verbunden an; weder sein Posteingang noch der Zustellverlauf erhalten einen Eintrag.</target>
+            </trans-unit>
+            <trans-unit id="settings.test.hubUnavailable" resname="settings.test.hubUnavailable">
+                <source>Save the webhook URL and the signing secret of a Hub site to test the connection.</source>
+                <target state="translated">Speichern Sie die Webhook-URL und den Signaturschlüssel einer Hub-Website, um die Verbindung zu testen.</target>
+            </trans-unit>
+            <trans-unit id="settings.test.hubSucceeded" resname="settings.test.hubSucceeded">
+                <source>Connected to Context Reporter Hub</source>
+                <target state="translated">Mit Context Reporter Hub verbunden</target>
+            </trans-unit>
+            <trans-unit id="settings.test.hubSucceededDetail" resname="settings.test.hubSucceededDetail">
+                <source>The Hub accepted the signed test delivery (%s) and shows the site as connected. No report was created.</source>
+                <target state="translated">Der Hub hat die signierte Testzustellung angenommen (%s) und zeigt die Website als verbunden an. Es wurde kein Bericht angelegt.</target>
+            </trans-unit>
+            <trans-unit id="settings.test.hubFailedDetail" resname="settings.test.hubFailedDetail">
+                <source>Details: %s</source>
+                <target state="translated">Details: %s</target>
+            </trans-unit>
+            <trans-unit id="settings.test.hub.failed.signature" resname="settings.test.hub.failed.signature">
+                <source>The Hub rejected the signature</source>
+                <target state="translated">Der Hub hat die Signatur abgelehnt</target>
+            </trans-unit>
+            <trans-unit id="settings.test.hub.failed.signature.hint" resname="settings.test.hub.failed.signature.hint">
+                <source>Copy the current signing secret of the site from Context Reporter Hub and save it here. If the details mention the timestamp, check the clock of the TYPO3 server.</source>
+                <target state="translated">Kopieren Sie den aktuellen Signaturschlüssel der Website aus Context Reporter Hub und speichern Sie ihn hier. Wenn die Details den Zeitstempel nennen, prüfen Sie die Uhr des TYPO3-Servers.</target>
+            </trans-unit>
+            <trans-unit id="settings.test.hub.failed.unknownUrl" resname="settings.test.hub.failed.unknownUrl">
+                <source>The Hub does not know this webhook URL</source>
+                <target state="translated">Der Hub kennt diese Webhook-URL nicht</target>
+            </trans-unit>
+            <trans-unit id="settings.test.hub.failed.unknownUrl.hint" resname="settings.test.hub.failed.unknownUrl.hint">
+                <source>Copy the webhook URL of the site from Context Reporter Hub again.</source>
+                <target state="translated">Kopieren Sie die Webhook-URL der Website erneut aus Context Reporter Hub.</target>
+            </trans-unit>
+            <trans-unit id="settings.test.hub.failed.disconnected" resname="settings.test.hub.failed.disconnected">
+                <source>The site is disconnected in the Hub</source>
+                <target state="translated">Die Website ist im Hub getrennt</target>
+            </trans-unit>
+            <trans-unit id="settings.test.hub.failed.disconnected.hint" resname="settings.test.hub.failed.disconnected.hint">
+                <source>The Hub refuses deliveries for this site. Use the webhook URL and signing secret of a connected site.</source>
+                <target state="translated">Der Hub nimmt für diese Website keine Zustellungen mehr an. Verwenden Sie die Webhook-URL und den Signaturschlüssel einer verbundenen Website.</target>
+            </trans-unit>
+            <trans-unit id="settings.test.hub.failed.rateLimited" resname="settings.test.hub.failed.rateLimited">
+                <source>The Hub received too many deliveries</source>
+                <target state="translated">Der Hub hat zu viele Zustellungen erhalten</target>
+            </trans-unit>
+            <trans-unit id="settings.test.hub.failed.rateLimited.hint" resname="settings.test.hub.failed.rateLimited.hint">
+                <source>Try again in a minute.</source>
+                <target state="translated">Versuchen Sie es in einer Minute erneut.</target>
+            </trans-unit>
+            <trans-unit id="settings.test.hub.failed.redirect" resname="settings.test.hub.failed.redirect">
+                <source>The Hub answered with a redirect</source>
+                <target state="translated">Der Hub hat mit einer Weiterleitung geantwortet</target>
+            </trans-unit>
+            <trans-unit id="settings.test.hub.failed.redirect.hint" resname="settings.test.hub.failed.redirect.hint">
+                <source>Redirects are not followed. Use the webhook URL exactly as the Hub shows it.</source>
+                <target state="translated">Weiterleitungen werden nicht verfolgt. Verwenden Sie die Webhook-URL genau so, wie der Hub sie anzeigt.</target>
+            </trans-unit>
+            <trans-unit id="settings.test.hub.failed.unavailable" resname="settings.test.hub.failed.unavailable">
+                <source>The Hub could not process the delivery</source>
+                <target state="translated">Der Hub konnte die Zustellung nicht verarbeiten</target>
+            </trans-unit>
+            <trans-unit id="settings.test.hub.failed.unavailable.hint" resname="settings.test.hub.failed.unavailable.hint">
+                <source>Try again later.</source>
+                <target state="translated">Versuchen Sie es später erneut.</target>
+            </trans-unit>
+            <trans-unit id="settings.test.hub.failed.unreachable" resname="settings.test.hub.failed.unreachable">
+                <source>The Hub could not be reached</source>
+                <target state="translated">Der Hub war nicht erreichbar</target>
+            </trans-unit>
+            <trans-unit id="settings.test.hub.failed.unreachable.hint" resname="settings.test.hub.failed.unreachable.hint">
+                <source>Check the webhook URL and whether this TYPO3 server can reach the Hub. When TYPO3 runs in a container (for example DDEV or Docker), localhost is the container itself.</source>
+                <target state="translated">Prüfen Sie die Webhook-URL und ob dieser TYPO3-Server den Hub erreicht. Läuft TYPO3 in einem Container (z. B. DDEV oder Docker), ist localhost der Container selbst.</target>
+            </trans-unit>
+            <trans-unit id="settings.test.hub.failed.rejected" resname="settings.test.hub.failed.rejected">
+                <source>The Hub rejected the test delivery</source>
+                <target state="translated">Der Hub hat die Testzustellung abgelehnt</target>
+            </trans-unit>
+            <trans-unit id="settings.test.hub.failed.rejected.hint" resname="settings.test.hub.failed.rejected.hint">
+                <source>Check the webhook URL and the details below.</source>
+                <target state="translated">Prüfen Sie die Webhook-URL und die folgenden Details.</target>
+            </trans-unit>
+            <trans-unit id="settings.test.hub.failed.notConfirmed" resname="settings.test.hub.failed.notConfirmed">
+                <source>The answer did not come from Context Reporter Hub</source>
+                <target state="translated">Die Antwort kam nicht von Context Reporter Hub</target>
+            </trans-unit>
+            <trans-unit id="settings.test.hub.failed.notConfirmed.hint" resname="settings.test.hub.failed.notConfirmed.hint">
+                <source>The address answered, but without the confirmation of the Hub. Check that the webhook URL leads to Context Reporter Hub and not to a proxy or login page.</source>
+                <target state="translated">Die Adresse hat geantwortet, aber ohne die Bestätigung des Hubs. Prüfen Sie, ob die Webhook-URL zu Context Reporter Hub führt und nicht zu einem Proxy oder einer Anmeldeseite.</target>
+            </trans-unit>
             <trans-unit id="settings.test.webhook" resname="settings.test.webhook">
                 <source>Send test webhook</source>
                 <target state="translated">Test-Webhook senden</target>
@@ -1316,8 +1748,8 @@
                 <target state="translated">Geben Sie höchstens 20 Empfänger ein.</target>
             </trans-unit>
             <trans-unit id="settings.error.senderAddress" resname="settings.error.senderAddress">
-                <source>Enter a valid email address or leave the field empty.</source>
-                <target state="translated">Geben Sie eine gültige E-Mail-Adresse ein oder lassen Sie das Feld leer.</target>
+                <source>Enter a valid email address with a full domain (e.g. typo3@example.com) or leave the field empty.</source>
+                <target state="translated">Geben Sie eine gültige E-Mail-Adresse mit vollständiger Domain ein (z. B. typo3@example.com) oder lassen Sie das Feld leer.</target>
             </trans-unit>
             <trans-unit id="settings.error.senderName" resname="settings.error.senderName">
                 <source>Use at most 100 characters without line breaks.</source>
@@ -1334,6 +1766,10 @@
             <trans-unit id="settings.error.url" resname="settings.error.url">
                 <source>Enter an https URL (http only if unencrypted endpoints are allowed) or %env(NAME)%.</source>
                 <target state="translated">Geben Sie eine https-URL (http nur, wenn unverschlüsselte Endpunkte erlaubt sind) oder %env(NAME)% ein.</target>
+            </trans-unit>
+            <trans-unit id="settings.error.urlCredentials" resname="settings.error.urlCredentials">
+                <source>Remove the user name and password from the URL and use the authentication header below instead.</source>
+                <target state="translated">Entfernen Sie Benutzername und Passwort aus der URL und verwenden Sie stattdessen den Authentifizierungs-Header unten.</target>
             </trans-unit>
             <trans-unit id="settings.error.urlRequired" resname="settings.error.urlRequired">
                 <source>Enter an endpoint to send reports to a webhook.</source>
@@ -1354,6 +1790,34 @@
             <trans-unit id="settings.error.timeout" resname="settings.error.timeout">
                 <source>Enter a number between 1 and 30.</source>
                 <target state="translated">Geben Sie eine Zahl zwischen 1 und 30 ein.</target>
+            </trans-unit>
+            <trans-unit id="settings.error.hubUrl" resname="settings.error.hubUrl">
+                <source>Enter the webhook URL of a site in Context Reporter Hub (https://…/in/s_…) or %env(NAME)%.</source>
+                <target state="translated">Geben Sie die Webhook-URL einer Website in Context Reporter Hub (https://…/in/s_…) oder %env(NAME)% ein.</target>
+            </trans-unit>
+            <trans-unit id="settings.error.hubUrlInsecure" resname="settings.error.hubUrlInsecure">
+                <source>This URL uses unencrypted http. Use the https URL, or allow http for a local Hub below.</source>
+                <target state="translated">Diese URL verwendet unverschlüsseltes http. Verwenden Sie die https-URL oder erlauben Sie unten http für einen lokalen Hub.</target>
+            </trans-unit>
+            <trans-unit id="settings.error.hubUrlRequired" resname="settings.error.hubUrlRequired">
+                <source>Enter the webhook URL of a Hub site to send reports to the Hub.</source>
+                <target state="translated">Geben Sie die Webhook-URL einer Hub-Website ein, um Berichte an den Hub zu senden.</target>
+            </trans-unit>
+            <trans-unit id="settings.error.hubSecret" resname="settings.error.hubSecret">
+                <source>Enter the signing secret of the Hub site (whsec_…) or %env(NAME)%.</source>
+                <target state="translated">Geben Sie den Signaturschlüssel der Hub-Website (whsec_…) oder %env(NAME)% ein.</target>
+            </trans-unit>
+            <trans-unit id="settings.error.hubSecretRequired" resname="settings.error.hubSecretRequired">
+                <source>Enter the signing secret of the Hub site. The Hub rejects unsigned deliveries.</source>
+                <target state="translated">Geben Sie den Signaturschlüssel der Hub-Website ein. Der Hub lehnt unsignierte Zustellungen ab.</target>
+            </trans-unit>
+            <trans-unit id="settings.error.hubPublicUrl" resname="settings.error.hubPublicUrl">
+                <source>Enter the address of the Hub (https://…), without user name, query or fragment, or leave the field empty.</source>
+                <target state="translated">Geben Sie die Adresse des Hubs ein (https://…), ohne Benutzername, Query oder Fragment, oder lassen Sie das Feld leer.</target>
+            </trans-unit>
+            <trans-unit id="settings.error.hubPublicUrlInsecure" resname="settings.error.hubPublicUrlInsecure">
+                <source>This address uses unencrypted http. Use the https address, or allow http for a local Hub below.</source>
+                <target state="translated">Diese Adresse verwendet unverschlüsseltes http. Verwenden Sie die https-Adresse oder erlauben Sie unten http für einen lokalen Hub.</target>
             </trans-unit>
         </body>
     </file>

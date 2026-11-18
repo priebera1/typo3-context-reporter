@@ -11,6 +11,11 @@ final class DeliveryNotPossibleException extends \RuntimeException
 {
     public const DESTINATION_UNAVAILABLE = 'destinationUnavailable';
     public const NOTHING_TO_RETRY = 'nothingToRetry';
+    public const SCHEMA_OUTDATED = 'schemaOutdated';
+    /**
+     * Another request is delivering to this destination, or has just handled the failed attempt
+     */
+    public const IN_PROGRESS = 'inProgress';
 
     public static function create(string $reason): self
     {

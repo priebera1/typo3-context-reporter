@@ -264,7 +264,7 @@ final class VisibilityDiagnosticsTest extends AbstractContextReporterTestCase
             [
                 'Frontend access: Members, Partners, Hide at login',
                 'Page not translated into: Français',
-                'Not translated into: Deutsch, Français',
+                'Content element not translated into: Deutsch, Français',
                 'Disabled in the site configuration: Français',
             ],
             $this->notices(['type' => 'record', 'table' => 'tt_content', 'uid' => 54]),
@@ -286,7 +286,7 @@ final class VisibilityDiagnosticsTest extends AbstractContextReporterTestCase
             [
                 'Veröffentlichung ab ' . self::displayTime($scheduled, 'subject'),
                 'Seite nicht übersetzt in: Français',
-                'Nicht übersetzt in: Deutsch, Français',
+                'Inhaltselement nicht übersetzt in: Deutsch, Français',
                 'In der Site-Konfiguration deaktiviert: Français',
             ],
             $this->findingNotices($scheduled, 'visibility'),
@@ -300,9 +300,9 @@ final class VisibilityDiagnosticsTest extends AbstractContextReporterTestCase
             [
                 'In dieser Arbeitsumgebung geändert, die Live-Website zeigt die veröffentlichte Version',
                 'Seite „About draft A“: In dieser Arbeitsumgebung geändert, die Live-Website zeigt die veröffentlichte Version',
-                'Übersetzung Deutsch: Verborgen',
+                'Inhaltselement, Übersetzung Deutsch: Verborgen',
                 'Seite nicht übersetzt in: Français',
-                'Nicht übersetzt in: Français',
+                'Inhaltselement nicht übersetzt in: Français',
                 'In der Site-Konfiguration deaktiviert: Français',
             ],
             $this->notices(['type' => 'record', 'table' => 'tt_content', 'uid' => 10]),

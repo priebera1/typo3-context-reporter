@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Priebera\ContextReporter\Tests\Functional\Controller;
 
+use GuzzleHttp\Promise\Create;
+use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\Attributes\Test;
 use Priebera\ContextReporter\Context\CollectionRequest;
 use Priebera\ContextReporter\Context\Location\BackendLocationFactory;
@@ -14,10 +16,12 @@ use Priebera\ContextReporter\Domain\DeliveryStatus;
 use Priebera\ContextReporter\Domain\Repository\DeliveryAttemptRepository;
 use Priebera\ContextReporter\Domain\Repository\ReportRepository;
 use Priebera\ContextReporter\Domain\ReviewState;
+use Priebera\ContextReporter\Hub\HubReceipt;
 use Priebera\ContextReporter\Report\ReportService;
 use Priebera\ContextReporter\Report\ReportSubmission;
 use Priebera\ContextReporter\Tests\Functional\AbstractContextReporterTestCase;
 use Priebera\ContextReporter\Tests\Unit\Fixtures\ReportFixture;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use TYPO3\CMS\Core\Information\Typo3Version;
 
@@ -26,6 +30,19 @@ final class ReportModuleControllerTest extends AbstractContextReporterTestCase
     use ModuleRequestTrait;
 
     private const SCREENSHOT = __DIR__ . '/../../Unit/Fixtures/Images/screenshot.png';
+    private const HUB_URL = 'https://hub.example.com/in/s_8Fq2LmZx4RtY7vB1nKc3Wd9P';
+    private const HUB_SECRET = 'whsec_8Fq2LmZx4RtY7vB1nKc3Wd9PaQ5sT0uV';
+
+    /**
+     * @var list<RequestInterface>
+     */
+    private array $hubRequests = [];
+
+    protected function tearDown(): void
+    {
+        unset($GLOBALS['TYPO3_CONF_VARS']['HTTP']['handler']['contextReporterTest']);
+        parent::tearDown();
+    }
 
     #[Test]
     public function listShowsTheObjectOfEachReportCompactly(): void
@@ -98,7 +115,7 @@ final class ReportModuleControllerTest extends AbstractContextReporterTestCase
         self::assertStringContainsString('File · image/png', $summary);
         self::assertStringContainsString('logo.png', $summary);
         self::assertStringContainsString('sys_file:1', $summary);
-        self::assertStringContainsString('Open in TYPO3', $summary);
+        self::assertStringContainsString('Open containing folder in TYPO3', $summary, 'The file list opens at the folder of the file');
         self::assertStringContainsString('Edit metadata', $summary);
         self::assertStringContainsString('module/file/list', $summary);
         self::assertStringNotContainsString('Open frontend', $summary);
@@ -150,7 +167,7 @@ final class ReportModuleControllerTest extends AbstractContextReporterTestCase
         $subject = $this->extractBetween($html, 'id="cr-subject-heading"', 'cr-description-heading');
         self::assertStringContainsString('id="cr-findings-heading">Findings</h3>', $subject);
         self::assertStringContainsString('id="cr-findings-visibility-heading"', $subject);
-        self::assertStringContainsString('<li>Translation Deutsch: Hidden</li>', $subject);
+        self::assertStringContainsString('<li>Content element translation Deutsch: Hidden</li>', $subject);
         self::assertStringContainsString('These are settings and permissions stored in TYPO3, not a check of the website', $subject);
         $technical = $this->extractBetween($html, 'cr-technical-details', 'cr-danger-zone');
         self::assertStringContainsString('Translation Deutsch [1]', $technical);
@@ -332,6 +349,134 @@ final class ReportModuleControllerTest extends AbstractContextReporterTestCase
         self::assertStringContainsString('>Plain HTML<span class="visually-hidden">: Quarterly accessibility review', $row);
         self::assertStringContainsString('tt_content:14', $row);
         self::assertStringNotContainsString('Hidden body', $row);
+    }
+
+    #[Test]
+    public function hubCardInvitesToConnectTheHubWhenItIsNotConfigured(): void
+    {
+        $this->respondToHub(new Response(200));
+        $this->loginBackendUser(self::ADMIN);
+
+        $html = $this->render('system_contextreports', []);
+
+        $cta = $this->extractBetween($html, 'class="cr-hub-cta"', '</aside>');
+        self::assertStringContainsString('Context Reporter Hub', $cta);
+        self::assertStringContainsString('Reports, screenshots, email and the webhook work without it.', $cta);
+        self::assertStringContainsString('Connect Hub', $cta);
+        self::assertStringContainsString('context-reports/settings?', $cta);
+        self::assertStringContainsString('tab=hub', $cta);
+        self::assertStringNotContainsString('Open Context Reporter Hub', $html);
+        self::assertSame([], $this->hubRequests, 'The history never asks the Hub itself');
+    }
+
+    #[Test]
+    public function hubCardShowsTheLocalConnectionFactsWithoutAskingTheHub(): void
+    {
+        $this->respondToHub(new Response(200));
+        $this->configureExtension(['hub' => ['enabled' => '1', 'url' => self::HUB_URL, 'secret' => self::HUB_SECRET]]);
+        $this->loginBackendUser(self::ADMIN);
+        $identifier = $this->createReport('Teaser is broken', ['source' => 'recordList', 'target' => ['type' => 'record', 'table' => 'tt_content', 'uid' => 10]]);
+        $reportUid = $this->get(ReportRepository::class)->findByIdentifier($identifier)->uid ?? 0;
+        $attempts = $this->get(DeliveryAttemptRepository::class);
+        $attempts->add(new DeliveryAttempt($reportUid, 'hub', 1, DeliveryStatus::Failed, new \DateTimeImmutable('-2 hours'), 'https://hub.example.com', 1, 401, 'HTTP 401: signature of ' . self::HUB_SECRET . ' does not match'));
+        $attempts->add(new DeliveryAttempt($reportUid, 'hub', 2, DeliveryStatus::Succeeded, new \DateTimeImmutable('-1 hour'), 'https://hub.example.com', 1, 200, 'HTTP 200', 'LW-184', 'https://hub.example.com/app/reports/LW-184'));
+
+        $html = $this->render('system_contextreports', []);
+
+        $card = $this->extractBetween($html, 'class="card cr-card cr-hub"', '</section>');
+        self::assertStringContainsString('Context Reporter Hub', $card);
+        self::assertStringContainsString('https://hub.example.com', $card);
+        self::assertStringContainsString('Delivery on', $card);
+        self::assertStringContainsString('Last delivery to the Hub', $card);
+        self::assertStringContainsString($identifier, $card);
+        self::assertStringContainsString('<strong>LW-184</strong>', $card);
+        self::assertStringContainsString('Last failed delivery', $card);
+        self::assertStringContainsString('(later deliveries succeeded)', $card);
+        self::assertStringContainsString('[redacted]', $card);
+        // The Hub is write-only for TYPO3: no overview is read, the card opens the Hub app instead
+        self::assertStringNotContainsString('overview', $card);
+        self::assertStringNotContainsString('hub-card.js', $html);
+        self::assertStringContainsString('href="https://hub.example.com/app" target="_blank" rel="noopener noreferrer"', $card);
+        self::assertStringContainsString('Open Context Reporter Hub', $card);
+        self::assertStringContainsString('reads nothing back', $card);
+        self::assertMatchesRegularExpression('/<form method="post" action="[^"]*context-reports\/testHub\?token=[^"]+" class="cr-inline-form">\s*<input type="hidden" name="returnTo" value="index" \/>/', $card);
+        self::assertStringContainsString('Hub settings', $card);
+        foreach (['whsec_', 's_8Fq2LmZx4RtY7vB1nKc3Wd9P'] as $secret) {
+            self::assertStringNotContainsString($secret, $html);
+        }
+        self::assertSame([], $this->hubRequests, 'The card never asks the Hub');
+    }
+
+    #[Test]
+    public function deliveryHistoryAndHubCardNameAScreenshotTheHubDidNotStore(): void
+    {
+        $this->respondToHub(new Response(200));
+        $this->configureExtension(['hub' => ['enabled' => '1', 'url' => self::HUB_URL, 'secret' => self::HUB_SECRET]]);
+        $this->loginBackendUser(self::ADMIN);
+        $identifier = $this->createReport('Teaser is broken', ['source' => 'recordList', 'target' => ['type' => 'record', 'table' => 'tt_content', 'uid' => 10]]);
+        $reportUid = $this->get(ReportRepository::class)->findByIdentifier($identifier)->uid ?? 0;
+        $receipt = HubReceipt::fromAnswer([
+            'screenshots' => ['received' => 1, 'stored' => 0, 'omitted' => 1, 'reasons' => ['storage_full']],
+            'storage' => 'full',
+        ]);
+        $this->get(DeliveryAttemptRepository::class)->add(new DeliveryAttempt(
+            $reportUid,
+            'hub',
+            1,
+            DeliveryStatus::Succeeded,
+            new \DateTimeImmutable('-1 hour'),
+            'https://hub.example.com',
+            1,
+            200,
+            'HTTP 200',
+            'LW-184',
+            'https://hub.example.com/app/reports/LW-184',
+            hubReceipt: $receipt,
+        ));
+
+        $detail = $this->extractBetween($this->render('system_contextreports.show', ['report' => $identifier]), 'id="cr-deliveries-heading"', '</section>');
+        self::assertStringContainsString('badge-success', $detail);
+        self::assertStringContainsString('LW-184', $detail);
+        self::assertStringContainsString('The Hub received the report but did not store its screenshot.', $detail);
+        self::assertStringContainsString('The storage of the Hub workspace is full.', $detail);
+        self::assertStringContainsString('At this delivery, the storage of the Hub workspace was full.', $detail);
+
+        $card = $this->extractBetween($this->render('system_contextreports', []), 'class="card cr-card cr-hub"', '</section>');
+        self::assertStringContainsString('<strong>LW-184</strong>', $card);
+        self::assertStringContainsString('At this delivery, the storage of the Hub workspace was full.', $card);
+    }
+
+    #[Test]
+    public function hubCardOpensTheHubOnTheHubAddressForLinksAndEditorsSeeNoSettings(): void
+    {
+        $this->respondToHub(new Response(200));
+        $this->configureExtension(['hub' => ['enabled' => '1', 'url' => self::HUB_URL, 'secret' => self::HUB_SECRET, 'publicUrl' => 'https://inbox.example.com/hub']]);
+        $this->loginBackendUser(self::REVIEWER);
+
+        $card = $this->extractBetween($this->render('system_contextreports', []), 'class="card cr-card cr-hub"', '</section>');
+
+        self::assertStringContainsString('href="https://inbox.example.com/hub/app"', $card);
+        self::assertStringNotContainsString('Hub settings', $card);
+        self::assertStringNotContainsString('testHub', $card);
+        self::assertStringNotContainsString('https://hub.example.com', $card, 'Editors see no endpoint');
+
+        // Without a "Hub address for links" the address of the webhook URL is not shown to editors
+        $this->configureExtension(['hub' => ['enabled' => '1', 'url' => self::HUB_URL, 'secret' => self::HUB_SECRET, 'publicUrl' => '']]);
+        $card = $this->extractBetween($this->render('system_contextreports', []), 'class="card cr-card cr-hub"', '</section>');
+        self::assertStringNotContainsString('Open Context Reporter Hub', $card);
+        self::assertStringNotContainsString('hub.example.com', $card);
+        self::assertSame([], $this->hubRequests);
+    }
+
+    private function respondToHub(Response $response): void
+    {
+        $requests = &$this->hubRequests;
+        $GLOBALS['TYPO3_CONF_VARS']['HTTP']['handler']['contextReporterTest'] = static function (callable $next) use (&$requests, $response): \Closure {
+            return static function (RequestInterface $request, array $options) use (&$requests, $response) {
+                $requests[] = $request;
+                return Create::promiseFor($response);
+            };
+        };
     }
 
     /**

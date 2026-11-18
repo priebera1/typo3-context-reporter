@@ -16,7 +16,7 @@ use TYPO3\CMS\Core\Localization\LanguageService;
 /**
  * Prepares the form fields of a settings section for the template.
  *
- * Secrets and the webhook endpoint are never rendered: the fields stay empty
+ * Secrets and the webhook and Hub URLs are never rendered: the fields stay empty
  * and only show the state of the stored value.
  *
  * @internal
@@ -58,9 +58,18 @@ final readonly class SettingsFieldBuilder
             'senderName' => 'text',
             'subject' => 'text',
             'bodyTemplate' => 'text',
+            'htmlVersion' => 'switch',
             'attachScreenshot' => 'switch',
             'attachJson' => 'switch',
             'replyToReporter' => 'switch',
+        ],
+        'hub' => [
+            'enabled' => 'switch',
+            'url' => 'endpoint',
+            'secret' => 'secret',
+            'publicUrl' => 'text',
+            'includeScreenshot' => 'switch',
+            'allowInsecureHttp' => 'switch',
         ],
         'webhook' => [
             'enabled' => 'switch',
@@ -85,6 +94,7 @@ final readonly class SettingsFieldBuilder
         'bodyTemplate' => ['maxlength' => 255],
         'authHeaderName' => ['maxlength' => 100],
         'timeout' => ['min' => 1, 'max' => 30],
+        'publicUrl' => ['maxlength' => 2048],
     ];
 
     public function __construct(
@@ -180,9 +190,14 @@ final readonly class SettingsFieldBuilder
             'email.senderName' => $string('senderName'),
             'email.subject' => $string('subject') ?: ExtensionSettingsFactory::DEFAULT_SUBJECT,
             'email.bodyTemplate' => $string('bodyTemplate') ?: ExtensionSettingsFactory::DEFAULT_BODY_TEMPLATE,
+            'email.htmlVersion' => $settings->email->htmlVersion,
             'email.attachScreenshot' => $settings->email->attachScreenshot,
             'email.attachJson' => $settings->email->attachJson,
             'email.replyToReporter' => $settings->email->replyToReporter,
+            'hub.enabled' => $settings->hub->enabled,
+            'hub.publicUrl' => $string('publicUrl'),
+            'hub.includeScreenshot' => $settings->hub->includeScreenshot,
+            'hub.allowInsecureHttp' => $settings->hub->allowInsecureHttp,
             'webhook.enabled' => $settings->webhook->enabled,
             'webhook.authHeaderName' => $string('authHeaderName') ?: 'Authorization',
             'webhook.timeout' => $settings->webhook->timeoutSeconds,
@@ -289,10 +304,11 @@ final readonly class SettingsFieldBuilder
     private function buildSecretField(array $field, string $section, string $name, ExtensionSettings $settings, array $raw, LanguageService $languageService): array
     {
         $rawValue = is_scalar($raw[$name] ?? null) ? trim((string)$raw[$name]) : '';
+        $target = $section === 'hub' ? $settings->hub : $settings->webhook;
         $effective = match ($name) {
-            'url' => $settings->webhook->url,
-            'secret' => $settings->webhook->secret,
-            'authHeaderValue' => $settings->webhook->authHeaderValue,
+            'url' => $target->url,
+            'secret' => $target->secret,
+            'authHeaderValue' => $target->authHeaderValue,
             default => '',
         };
         $state = SecretState::of($rawValue, $effective);
@@ -301,14 +317,14 @@ final readonly class SettingsFieldBuilder
         if ($name === 'url' && $state === SecretState::Configured) {
             $parts = parse_url($effective);
             $hasPath = is_array($parts) && (!in_array($parts['path'] ?? '', ['', '/'], true) || isset($parts['query']));
-            $masked = $settings->webhook->getDisplayTarget() . ($hasPath ? '/…' : '');
+            $masked = $target->getDisplayTarget() . ($hasPath ? '/…' : '');
         }
 
         return [
             'inputName' => 'settings[' . $name . ']',
             'removeName' => 'settings[' . $name . 'Remove]',
             'removeId' => $field['id'] . '-remove',
-            'removeLabel' => $this->translate($languageService, $name === 'url' ? 'settings.webhook.url.remove' : 'settings.secret.remove'),
+            'removeLabel' => $this->translate($languageService, $name === 'url' ? 'settings.' . $section . '.url.remove' : 'settings.secret.remove'),
             'canRemove' => $state !== SecretState::NotConfigured && !$field['pinned'],
             'state' => $state->value,
             'stateLabel' => sprintf($this->translate($languageService, 'settings.secret.state.' . $state->value), $variable),
@@ -349,6 +365,16 @@ final readonly class SettingsFieldBuilder
                 break;
             case 'general.projectIdentifier':
                 $field['placeholder'] = 'my-project';
+                break;
+            case 'hub.publicUrl':
+                $field['placeholder'] = 'https://hub.example.com';
+                break;
+            case 'hub.url':
+            case 'hub.secret':
+                // Shows what the Hub values look like until they are saved
+                if ($field['state'] === SecretState::NotConfigured->value) {
+                    $field['placeholder'] = $this->translate($languageService, 'settings.hub.' . $field['name'] . '.placeholder');
+                }
                 break;
         }
         return $field;

@@ -1,0 +1,14 @@
+{
+    "name": "priebera/context-reporter-custom-email-template",
+    "description": "Test fixture: a site package with a trimmed report email template (title, ID and link only), as an administrator can configure it.",
+    "type": "typo3-cms-extension",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "typo3/cms-core": "*"
+    },
+    "extra": {
+        "typo3/cms": {
+            "extension-key": "custom_email_template"
+        }
+    }
+}

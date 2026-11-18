@@ -13,6 +13,8 @@ final class InvalidScreenshotException extends \RuntimeException
     public const TOO_LARGE = 'tooLarge';
     public const FORMAT = 'format';
     public const DIMENSIONS = 'dimensions';
+    /** Cut off or corrupted: the image could not be shown */
+    public const DAMAGED = 'damaged';
 
     private string $reason = self::FORMAT;
 

@@ -1,0 +1,3 @@
+New problem report: {report.title}
+{report.id}
+Open it in TYPO3: {report.url}

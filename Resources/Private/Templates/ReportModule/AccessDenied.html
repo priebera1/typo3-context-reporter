@@ -1,0 +1,21 @@
+<html
+    xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
+    xmlns:core="http://typo3.org/ns/TYPO3/CMS/Core/ViewHelpers"
+    data-namespace-typo3-fluid="true"
+>
+<f:layout name="Module" />
+
+<f:section name="Content">
+    <f:asset.css identifier="context-reporter" href="EXT:context_reporter/Resources/Public/Css/context-reporter.css" />
+    <f:variable name="ll" value="LLL:EXT:context_reporter/Resources/Private/Language/locallang_module.xlf:" />
+    <f:comment>Severity of f:be.infobox as the integer of ContextualFeedbackSeverity (2 = error), see Settings.html.</f:comment>
+    <f:variable name="severityError" value="2" />
+    <h1><f:translate key="{ll}title" /></h1>
+    <f:be.infobox title="{f:translate(key: '{ll}{messageKey}.title')}" state="{severityError}">
+        <p><f:translate key="{ll}{messageKey}" /></p>
+        <f:if condition="{backUrl}">
+            <p><a class="btn btn-default" href="{backUrl}"><core:icon identifier="actions-view-go-back" size="small" /> <f:translate key="{ll}message.accessDenied.back" /></a></p>
+        </f:if>
+    </f:be.infobox>
+</f:section>
+</html>

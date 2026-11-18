@@ -44,8 +44,8 @@
                 <target state="translated">Was wollten Sie tun, was haben Sie erwartet und was ist stattdessen passiert?</target>
             </trans-unit>
             <trans-unit id="context_reporter.form.description.hint" resname="context_reporter.form.description.hint">
-                <source>Optional, but helpful.</source>
-                <target state="translated">Optional, aber hilfreich.</target>
+                <source>Optional, but helpful. Never enter passwords, API keys or other secrets.</source>
+                <target state="translated">Optional, aber hilfreich. Geben Sie niemals Passwörter, API-Schlüssel oder andere Geheimnisse ein.</target>
             </trans-unit>
             <trans-unit id="context_reporter.form.description.counter" resname="context_reporter.form.description.counter">
                 <source>%s / %s</source>
@@ -56,8 +56,12 @@
                 <target state="translated">Screenshot (optional)</target>
             </trans-unit>
             <trans-unit id="context_reporter.screenshot.privacy" resname="context_reporter.screenshot.privacy">
-                <source>Screenshots are created and edited in your browser. Nothing is sent before you submit the report. Redact confidential information first.</source>
-                <target state="translated">Screenshots werden in Ihrem Browser erstellt und bearbeitet. Vor dem Absenden wird nichts übertragen. Schwärzen Sie vertrauliche Informationen vorher.</target>
+                <source>Screenshots are created and edited in your browser. Nothing is sent before you submit the report.</source>
+                <target state="translated">Screenshots werden in Ihrem Browser erstellt und bearbeitet. Vor dem Absenden wird nichts übertragen.</target>
+            </trans-unit>
+            <trans-unit id="context_reporter.screenshot.sensitive" resname="context_reporter.screenshot.sensitive">
+                <source>Screenshots may contain sensitive backend data. Review the visible page before sending. Nothing is redacted automatically: cover sensitive areas with the Redact tool or remove the screenshot.</source>
+                <target state="translated">Screenshots können sensible Daten aus dem Backend enthalten. Prüfen Sie die sichtbare Seite vor dem Senden. Nichts wird automatisch geschwärzt: Decken Sie sensible Bereiche mit dem Werkzeug „Schwärzen“ ab oder entfernen Sie den Screenshot.</target>
             </trans-unit>
             <trans-unit id="context_reporter.screenshot.capture" resname="context_reporter.screenshot.capture">
                 <source>Capture screen</source>
@@ -172,8 +176,20 @@
                 <target state="translated">Notiz bearbeiten und Enter drücken</target>
             </trans-unit>
             <trans-unit id="context_reporter.editor.hint" resname="context_reporter.editor.hint">
-                <source>Drag to draw. Click an annotation to select it, then drag to move it or press Delete to remove it. Double-click a note to edit it. Redact paints an opaque black box into the image that is sent.</source>
-                <target state="translated">Zum Zeichnen ziehen. Eine Markierung anklicken, um sie auszuwählen; dann ziehen, um sie zu verschieben, oder Entf drücken, um sie zu entfernen. Eine Notiz doppelt anklicken, um sie zu bearbeiten. Schwärzen übermalt den Bereich im gesendeten Bild mit einem deckenden schwarzen Kasten.</target>
+                <source>Drag to draw. Click an annotation to select it, then drag to move it or press Delete to remove it. Double-click a note to edit it. Redact paints an opaque black box into the image that is sent; only the areas you cover are redacted.</source>
+                <target state="translated">Zum Zeichnen ziehen. Eine Markierung anklicken, um sie auszuwählen; dann ziehen, um sie zu verschieben, oder Entf drücken, um sie zu entfernen. Eine Notiz doppelt anklicken, um sie zu bearbeiten. Schwärzen übermalt den Bereich im gesendeten Bild mit einem deckenden schwarzen Kasten; geschwärzt wird nur, was Sie selbst abdecken.</target>
+            </trans-unit>
+            <trans-unit id="context_reporter.sensitive.title" resname="context_reporter.sensitive.title">
+                <source>Check for sensitive information before sending</source>
+                <target state="translated">Vor dem Senden auf sensible Daten prüfen</target>
+            </trans-unit>
+            <trans-unit id="context_reporter.sensitive.secrets" resname="context_reporter.sensitive.secrets">
+                <source>Do not include passwords, API keys, access tokens, private keys, recovery codes or other secrets in the report or screenshot. Remove the screenshot or cover sensitive information before you send the report.</source>
+                <target state="translated">Nehmen Sie keine Passwörter, API-Schlüssel, Zugangstoken, privaten Schlüssel, Wiederherstellungscodes oder andere Geheimnisse in die Meldung oder den Screenshot auf. Entfernen Sie den Screenshot oder decken Sie sensible Daten ab, bevor Sie die Meldung senden.</target>
+            </trans-unit>
+            <trans-unit id="context_reporter.sensitive.context" resname="context_reporter.sensitive.context">
+                <source>Depending on the privacy settings of your administrator, the report also contains technical context such as URLs, record identifiers, your username, browser and environment data and Findings. The technical data below shows what is sent.</source>
+                <target state="translated">Je nach den Datenschutzeinstellungen Ihres Administrators enthält die Meldung außerdem technischen Kontext wie URLs, Datensatz-IDs, Ihren Benutzernamen, Browser- und Umgebungsdaten und Hinweise. Die technischen Daten unten zeigen, was gesendet wird.</target>
             </trans-unit>
             <trans-unit id="context_reporter.technical.summary" resname="context_reporter.technical.summary">
                 <source>Review the technical data that will be sent</source>
@@ -198,6 +214,22 @@
             <trans-unit id="context_reporter.destinations.localOnly" resname="context_reporter.destinations.localOnly">
                 <source>The report will be saved in the TYPO3 report history.</source>
                 <target state="translated">Die Meldung wird im TYPO3-Meldungsverlauf gespeichert.</target>
+            </trans-unit>
+            <trans-unit id="context_reporter.discard.question" resname="context_reporter.discard.question">
+                <source>Discard the screenshot?</source>
+                <target state="translated">Screenshot verwerfen?</target>
+            </trans-unit>
+            <trans-unit id="context_reporter.discard.hint" resname="context_reporter.discard.hint">
+                <source>Title and description are kept for 30 minutes when you close the dialog. The screenshot and its annotations are not.</source>
+                <target state="translated">Titel und Beschreibung bleiben beim Schließen 30 Minuten erhalten, der Screenshot und seine Markierungen nicht.</target>
+            </trans-unit>
+            <trans-unit id="context_reporter.discard.keep" resname="context_reporter.discard.keep">
+                <source>Keep editing</source>
+                <target state="translated">Weiter bearbeiten</target>
+            </trans-unit>
+            <trans-unit id="context_reporter.discard.confirm" resname="context_reporter.discard.confirm">
+                <source>Discard screenshot and close</source>
+                <target state="translated">Screenshot verwerfen und schließen</target>
             </trans-unit>
             <trans-unit id="context_reporter.button.cancel" resname="context_reporter.button.cancel">
                 <source>Cancel</source>
@@ -235,6 +267,10 @@
                 <source>Report %s was saved, but not every delivery succeeded.</source>
                 <target state="translated">Meldung %s wurde gespeichert, aber nicht jede Zustellung war erfolgreich.</target>
             </trans-unit>
+            <trans-unit id="context_reporter.result.receivedByHub" resname="context_reporter.result.receivedByHub">
+                <source>Report received as %s in Context Reporter Hub.</source>
+                <target state="translated">Meldung als %s in Context Reporter Hub eingegangen.</target>
+            </trans-unit>
             <trans-unit id="context_reporter.result.downloaded" resname="context_reporter.result.downloaded">
                 <source>Report %s was saved and downloaded.</source>
                 <target state="translated">Meldung %s wurde gespeichert und heruntergeladen.</target>
@@ -251,9 +287,57 @@
                 <source>An administrator can retry the delivery in System › Context Reports.</source>
                 <target state="translated">Administratoren können die Zustellung unter System › Kontext-Meldungen erneut auslösen.</target>
             </trans-unit>
+            <trans-unit id="context_reporter.result.deliveryUnconfirmed" resname="context_reporter.result.deliveryUnconfirmed">
+                <source>Report %s was saved. Its delivery was not confirmed in time; it may still have arrived.</source>
+                <target state="translated">Meldung %s wurde gespeichert. Die Zustellung wurde nicht rechtzeitig bestätigt; sie kann trotzdem angekommen sein.</target>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.deliveryUnconfirmedTo" resname="context_reporter.result.deliveryUnconfirmedTo">
+                <source>Not confirmed by %s (it may have arrived)</source>
+                <target state="translated">Nicht bestätigt von %s (möglicherweise angekommen)</target>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.unconfirmedHint" resname="context_reporter.result.unconfirmedHint">
+                <source>Retrying is safe: Context Reporter Hub keeps the report only once and then shows its reference.</source>
+                <target state="translated">Ein erneuter Versand ist sicher: Context Reporter Hub speichert die Meldung nur einmal und zeigt dann ihre Referenz.</target>
+            </trans-unit>
             <trans-unit id="context_reporter.result.openReport" resname="context_reporter.result.openReport">
                 <source>Open report</source>
                 <target state="translated">Meldung öffnen</target>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.openInHub" resname="context_reporter.result.openInHub">
+                <source>Open in Context Reporter Hub</source>
+                <target state="translated">In Context Reporter Hub öffnen</target>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.hubScreenshot.title" resname="context_reporter.result.hubScreenshot.title">
+                <source>The screenshot was not stored in Context Reporter Hub.</source>
+                <target state="translated">Der Screenshot wurde nicht in Context Reporter Hub gespeichert.</target>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.hubScreenshot.reason.storage_full" resname="context_reporter.result.hubScreenshot.reason.storage_full">
+                <source>The storage of the Hub workspace is full. Ask the developer or agency who looks after this site.</source>
+                <target state="translated">Der Speicher des Hub-Workspaces ist voll. Wenden Sie sich an die Entwickler oder die Agentur, die diese Website betreuen.</target>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.hubScreenshot.reason.too_large" resname="context_reporter.result.hubScreenshot.reason.too_large">
+                <source>The Hub did not accept the screenshot because it is too large.</source>
+                <target state="translated">Der Hub hat den Screenshot nicht angenommen, weil er zu groß ist.</target>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.hubScreenshot.reason.unsupported" resname="context_reporter.result.hubScreenshot.reason.unsupported">
+                <source>The Hub does not accept the image format of the screenshot.</source>
+                <target state="translated">Der Hub nimmt das Bildformat des Screenshots nicht an.</target>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.hubScreenshot.reason.checksum_mismatch" resname="context_reporter.result.hubScreenshot.reason.checksum_mismatch">
+                <source>The screenshot did not arrive at the Hub intact.</source>
+                <target state="translated">Der Screenshot ist nicht unbeschädigt beim Hub angekommen.</target>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.hubScreenshot.reason.not_saved" resname="context_reporter.result.hubScreenshot.reason.not_saved">
+                <source>The Hub could not save the screenshot in time.</source>
+                <target state="translated">Der Hub konnte den Screenshot nicht rechtzeitig speichern.</target>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.hubScreenshot.reason.other" resname="context_reporter.result.hubScreenshot.reason.other">
+                <source>The Hub did not give a known reason.</source>
+                <target state="translated">Der Hub hat keinen bekannten Grund angegeben.</target>
+            </trans-unit>
+            <trans-unit id="context_reporter.result.hubScreenshot.kept" resname="context_reporter.result.hubScreenshot.kept">
+                <source>The report itself was received. The screenshot is kept with the report in TYPO3.</source>
+                <target state="translated">Die Meldung selbst ist eingegangen. Der Screenshot bleibt bei der Meldung in TYPO3 gespeichert.</target>
             </trans-unit>
             <trans-unit id="context_reporter.result.copy" resname="context_reporter.result.copy">
                 <source>Copy</source>

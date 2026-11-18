@@ -15,11 +15,23 @@
         it documents are deprecated as of TYPO3 v14.
     </f:comment>
     <f:variable name="severityInfo" value="-1" />
+    <f:variable name="severityWarning" value="1" />
 
     <div class="cr-page-header">
         <h1><f:translate key="{ll}index.heading" /></h1>
         <p class="cr-muted"><f:translate key="{ll}index.intro" /></p>
     </div>
+
+    <f:render section="UpdateNotice" arguments="{updateNotice: updateNotice, ll: ll}" />
+
+    <f:if condition="{missingColumns}">
+        <f:be.infobox title="{f:translate(key: '{ll}schema.outdated.title')}" state="{severityWarning}">
+            <p><f:translate key="{ll}schema.outdated.message" arguments="{0: missingColumns}" /></p>
+            <p><f:translate key="{ll}schema.outdated.howto" /></p>
+        </f:be.infobox>
+    </f:if>
+
+    <f:render section="HubCard" arguments="{hub: hub, ll: ll}" />
 
     <div class="cr-toolbar">
         <div class="btn-group" role="group" aria-label="{f:translate(key: '{ll}filter.review')}">
@@ -46,12 +58,11 @@
                 <f:then>
                     <f:translate key="{ll}index.destinations" />
                     <f:for each="{destinations}" as="destination" iteration="iterator">
-                        <strong><f:translate key="{ll}destination.{destination.identifier}" /></strong>
-                        ({destination.target}){f:if(condition: iterator.isLast, else: ',')}
+                        <strong><f:translate key="{ll}destination.{destination.identifier}" /></strong><f:if condition="{showTargets}"> ({destination.target})</f:if>{f:if(condition: iterator.isLast, else: ',')}
                     </f:for>
                 </f:then>
                 <f:else>
-                    <span><f:translate key="{ll}index.noDestinations" /> <a href="{settingsUrl}"><f:translate key="{ll}index.configureDestinations" /></a></span>
+                    <span><f:translate key="{ll}index.noDestinations" /><f:if condition="{settingsUrl}"> <a href="{settingsUrl}"><f:translate key="{ll}index.configureDestinations" /></a></f:if></span>
                 </f:else>
             </f:if>
         </p>
@@ -91,7 +102,7 @@
                                 </td>
                                 <td>{item.reporter}</td>
                                 <td class="text-nowrap">
-                                    <time datetime="{f:format.date(date: item.report.createdAt, format: 'c')}"><f:format.date format="Y-m-d H:i">{item.report.createdAt}</f:format.date></time>
+                                    <time datetime="{f:format.date(date: item.report.createdAt, format: 'c')}"><f:format.date format="Y-m-d H:i T">{item.report.createdAt}</f:format.date></time>
                                 </td>
                                 <td><span class="badge badge-{item.reviewClass}">{item.reviewLabel}</span></td>
                                 <td><span class="badge badge-{item.stateClass}">{item.stateLabel}</span></td>
@@ -130,6 +141,120 @@
             >
                 <p><f:translate key="{ll}index.{emptyState}.message" /></p>
             </f:be.infobox>
+        </f:else>
+    </f:if>
+</f:section>
+
+<f:section name="UpdateNotice">
+    <f:comment>"New version available": administrators only (UpdateNoticeService); dismissing hides this release for this user</f:comment>
+    <f:if condition="{updateNotice}">
+        <f:asset.module identifier="@priebera/context-reporter/update-notice.js" />
+        <div
+            class="cr-update-notice"
+            data-context-reporter-update-notice="{updateNotice.version}"
+            data-label-dismiss-failed="{f:translate(key: '{ll}updateNotice.dismissFailed')}"
+        >
+            <core:icon identifier="actions-info-circle-alt" size="small" />
+            <p class="cr-update-notice__text">
+                <strong><f:translate key="{ll}updateNotice.title" arguments="{0: updateNotice.version}" /></strong>
+                <span class="cr-muted"><f:translate key="{ll}updateNotice.installed" arguments="{0: updateNotice.installedVersion}" /></span>
+                <a href="{updateNotice.releaseUrl}" target="_blank" rel="noopener noreferrer"><f:translate key="{ll}updateNotice.link" /><span class="visually-hidden"> <f:translate key="{ll}updateNotice.newTab" /></span></a>
+            </p>
+            <button
+                type="button"
+                class="btn btn-borderless btn-sm cr-update-notice__dismiss"
+                data-context-reporter-dismiss-update="{updateNotice.version}"
+                title="{f:translate(key: '{ll}updateNotice.dismiss', arguments: {0: updateNotice.version})}"
+                aria-label="{f:translate(key: '{ll}updateNotice.dismiss', arguments: {0: updateNotice.version})}"
+            ><core:icon identifier="actions-close" size="small" /></button>
+        </div>
+    </f:if>
+</f:section>
+
+<f:section name="HubCard">
+    <f:if condition="{hub.configured}">
+        <f:then>
+            <section class="card cr-card cr-hub" aria-labelledby="cr-hub-heading">
+                <div class="card-header">
+                    <div class="card-header-body">
+                        <h2 class="card-title" id="cr-hub-heading"><f:translate key="{ll}hub.title" /></h2>
+                        <f:if condition="{hub.target}"><span class="card-subtitle cr-muted">{hub.target}</span></f:if>
+                    </div>
+                    <div class="cr-hub__state">
+                        <f:if condition="{hub.enabled}">
+                            <f:then>
+                                <f:if condition="{hub.failureIsCurrent}">
+                                    <f:then><span class="badge badge-danger"><f:translate key="{ll}hub.state.failing" /></span></f:then>
+                                    <f:else><span class="badge badge-success"><f:translate key="{ll}hub.state.on" /></span></f:else>
+                                </f:if>
+                            </f:then>
+                            <f:else><span class="badge badge-default"><f:translate key="{ll}hub.state.off" /></span></f:else>
+                        </f:if>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <dl class="cr-hub__facts">
+                        <div>
+                            <dt><f:translate key="{ll}hub.local.lastSuccess" /></dt>
+                            <dd>
+                                <f:if condition="{hub.lastSuccess}">
+                                    <f:then>
+                                        <time datetime="{f:format.date(date: hub.lastSuccess.attempt.createdAt, format: 'c')}"><f:format.date format="Y-m-d H:i T">{hub.lastSuccess.attempt.createdAt}</f:format.date></time>
+                                        · <a href="{hub.lastSuccess.reportUrl}"><span class="cr-identifier">{hub.lastSuccess.reportIdentifier}</span></a>
+                                        <f:if condition="{hub.lastSuccess.externalReference}"> → <strong>{hub.lastSuccess.externalReference}</strong></f:if>
+                                        <f:if condition="{hub.lastSuccess.hubStorage}">
+                                            <span class="cr-hub__storage"><core:icon identifier="actions-exclamation-triangle" size="small" /> <f:translate key="{ll}hub.storage.{hub.lastSuccess.hubStorage}" /></span>
+                                        </f:if>
+                                    </f:then>
+                                    <f:else><span class="cr-muted"><f:translate key="{ll}hub.local.none" /></span></f:else>
+                                </f:if>
+                            </dd>
+                        </div>
+                        <f:if condition="{hub.lastFailure}">
+                            <div class="{f:if(condition: hub.failureIsCurrent, then: 'cr-hub__failure', else: 'cr-muted')}">
+                                <dt><f:translate key="{ll}hub.local.lastFailure" /></dt>
+                                <dd>
+                                    <time datetime="{f:format.date(date: hub.lastFailure.attempt.createdAt, format: 'c')}"><f:format.date format="Y-m-d H:i T">{hub.lastFailure.attempt.createdAt}</f:format.date></time>
+                                    · <a href="{hub.lastFailure.reportUrl}"><span class="cr-identifier">{hub.lastFailure.reportIdentifier}</span></a>
+                                    <f:if condition="{hub.lastFailure.message}">: {hub.lastFailure.message}</f:if>
+                                    <f:if condition="{hub.failureIsCurrent}"><f:else> <f:translate key="{ll}hub.local.failureResolved" /></f:else></f:if>
+                                </dd>
+                            </div>
+                        </f:if>
+                        <f:if condition="{hub.lastTest}">
+                            <div>
+                                <dt><f:translate key="{ll}hub.local.lastTest" /></dt>
+                                <dd>
+                                    <time datetime="{f:format.date(date: hub.lastTest.testedAt, format: 'c')}"><f:format.date format="Y-m-d H:i T">{hub.lastTest.testedAt}</f:format.date></time>
+                                    · <f:translate key="{ll}hub.local.test.{f:if(condition: hub.lastTest.successful, then: 'succeeded', else: 'failed')}" />
+                                </dd>
+                            </div>
+                        </f:if>
+                    </dl>
+                </div>
+                <div class="card-footer cr-hub__actions">
+                    <f:if condition="{hub.hubUrl}">
+                        <a class="btn btn-default btn-sm" href="{hub.hubUrl}" target="_blank" rel="noopener noreferrer"><core:icon identifier="actions-window-open" size="small" /> <f:translate key="{ll}hub.button.open" /></a>
+                    </f:if>
+                    <f:if condition="{hub.canManage}">
+                        <a class="btn btn-default btn-sm" href="{hub.settingsUrl}"><core:icon identifier="actions-cog" size="small" /> <f:translate key="{ll}hub.button.settings" /></a>
+                        <form method="post" action="{hub.testUrl}" class="cr-inline-form">
+                            <input type="hidden" name="returnTo" value="index" />
+                            <button type="submit" class="btn btn-default btn-sm"><core:icon identifier="actions-play" size="small" /> <f:translate key="{ll}hub.button.test" /></button>
+                        </form>
+                    </f:if>
+                    <p class="cr-muted cr-hub__note"><f:translate key="{ll}hub.note" /></p>
+                </div>
+            </section>
+        </f:then>
+        <f:else if="{hub.canManage}">
+            <aside class="cr-hub-cta" aria-labelledby="cr-hub-cta-heading">
+                <p>
+                    <strong id="cr-hub-cta-heading"><f:translate key="{ll}hub.title" /></strong>
+                    <span class="cr-muted"><f:translate key="{ll}hub.cta.text" /></span>
+                </p>
+                <a class="btn btn-default btn-sm" href="{hub.settingsUrl}"><f:translate key="{ll}hub.cta.connect" /></a>
+            </aside>
         </f:else>
     </f:if>
 </f:section>

@@ -6,13 +6,14 @@ namespace Priebera\ContextReporter\Settings;
 
 use Priebera\ContextReporter\Configuration\EnvironmentReference;
 use Priebera\ContextReporter\Configuration\ExtensionSettingsFactory;
+use Priebera\ContextReporter\Configuration\HubIntake;
 use Priebera\ContextReporter\Delivery\Email\EmailTemplateLoader;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Validates and normalizes the submitted form of one settings section.
  *
- * Secrets and the webhook endpoint are write-only: an empty input keeps the
+ * Secrets and the webhook and Hub URLs are write-only: an empty input keeps the
  * stored value, a "remove" checkbox clears it. Values set in the TYPO3 system configuration are
  * neither changed nor validated.
  *
@@ -20,7 +21,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  */
 final class SettingsFormProcessor
 {
-    public const SECTIONS = ['general', 'privacy', 'reporting', 'email', 'webhook'];
+    public const SECTIONS = ['general', 'privacy', 'reporting', 'email', 'hub', 'webhook'];
     public const ENVIRONMENTS = ['Production', 'Staging', 'Development', 'Testing'];
     public const RETENTION_PRESETS = [0, 30, 90, 180, 365];
     public const MAX_RECIPIENTS = 20;
@@ -47,6 +48,7 @@ final class SettingsFormProcessor
             'privacy' => $this->processPrivacy($input),
             'reporting' => $this->processReporting($input),
             'email' => $this->processEmail($input),
+            'hub' => $this->processHub($input, $current),
             'webhook' => $this->processWebhook($input, $current),
             default => throw new \InvalidArgumentException('Unknown settings section "' . $section . '".', 1758100001),
         };
@@ -169,7 +171,7 @@ final class SettingsFormProcessor
         }
 
         $senderAddress = $this->string($input, 'senderAddress');
-        if ($senderAddress !== '' && !GeneralUtility::validEmail($senderAddress)) {
+        if ($senderAddress !== '' && !ExtensionSettingsFactory::isUsableSenderAddress($senderAddress)) {
             $errors['senderAddress'] = 'error.senderAddress';
         }
         $senderName = $this->string($input, 'senderName');
@@ -192,6 +194,7 @@ final class SettingsFormProcessor
             'senderName' => $senderName,
             'subject' => $subject !== '' ? $subject : ExtensionSettingsFactory::DEFAULT_SUBJECT,
             'bodyTemplate' => $bodyTemplate !== '' ? $bodyTemplate : ExtensionSettingsFactory::DEFAULT_BODY_TEMPLATE,
+            'htmlVersion' => $this->bool($input, 'htmlVersion'),
             'attachScreenshot' => $this->bool($input, 'attachScreenshot'),
             'attachJson' => $this->bool($input, 'attachJson'),
             'replyToReporter' => $this->bool($input, 'replyToReporter'),
@@ -215,6 +218,8 @@ final class SettingsFormProcessor
             if ($enabled) {
                 $errors['url'] = 'error.urlRequired';
             }
+        } elseif (!EnvironmentReference::isReference($url) && ExtensionSettingsFactory::hasUserInfo($url)) {
+            $errors['url'] = 'error.urlCredentials';
         } elseif (!EnvironmentReference::isReference($url) && !$this->isValidEndpoint($url, $allowInsecureHttp)) {
             $errors['url'] = 'error.url';
         }
@@ -252,6 +257,62 @@ final class SettingsFormProcessor
     }
 
     /**
+     * The webhook URL and the signing secret of a site in Context Reporter Hub,
+     * as the Hub shows them. Both are required: the Hub rejects unsigned deliveries.
+     *
+     * @param array<array-key, mixed> $input
+     * @param array<array-key, mixed> $current
+     * @return array{array<string, mixed>, array<string, string>}
+     */
+    private function processHub(array $input, array $current): array
+    {
+        $errors = [];
+        $enabled = $this->bool($input, 'enabled');
+        $allowInsecureHttp = $this->bool($input, 'allowInsecureHttp');
+
+        $url = $this->secret($input, $current, 'url');
+        if ($url === '') {
+            if ($enabled) {
+                $errors['url'] = 'error.hubUrlRequired';
+            }
+        } elseif (!EnvironmentReference::isReference($url)) {
+            if (!$this->isValidEndpoint($url, true) || !HubIntake::isIntakeUrl($url)) {
+                $errors['url'] = 'error.hubUrl';
+            } elseif (!$this->isValidEndpoint($url, $allowInsecureHttp)) {
+                $errors['url'] = 'error.hubUrlInsecure';
+            }
+        }
+
+        $secret = $this->secret($input, $current, 'secret');
+        if ($secret === '') {
+            if ($enabled) {
+                $errors['secret'] = 'error.hubSecretRequired';
+            }
+        } elseif (!EnvironmentReference::isReference($secret) && !HubIntake::isSigningSecret($secret)) {
+            $errors['secret'] = 'error.hubSecret';
+        }
+
+        // Optional: where the browser opens the Hub, when TYPO3 reaches it at another address
+        $publicUrl = $this->string($input, 'publicUrl');
+        if ($publicUrl !== '' && !EnvironmentReference::isReference($publicUrl)) {
+            if (!$this->isValidEndpoint($publicUrl, true) || !HubIntake::isPublicUrl($publicUrl)) {
+                $errors['publicUrl'] = 'error.hubPublicUrl';
+            } elseif (!$this->isValidEndpoint($publicUrl, $allowInsecureHttp)) {
+                $errors['publicUrl'] = 'error.hubPublicUrlInsecure';
+            }
+        }
+
+        return [[
+            'enabled' => $enabled,
+            'url' => $url,
+            'secret' => $secret,
+            'publicUrl' => $publicUrl,
+            'includeScreenshot' => $this->bool($input, 'includeScreenshot'),
+            'allowInsecureHttp' => $allowInsecureHttp,
+        ], $errors];
+    }
+
+    /**
      * @param array<array-key, mixed> $input
      * @param array<array-key, mixed> $current
      */
@@ -276,6 +337,7 @@ final class SettingsFormProcessor
         $scheme = strtolower(is_array($parts) ? (string)($parts['scheme'] ?? '') : '');
         return is_array($parts)
             && ($parts['host'] ?? '') !== ''
+            && !isset($parts['user']) && !isset($parts['pass'])
             && ($scheme === 'https' || ($allowInsecureHttp && $scheme === 'http'));
     }
 

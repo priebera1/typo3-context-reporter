@@ -18,5 +18,7 @@ final readonly class PreparedReport
         public ReportSource $source,
         public ContextDocument $document,
         public string $draftToken,
+        /** Reserved in the draft: submitting the draft again returns this report */
+        public string $reportIdentifier = '',
     ) {}
 }

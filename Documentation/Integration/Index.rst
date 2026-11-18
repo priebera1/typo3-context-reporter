@@ -40,8 +40,11 @@ URLs in user text are shown as code.
 Email
 =====
 
-Emails are plain text and sent with the TYPO3 mail API and its configured
-transport. The subject and the body template contain markers such as
+Emails are sent with the TYPO3 mail API and its configured transport, as
+plain text and, unless :confval:`setting-email-htmlversion` is off or a custom
+plain-text template is set, with an HTML version of the same content (see
+:ref:`configuration-email-content`). The
+subject and the plain-text template contain markers such as
 ``{report.title}``. Unknown markers are left untouched. The screenshot and the
 JSON report can be attached. The header ``X-Context-Reporter-Report``
 contains the report ID; test emails carry ``X-Context-Reporter-Test: 1``
@@ -65,12 +68,23 @@ Markers
     *   -   ``{report.createdAt}``, ``{report.source}``, ``{report.url}``
         -   Creation time (UTC), entry point and backend link to the report
 
+    *   -   ``{report.created}``, ``{report.createdLocal}``
+        -   Creation time in the time zone of the TYPO3 server with UTC, for
+            example ``2026-09-18 09:32 CEST (07:32 UTC)``, and without UTC
+            (only UTC when the server runs in UTC)
+
     *   -   ``{project.name}``, ``{project.identifier}``, ``{project.environment}``, ``{project.url}``
         -   Project settings and backend URL
 
     *   -   ``{reporter.name}``, ``{reporter.username}``, ``{reporter.email}``, ``{reporter.uid}``, ``{reporter.groups}``
         -   Reporter details, if shared. ``{reporter.name}`` falls back to the
             username, the UID or ``(not shared)``
+
+    *   -   ``{reporter.display}``, ``{project.label}``
+        -   The reporter as the privacy settings allow, for example
+            ``Erika Editor (editor)`` or ``editor (real name not shared)``,
+            and the project with its environment, for example
+            ``Demo Website (Production)``
 
     *   -   ``{page.uid}``, ``{page.title}``, ``{page.slug}``, ``{page.url}``, ``{page.backendUrl}``
         -   Page of the report
@@ -113,9 +127,40 @@ Markers
     *   -   ``{browser.summary}``, ``{browser.userAgent}``, ``{browser.viewport}``, ``{browser.language}``
         -   Browser information, if shared
 
-Markers without a value are replaced with an empty string. Markers in the
+    *   -   ``{email.description}``
+        -   The description, or ``No description was given.``
+
+    *   -   ``{email.links}``
+        -   One line per link: ``Report in TYPO3:``, the reported object (for
+            example ``Content element in TYPO3:``) and, after the Hub
+            acknowledged the report, ``Context Reporter Hub:`` with the
+            reference and link
+
+    *   -   ``{email.attachments}``
+        -   One line per attached file, or ``None``
+
+    *   -   ``{email.footer}``
+        -   Who sent the email and, when replies go to the reporter, a line
+            saying so
+
+    *   -   ``{hub.reference}``, ``{hub.url}``
+        -   Reference and link of the report in Context Reporter Hub, once the
+            Hub acknowledged it
+
+Markers without a value are replaced with an empty string. The ``{email.*}``
+and ``{hub.*}`` markers exist in emails only. Markers in the
 subject are reduced to a single line. Findings and technical details are
 always in English.
+
+..  _integration-hub-overview:
+
+Context Reporter Hub
+====================
+
+:ref:`Context Reporter Hub <integration-hub>` is a hosted inbox for the
+reports of several TYPO3 installations. It receives the webhook request
+described below, with the URL and secret of a Hub site, and answers with the
+reference of the report in the Hub.
 
 ..  _integration-webhook:
 
@@ -129,7 +174,7 @@ The webhook sends an HTTP ``POST`` request with a JSON body.
 
     POST /your/endpoint HTTP/1.1
     Content-Type: application/json; charset=utf-8
-    User-Agent: TYPO3-Context-Reporter/0.3.0
+    User-Agent: TYPO3-Context-Reporter/0.4.0
     X-Context-Reporter-Event: report.created
     X-Context-Reporter-Report: CR-CR91-A84Z-DA59
     X-Context-Reporter-Delivery: 7dd6d20a-ee21-4107-be2e-5767269320d2
@@ -234,7 +279,7 @@ set. The authentication header is only sent when
           }
         ],
         "links": { "report": "https://www.example.com/typo3/module/system/context-reports/show?report=CR-CR91-A84Z-DA59" },
-        "generator": { "name": "TYPO3 Context Reporter", "package": "priebera/typo3-context-reporter", "version": "0.3.0" }
+        "generator": { "name": "TYPO3 Context Reporter", "package": "priebera/typo3-context-reporter", "version": "0.4.0" }
       }
     }
 
@@ -340,7 +385,8 @@ Test deliveries
 
 :guilabel:`Send test webhook` in the settings posts a request with the same
 headers, signature, authentication and timeout, but with the event ``test``
-and without report data. Receivers should accept it (any ``2xx`` response)
+and without report data. :guilabel:`Test connection` in the
+:guilabel:`Context Reporter Hub` section sends the same request to the Hub. Receivers should accept it (any ``2xx`` response)
 and not create a ticket.
 
 ..  code-block:: json
@@ -354,7 +400,7 @@ and not create a ticket.
         "project": { "name": "Example", "identifier": "example", "environment": "Production" },
         "reportSchema": "context-reporter.report.v1"
       },
-      "generator": { "name": "TYPO3 Context Reporter", "package": "priebera/typo3-context-reporter", "version": "0.3.0" }
+      "generator": { "name": "TYPO3 Context Reporter", "package": "priebera/typo3-context-reporter", "version": "0.4.0" }
     }
 
 Check ``X-Context-Reporter-Event`` (``report.created`` or ``test``) before
@@ -411,9 +457,18 @@ Response, references and retries
 --------------------------------
 
 *   Any ``2xx`` response counts as delivered. Redirects are not followed.
+    (The :ref:`Context Reporter Hub <integration-hub-result>` destination is
+    stricter: it needs the Hub's reference. So does a webhook whose URL is a
+    Hub intake address, ``…/in/s_…``, as installations updated from 0.3 may
+    still have.)
 *   Other responses, connection errors and timeouts count as failed. The
     beginning of the response body is stored in the delivery history, with
     URLs and configured secrets removed.
+*   :confval:`setting-webhook-timeout` is a total time limit for connecting,
+    sending and reading the answer. The answer is read completely, also when
+    it arrives in several pieces (for example with chunked transfer
+    encoding), up to 64 KB. A ``2xx`` answer that is larger or does not arrive
+    completely in time still counts as delivered, but without reference.
 *   If the receiver creates a ticket, it can return its reference:
 
     ..  code-block:: json
@@ -434,8 +489,8 @@ Response, references and retries
     user information or a configured secret is dropped. Return a plain
     ticket number and a link without credentials.
 *   Deliveries are sent while the reporter waits. There is no queue and no
-    automatic retry. Administrators can retry failed deliveries in the report
-    history. A retry has a new ``delivery.id`` and the next ``attempt``
+    automatic retry. Failed deliveries can be retried in the report history
+    (administrators and users with access to the module). A retry has a new ``delivery.id`` and the next ``attempt``
     number, so use the report ``id`` to detect duplicates.
 
 Automation tools such as n8n, Make or Zapier can receive the webhook and
@@ -446,4 +501,5 @@ the repository contains a ready-made workflow for GitLab, see
 ..  toctree::
     :hidden:
 
+    Hub/Index
     N8n/Index

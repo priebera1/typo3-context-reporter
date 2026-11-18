@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Priebera\ContextReporter\Domain;
 
+use Priebera\ContextReporter\Hub\HubReceipt;
+
 /**
  * One entry of the delivery audit trail. Never contains secrets.
  */
@@ -25,6 +27,7 @@ final readonly class DeliveryAttempt
         public string $externalUrl = '',
         public int $durationMs = 0,
         public int $uid = 0,
+        public ?HubReceipt $hubReceipt = null,
     ) {}
 
     public function isDownload(): bool

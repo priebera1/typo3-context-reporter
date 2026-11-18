@@ -55,6 +55,10 @@
                 <source>Email</source>
                 <target state="translated">E-Mail</target>
             </trans-unit>
+            <trans-unit id="destination.hub" resname="destination.hub">
+                <source>Context Reporter Hub</source>
+                <target state="translated">Context Reporter Hub</target>
+            </trans-unit>
             <trans-unit id="destination.webhook" resname="destination.webhook">
                 <source>Webhook</source>
                 <target state="translated">Webhook</target>
@@ -110,6 +114,10 @@
             <trans-unit id="error.screenshot.dimensions" resname="error.screenshot.dimensions">
                 <source>The screenshot dimensions are not supported.</source>
                 <target state="translated">Die Abmessungen des Screenshots werden nicht unterstützt.</target>
+            </trans-unit>
+            <trans-unit id="error.screenshot.damaged" resname="error.screenshot.damaged">
+                <source>The screenshot did not arrive completely or is damaged. Send the report again.</source>
+                <target state="translated">Der Screenshot ist nicht vollständig angekommen oder beschädigt. Senden Sie den Bericht erneut.</target>
             </trans-unit>
             <trans-unit id="error.screenshot.uploadFailed" resname="error.screenshot.uploadFailed">
                 <source>The screenshot could not be uploaded.</source>
@@ -347,17 +355,25 @@
                 <source>Page translation %1$s: %2$s</source>
                 <target state="translated">Seitenübersetzung %1$s: %2$s</target>
             </trans-unit>
-            <trans-unit id="visibility.translation" resname="visibility.translation">
-                <source>Translation %1$s: %2$s</source>
-                <target state="translated">Übersetzung %1$s: %2$s</target>
+            <trans-unit id="visibility.recordTranslation" resname="visibility.recordTranslation">
+                <source>%1$s translation %2$s: %3$s</source>
+                <target state="translated">%1$s, Übersetzung %2$s: %3$s</target>
             </trans-unit>
             <trans-unit id="visibility.pageNotTranslated" resname="visibility.pageNotTranslated">
                 <source>Page not translated into: %s</source>
                 <target state="translated">Seite nicht übersetzt in: %s</target>
             </trans-unit>
-            <trans-unit id="visibility.notTranslated" resname="visibility.notTranslated">
-                <source>Not translated into: %s</source>
-                <target state="translated">Nicht übersetzt in: %s</target>
+            <trans-unit id="visibility.recordNotTranslated" resname="visibility.recordNotTranslated">
+                <source>%1$s not translated into: %2$s</source>
+                <target state="translated">%1$s nicht übersetzt in: %2$s</target>
+            </trans-unit>
+            <trans-unit id="visibility.contentElement" resname="visibility.contentElement">
+                <source>Content element</source>
+                <target state="translated">Inhaltselement</target>
+            </trans-unit>
+            <trans-unit id="visibility.record" resname="visibility.record">
+                <source>Record</source>
+                <target state="translated">Datensatz</target>
             </trans-unit>
             <trans-unit id="visibility.languageDisabled" resname="visibility.languageDisabled">
                 <source>Disabled in the site configuration: %s</source>

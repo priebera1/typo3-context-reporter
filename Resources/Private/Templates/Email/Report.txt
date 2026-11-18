@@ -1,11 +1,9 @@
 {report.title}
-{report.id} · {report.createdAt} · {report.source}
-
-Reporter: {reporter.name}
-Project:  {project.name} ({project.environment})
+{report.id} · {project.label}
+Reported by {reporter.display} on {report.created} via {report.source}
 
 WHAT HAPPENED
-{report.description}
+{email.description}
 
 WHERE IT HAPPENED
 {context.summary}
@@ -13,12 +11,14 @@ WHERE IT HAPPENED
 FINDINGS
 {context.findings}
 
-Open in TYPO3: {context.subjectUrl}
-Report history: {report.url}
+OPEN
+{email.links}
+
+ATTACHMENTS
+{email.attachments}
 
 TECHNICAL CONTEXT
 {context.details}
 
 --
-Sent by TYPO3 Context Reporter. The attached JSON file contains the complete,
-machine-readable report.
+{email.footer}

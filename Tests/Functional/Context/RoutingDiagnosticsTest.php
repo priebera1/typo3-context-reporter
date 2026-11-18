@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Priebera\ContextReporter\Context\CollectionRequest;
 use Priebera\ContextReporter\Context\ContextDocumentBuilder;
 use Priebera\ContextReporter\Context\Location\BackendLocationFactory;
+use Priebera\ContextReporter\Context\Subject\SubjectNotAvailableException;
 use Priebera\ContextReporter\Domain\ContextDocument;
 use Priebera\ContextReporter\Tests\Functional\AbstractContextReporterTestCase;
 use TYPO3\CMS\Core\Configuration\SiteWriter;
@@ -194,14 +195,13 @@ final class RoutingDiagnosticsTest extends AbstractContextReporterTestCase
     }
 
     #[Test]
-    public function translationsAreOnlyCheckedInLanguagesTheReporterMayUse(): void
+    public function contentInALanguageTheReporterMayNotUseIsNotAvailable(): void
     {
-        // Ruth may use English and German only
+        // Ruth may use English and German only: like TYPO3's page and list modules, the report does not show her French content
         $this->loginBackendUser(self::RUTH);
 
-        $french = $this->context(['type' => 'record', 'table' => 'tt_content', 'uid' => 82]);
-
-        self::assertSame(['notes' => ['languageDisabled'], 'fallback' => ['type' => 'strict']], $french['routing']);
+        $this->expectException(SubjectNotAvailableException::class);
+        $this->context(['type' => 'record', 'table' => 'tt_content', 'uid' => 82]);
     }
 
     #[Test]

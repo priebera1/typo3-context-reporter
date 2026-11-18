@@ -10,6 +10,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Priebera\ContextReporter\Configuration\ExtensionSettingsProvider;
 use Priebera\ContextReporter\Configuration\SettingsRepository;
 use Priebera\ContextReporter\Controller\ReportSettingsController;
+use Priebera\ContextReporter\Delivery\Webhook\WebhookSignature;
 use Priebera\ContextReporter\Domain\ContextDocument;
 use Priebera\ContextReporter\Domain\Report;
 use Priebera\ContextReporter\Domain\ReportSource;
@@ -19,10 +20,19 @@ use Priebera\ContextReporter\Tests\Functional\AbstractContextReporterTestCase;
 use Priebera\ContextReporter\Tests\Unit\Fixtures\ReportFixture;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use TYPO3\CMS\Core\Registry;
 
 final class ReportSettingsControllerTest extends AbstractContextReporterTestCase
 {
     use ModuleRequestTrait;
+
+    private const HUB_URL = 'https://hub.example.com/in/s_8Fq2LmZx4RtY7vB1nKc3Wd9P';
+    private const HUB_SECRET = 'whsec_8Fq2LmZx4RtY7vB1nKc3Wd9PaQ5sT0uV';
+
+    /**
+     * @var list<RequestInterface>
+     */
+    private array $hubRequests = [];
 
     /**
      * @var array<string, mixed>
@@ -54,6 +64,7 @@ final class ReportSettingsControllerTest extends AbstractContextReporterTestCase
         self::assertSame(403, $controller->saveSettingsAction($this->createModuleRequest('system_contextreports.saveSettings', body: $body))->getStatusCode());
         self::assertSame(403, $controller->testEmailAction($this->createModuleRequest('system_contextreports.testEmail', body: $body))->getStatusCode());
         self::assertSame(403, $controller->testWebhookAction($this->createModuleRequest('system_contextreports.testWebhook', body: $body))->getStatusCode());
+        self::assertSame(403, $controller->testHubAction($this->createModuleRequest('system_contextreports.testHub', body: $body))->getStatusCode());
         self::assertSame(403, $controller->cleanupAction($this->createModuleRequest('system_contextreports.cleanup', body: $body))->getStatusCode());
         self::assertSame([], $this->get(SettingsRepository::class)->load());
     }
@@ -297,12 +308,153 @@ final class ReportSettingsControllerTest extends AbstractContextReporterTestCase
     }
 
     #[Test]
+    public function hubValuesAreWriteOnlyAndTheConnectionIsExplained(): void
+    {
+        $this->saveSettings('hub', ['enabled' => true, 'url' => self::HUB_URL, 'secret' => self::HUB_SECRET, 'includeScreenshot' => true]);
+        $this->loginBackendUser(self::ADMIN);
+
+        $html = $this->renderSettings('hub');
+
+        self::assertStringContainsString('Send reports to Context Reporter Hub', $html);
+        self::assertStringContainsString('https://hub.example.com/…', $html);
+        self::assertStringContainsString('Not tested yet', $html);
+        self::assertStringContainsString('Test connection', $html);
+        self::assertStringContainsString('Leave empty to keep the current value', $html);
+        self::assertStringNotContainsString('btn btn-default" disabled', $html);
+        self::assertStringNotContainsString('s_8Fq2LmZx4RtY7vB1nKc3Wd9P', $html);
+        self::assertStringNotContainsString('whsec_8Fq2', $html);
+
+        $this->post('saveSettings', ['tab' => 'hub', 'settings' => ['enabled' => '1', 'url' => '', 'secret' => '', 'includeScreenshot' => '0', 'allowInsecureHttp' => '0']]);
+
+        $stored = $this->get(SettingsRepository::class)->load()['hub'];
+        self::assertSame(self::HUB_URL, $stored['url']);
+        self::assertSame(self::HUB_SECRET, $stored['secret']);
+        self::assertFalse($stored['includeScreenshot']);
+    }
+
+    #[Test]
+    public function rejectedHubFormsExplainTheValuesAndDoNotEchoThem(): void
+    {
+        $this->loginBackendUser(self::ADMIN);
+
+        $response = $this->post('saveSettings', [
+            'tab' => 'hub',
+            'settings' => ['enabled' => '1', 'url' => 'whsec_typedSecretInUrlField000000001', 'secret' => 'https://hub.example.com/in/s_typedUrlInSecretField00001'],
+        ]);
+
+        self::assertSame(200, $response->getStatusCode());
+        $html = (string)$response->getBody();
+        self::assertStringContainsString('Enter the webhook URL of a site in Context Reporter Hub', $html);
+        self::assertStringContainsString('Enter the signing secret of the Hub site (whsec_…)', $html);
+        self::assertStringContainsString('Secret values that you entered were not kept', $html);
+        self::assertStringNotContainsString('typedSecretInUrlField', $html);
+        self::assertStringNotContainsString('typedUrlInSecretField', $html);
+        self::assertArrayNotHasKey('hub', $this->get(SettingsRepository::class)->load());
+    }
+
+    #[Test]
+    public function hubConnectionTestIsRememberedForTheSavedValues(): void
+    {
+        $this->respondToHub(new Response(200, ['Content-Type' => 'application/json; charset=utf-8'], '{"status":"ok","message":"Test delivery received. This site is connected to Context Reporter Hub."}'));
+        $this->saveSettings('hub', ['enabled' => false, 'url' => self::HUB_URL, 'secret' => self::HUB_SECRET]);
+        $this->loginBackendUser(self::ADMIN);
+
+        $response = $this->post('testHub', []);
+
+        self::assertSame(303, $response->getStatusCode());
+        self::assertStringContainsString('tab=hub', $response->getHeaderLine('Location'));
+        $message = $this->getFlashMessages()[0];
+        self::assertSame('Connected to Context Reporter Hub', $message['title']);
+        self::assertStringContainsString('accepted the signed test delivery (HTTP 200)', $message['message']);
+        self::assertSame('OK', $message['severity']);
+        self::assertCount(1, $this->hubRequests);
+        [$request] = $this->hubRequests;
+        self::assertSame(self::HUB_URL, (string)$request->getUri());
+        self::assertSame('test', $request->getHeaderLine('X-Context-Reporter-Event'));
+        self::assertTrue(WebhookSignature::verify($request->getHeaderLine(WebhookSignature::HEADER), self::HUB_SECRET, (string)$request->getBody()));
+        self::assertSame(0, $this->getConnectionPool()->getConnectionForTable(DeliveryAttemptRepository::TABLE)->count('*', DeliveryAttemptRepository::TABLE, []));
+        self::assertStringContainsString('Accepted by the Hub', $this->renderSettings('hub'));
+
+        $this->saveSettings('hub', ['enabled' => false, 'url' => self::HUB_URL, 'secret' => 'whsec_rotatedSecretOfTheSite00000000001']);
+        self::assertStringContainsString('Not tested with the current webhook URL and secret', $this->renderSettings('hub'));
+        // The remembered result does not contain the URL or the secret
+        $remembered = json_encode($this->get(Registry::class)->get(SettingsRepository::REGISTRY_NAMESPACE, 'hubConnectionTest'), JSON_THROW_ON_ERROR);
+        self::assertStringContainsString('"successful":true', $remembered);
+        self::assertStringNotContainsString('whsec_', $remembered);
+        self::assertStringNotContainsString('s_8Fq2LmZx4RtY7vB1nKc3Wd9P', $remembered);
+    }
+
+    #[Test]
+    public function failedHubConnectionTestExplainsTheCauseWithoutSecrets(): void
+    {
+        $this->respondToHub(new Response(401, ['Content-Type' => 'application/json; charset=utf-8'], '{"error":"invalid_signature","message":"The signature does not match. Expected ' . self::HUB_SECRET . ' at ' . self::HUB_URL . '"}'));
+        $this->saveSettings('hub', ['enabled' => true, 'url' => self::HUB_URL, 'secret' => self::HUB_SECRET]);
+        $this->loginBackendUser(self::ADMIN);
+
+        $this->post('testHub', []);
+
+        $message = $this->getFlashMessages()[0];
+        self::assertSame('The Hub rejected the signature', $message['title']);
+        self::assertSame('ERROR', $message['severity']);
+        self::assertStringContainsString('Copy the current signing secret of the site from Context Reporter Hub', $message['message']);
+        self::assertStringContainsString('HTTP 401: {"error":"invalid_signature"', $message['message']);
+        $html = $this->renderSettings('hub');
+        self::assertStringContainsString('The Hub rejected the signature', $html);
+        foreach ([$message['message'], $html] as $output) {
+            self::assertStringNotContainsString('whsec_8Fq2', $output);
+            self::assertStringNotContainsString('s_8Fq2LmZx4RtY7vB1nKc3Wd9P', $output);
+        }
+    }
+
+    #[Test]
+    public function hubConnectionTestFromTheReportHistoryReturnsThere(): void
+    {
+        $this->respondToHub(new Response(200, ['Content-Type' => 'application/json; charset=utf-8'], '{"status":"ok"}'));
+        $this->saveSettings('hub', ['enabled' => true, 'url' => self::HUB_URL, 'secret' => self::HUB_SECRET]);
+        $this->loginBackendUser(self::ADMIN);
+
+        $response = $this->post('testHub', ['returnTo' => 'index']);
+
+        self::assertSame(303, $response->getStatusCode());
+        $location = $response->getHeaderLine('Location');
+        self::assertStringContainsString('/module/system/context-reports?', $location);
+        self::assertStringNotContainsString('settings', $location);
+        self::assertSame('Connected to Context Reporter Hub', $this->getFlashMessages()[0]['title']);
+        // Any other value keeps the settings as the target
+        self::assertStringContainsString('tab=hub', $this->post('testHub', ['returnTo' => 'https://evil.example.com/'])->getHeaderLine('Location'));
+    }
+
+    #[Test]
+    public function hubConnectionTestNeedsSavedValues(): void
+    {
+        $this->respondToHub(new Response(200));
+        $this->loginBackendUser(self::ADMIN);
+
+        self::assertStringContainsString('Save the webhook URL and the signing secret of a Hub site to test the connection.', $this->renderSettings('hub'));
+        $this->post('testHub', []);
+
+        self::assertSame('Save the webhook URL and the signing secret of a Hub site to test the connection.', $this->getFlashMessages()[0]['message']);
+        self::assertSame([], $this->hubRequests);
+    }
+
+    #[Test]
     public function settingsOfADevelopmentVersionAreExplained(): void
     {
         $this->configureExtension(['general' => ['enabled' => '1', 'maxScreenshotSizeKb' => '5120']]);
         $this->loginBackendUser(self::ADMIN);
 
         self::assertStringContainsString('Settings of a development version take precedence', $this->renderSettings('general'));
+    }
+
+    private function respondToHub(Response $response): void
+    {
+        $requests = &$this->hubRequests;
+        $GLOBALS['TYPO3_CONF_VARS']['HTTP']['handler']['contextReporterTest'] = static function (callable $next) use (&$requests, $response): \Closure {
+            return static function (RequestInterface $request, array $options) use (&$requests, $response) {
+                $requests[] = $request;
+                return Create::promiseFor($response);
+            };
+        };
     }
 
     private function renderSettings(string $tab): string
@@ -323,6 +475,7 @@ final class ReportSettingsControllerTest extends AbstractContextReporterTestCase
             'saveSettings' => $controller->saveSettingsAction($request),
             'testEmail' => $controller->testEmailAction($request),
             'testWebhook' => $controller->testWebhookAction($request),
+            'testHub' => $controller->testHubAction($request),
             'cleanup' => $controller->cleanupAction($request),
             default => throw new \InvalidArgumentException('Unknown route ' . $route, 1758400001),
         };

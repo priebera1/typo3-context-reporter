@@ -7,6 +7,7 @@ namespace Priebera\ContextReporter\Tests\Unit\Configuration;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Priebera\ContextReporter\Configuration\ExtensionSettingsFactory;
+use Priebera\ContextReporter\Configuration\HubIntake;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 
 final class ExtensionSettingsFactoryTest extends UnitTestCase
@@ -34,6 +35,7 @@ final class ExtensionSettingsFactoryTest extends UnitTestCase
 
         self::assertFalse($settings->email->isUsable());
         self::assertFalse($settings->webhook->isUsable());
+        self::assertFalse($settings->hub->isUsable());
     }
 
     #[Test]
@@ -123,6 +125,8 @@ final class ExtensionSettingsFactoryTest extends UnitTestCase
         self::assertSame(5, $settings->maxReportsPerUserPerHour);
         self::assertTrue($settings->email->isUsable());
         self::assertFalse($settings->email->attachJson);
+        self::assertTrue($settings->email->htmlVersion, 'The HTML part is on unless switched off');
+        self::assertFalse($this->createFactory()->fromArray(['email' => ['htmlVersion' => '0']], '', '')->email->htmlVersion);
     }
 
     #[Test]
@@ -170,6 +174,11 @@ final class ExtensionSettingsFactoryTest extends UnitTestCase
         ], '', '');
 
         self::assertSame('', $settings->email->senderAddress);
+
+        foreach (['a@b' => '', 'typo3@localhost' => '', 'typo3@example.com' => 'typo3@example.com'] as $address => $expected) {
+            $settings = $this->createFactory()->fromArray(['email' => ['senderAddress' => $address]], '', '');
+            self::assertSame($expected, $settings->email->senderAddress, $address);
+        }
     }
 
     #[Test]
@@ -197,6 +206,8 @@ final class ExtensionSettingsFactoryTest extends UnitTestCase
         yield 'javascript scheme' => ['javascript:alert(1)'];
         yield 'missing host' => ['https:///hook'];
         yield 'whitespace inside' => ['https://example.com/ho ok'];
+        yield 'user and password' => ['https://user:secret@example.com/hook'];
+        yield 'user only' => ['https://user@example.com/hook'];
     }
 
     #[Test]
@@ -274,6 +285,71 @@ final class ExtensionSettingsFactoryTest extends UnitTestCase
         self::assertSame(10, $factory->fromArray([], '', '')->webhook->timeoutSeconds);
         self::assertSame(1, $factory->fromArray(['webhook' => ['timeout' => '0']], '', '')->webhook->timeoutSeconds);
         self::assertSame(30, $factory->fromArray(['webhook' => ['timeout' => '300']], '', '')->webhook->timeoutSeconds);
+    }
+
+    #[Test]
+    public function hubIsASignedWebhookWithoutAuthenticationHeader(): void
+    {
+        $settings = $this->createFactory()->fromArray([
+            'webhook' => ['enabled' => '1', 'url' => 'https://hooks.example.com/hook', 'secret' => 'webhook-secret', 'authHeaderValue' => 'Bearer webhook-token', 'timeout' => '3'],
+            'hub' => ['enabled' => '1', 'url' => ' https://hub.example.com/in/s_8Fq2LmZx4RtY7vB1nKc3Wd9P ', 'secret' => 'whsec_localDevSecretDemoWebsite0000000001', 'includeScreenshot' => '0', 'authHeaderName' => 'X-Api-Key', 'authHeaderValue' => 'ignored', 'timeout' => '1'],
+        ], '', '');
+
+        self::assertTrue($settings->hub->isUsable());
+        self::assertSame('https://hub.example.com/in/s_8Fq2LmZx4RtY7vB1nKc3Wd9P', $settings->hub->url);
+        self::assertSame('whsec_localDevSecretDemoWebsite0000000001', $settings->hub->secret);
+        self::assertSame('', $settings->hub->authHeaderName, 'The Hub authenticates by signature only');
+        self::assertSame('', $settings->hub->authHeaderValue);
+        self::assertFalse($settings->hub->includeScreenshot);
+        self::assertSame(HubIntake::TIMEOUT_SECONDS, $settings->hub->timeoutSeconds);
+        self::assertSame('https://hub.example.com', $settings->hub->getDisplayTarget());
+        self::assertSame('https://hooks.example.com/hook', $settings->webhook->url, 'The webhook keeps its own settings');
+        self::assertSame('Bearer webhook-token', $settings->webhook->authHeaderValue);
+        self::assertSame(3, $settings->webhook->timeoutSeconds);
+    }
+
+    #[Test]
+    public function hubValuesThatCannotBelongToAHubSiteAreDropped(): void
+    {
+        $factory = $this->createFactory();
+        $hub = static fn(array $values) => $factory->fromArray(['hub' => $values + ['enabled' => '1']], '', '')->hub;
+
+        self::assertSame('', $hub(['url' => 'https://hooks.example.com/hook'])->url);
+        self::assertSame('', $hub(['url' => 'http://localhost:3210/in/s_demoWebsiteLocalDev000001'])->url, 'http needs the local Hub option');
+        self::assertSame('http://localhost:3210/in/s_demoWebsiteLocalDev000001', $hub(['url' => 'http://localhost:3210/in/s_demoWebsiteLocalDev000001', 'allowInsecureHttp' => '1'])->url);
+        self::assertSame('', $hub(['secret' => 'not-a-hub-secret'])->secret);
+        self::assertFalse($hub(['url' => 'https://hub.example.com/in/s_8Fq2LmZx4RtY7vB1nKc3Wd9P', 'enabled' => '0'])->isUsable());
+    }
+
+    #[Test]
+    public function theHubAddressForLinksIsTheTrustedLinkBase(): void
+    {
+        $factory = $this->createFactory();
+        $hub = static fn(array $values) => $factory->fromArray(['hub' => $values + ['enabled' => '1', 'url' => 'https://hub.example.com/in/s_8Fq2LmZx4RtY7vB1nKc3Wd9P']], '', '')->hub;
+
+        self::assertSame('https://hub.example.com/in/s_8Fq2LmZx4RtY7vB1nKc3Wd9P', $hub([])->getHubLinkBase(), 'Without it, the webhook URL');
+        self::assertSame('https://hub.example.org', $hub(['publicUrl' => 'https://hub.example.org/'])->getHubLinkBase());
+        self::assertSame('https://example.com/hub', $hub(['publicUrl' => 'https://example.com/hub'])->publicUrl);
+        self::assertSame('', $hub(['publicUrl' => 'http://localhost:3210'])->publicUrl, 'http needs the local Hub option');
+        self::assertSame('http://localhost:3210', $hub(['publicUrl' => 'http://localhost:3210', 'allowInsecureHttp' => '1'])->publicUrl);
+        foreach (['javascript:alert(1)', 'https://user:pass@hub.example.org', 'https://hub.example.org/?token=1', 'https://hub.example.org/#app', '//hub.example.org'] as $invalid) {
+            self::assertSame('', $hub(['publicUrl' => $invalid])->publicUrl, $invalid);
+            self::assertSame('https://hub.example.com/in/s_8Fq2LmZx4RtY7vB1nKc3Wd9P', $hub(['publicUrl' => $invalid])->getHubLinkBase());
+        }
+    }
+
+    #[Test]
+    public function hubValuesCanBeReadFromEnvironmentVariables(): void
+    {
+        $settings = $this->createFactory([
+            'CR_HUB_URL' => 'https://hub.example.com/in/s_8Fq2LmZx4RtY7vB1nKc3Wd9P',
+            'CR_HUB_SECRET' => 'whsec_localDevSecretDemoWebsite0000000001',
+            'CR_BAD_SECRET' => 'plain-value',
+        ])->fromArray(['hub' => ['enabled' => '1', 'url' => '%env(CR_HUB_URL)%', 'secret' => '%env(CR_HUB_SECRET)%']], '', '');
+
+        self::assertSame('https://hub.example.com/in/s_8Fq2LmZx4RtY7vB1nKc3Wd9P', $settings->hub->url);
+        self::assertSame('whsec_localDevSecretDemoWebsite0000000001', $settings->hub->secret);
+        self::assertSame('', $this->createFactory(['CR_BAD_SECRET' => 'plain-value'])->fromArray(['hub' => ['secret' => '%env(CR_BAD_SECRET)%']], '', '')->hub->secret);
     }
 
     /**

@@ -9,7 +9,7 @@ use TYPO3\CMS\Core\Registry;
 /**
  * Persists the settings managed in System > Context Reports > Settings in
  * the TYPO3 registry, one array per settings section (general, privacy,
- * reporting, email, webhook). Values set in the TYPO3 system configuration
+ * reporting, email, hub, webhook). Values set in the TYPO3 system configuration
  * override them, see SystemConfiguration.
  *
  * @internal

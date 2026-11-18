@@ -1,0 +1,9 @@
+"tt_content"
+,"uid","pid","CType","header","bodytext","colPos","sys_language_uid","l18n_parent","editlock"
+,95,60,"html","Markup for all languages","",0,-1,0,0
+"be_groups"
+,"uid","pid","title","tables_select","tables_modify","db_mountpoints","groupMods","file_mountpoints","file_permissions","allowed_languages","explicit_allowdeny","pagetypes_select","non_exclude_fields"
+,40,0,"German editors","pages,tt_content","pages,tt_content","2","web_layout,web_list","","readFolder,readFile","0,1","tt_content:CType:text,tt_content:CType:html","1",""
+"be_users"
+,"uid","pid","username","password","admin","usergroup","realName","email","lang","db_mountpoints","options","workspace_perms","disable","deleted","file_permissions"
+,41,0,"greta","$argon2i$v=19$m=65536,t=16,p=1$c29tZXNhbHQ$Kxt6ZxgHKVTLaRJGb0VBdGtYGYnTX0WNe4OHOfr5HDc",0,"14,40","Greta German","greta@example.com","default","",3,1,0,0,""

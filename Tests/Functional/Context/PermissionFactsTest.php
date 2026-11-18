@@ -8,14 +8,17 @@ use PHPUnit\Framework\Attributes\Test;
 use Priebera\ContextReporter\Context\CollectionRequest;
 use Priebera\ContextReporter\Context\ContextDocumentBuilder;
 use Priebera\ContextReporter\Context\Location\BackendLocationFactory;
+use Priebera\ContextReporter\Context\Subject\RecordAccess;
+use Priebera\ContextReporter\Context\Subject\SubjectNotAvailableException;
 use Priebera\ContextReporter\Tests\Functional\AbstractContextReporterTestCase;
 use TYPO3\CMS\Core\Localization\LanguageServiceFactory;
 
 /**
  * "context.permissions": permission facts of the reporter, never a decision.
  * The fixture (permissions.csv) adds below "About" [2] a page locked for
- * editing [60] that the group "Readers" may only show, with a locked German
- * HTML element [92]; and a page [61] whose TSconfig disables "header" for all
+ * editing [60] that the group "Readers" may only show, with a locked HTML
+ * element [92], its German translation [94] and the German page translation
+ * [62]; and a page [61] whose TSconfig disables "header" for all
  * and "subheader" for text elements, with a text element [93]. Rita [16] is a
  * reader: no table may be modified, English only, text elements only, the
  * file mount /user_upload/ read-only, file permissions read, write and add
@@ -60,9 +63,37 @@ final class PermissionFactsTest extends AbstractContextReporterTestCase
         self::assertSame(['modify' => false], $permissions['table'] ?? null);
         self::assertSame(['uid' => 60, 'show' => true, 'editPage' => false, 'deletePage' => false, 'newPages' => false, 'editContent' => false], $permissions['page'] ?? null);
         self::assertSame(['page' => true, 'record' => true], $permissions['editLock'] ?? null);
-        self::assertSame(['id' => 1, 'allowed' => false], $permissions['language'] ?? null);
+        self::assertSame(['id' => 0, 'allowed' => true], $permissions['language'] ?? null);
         self::assertSame([['field' => 'CType', 'value' => 'html', 'allowed' => false]], $permissions['recordType'] ?? null);
         self::assertNotContains('hidden', array_column($permissions['fields']['notAllowed'] ?? [], 'field'), 'Rita may edit "Hidden"');
+    }
+
+    #[Test]
+    public function translationsInALanguageTheReporterMayNotUseAreNotAvailable(): void
+    {
+        // Rita may use English only: TYPO3's page and list modules do not show her the German records
+        $this->loginBackendUser(self::RITA);
+        $recordAccess = $this->get(RecordAccess::class);
+        self::assertNull($recordAccess->findRecord('tt_content', 94, $GLOBALS['BE_USER']), 'German content element');
+        self::assertNull($recordAccess->findPage(62, $GLOBALS['BE_USER']), 'German page translation');
+        self::assertNull($recordAccess->findRecord('pages', 62, $GLOBALS['BE_USER']));
+        self::assertNotNull($recordAccess->findRecord('tt_content', 92, $GLOBALS['BE_USER']), 'The default language stays available');
+        self::assertNotNull($recordAccess->findPage(60, $GLOBALS['BE_USER']));
+
+        foreach ([['type' => 'record', 'table' => 'tt_content', 'uid' => 94], ['type' => 'page', 'uid' => 62]] as $target) {
+            try {
+                $this->permissions($target);
+                self::fail('The translation must not be resolved: ' . json_encode($target));
+            } catch (SubjectNotAvailableException) {
+                // Same answer as for any other object the reporter may not see
+            }
+        }
+
+        // Without a language restriction the translation is available
+        $this->loginBackendUser(self::ADMIN);
+        self::assertNotNull($this->get(RecordAccess::class)->findRecord('tt_content', 94, $GLOBALS['BE_USER']));
+        self::assertNotNull($this->get(RecordAccess::class)->findPage(62, $GLOBALS['BE_USER']));
+        self::assertSame([], $this->permissions(['type' => 'record', 'table' => 'tt_content', 'uid' => 94]), 'Resolved; administrators have no permission facts');
     }
 
     #[Test]

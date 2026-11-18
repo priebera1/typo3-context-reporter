@@ -14,6 +14,7 @@ use Priebera\ContextReporter\Domain\DeliveryAttempt;
 use Priebera\ContextReporter\Domain\DeliveryStatus;
 use Priebera\ContextReporter\Export\ReportCopyTexts;
 use Priebera\ContextReporter\Export\ReportPayloadFactory;
+use Priebera\ContextReporter\Hub\HubAcknowledgement;
 use Priebera\ContextReporter\Presentation\SubjectPresenter;
 use Priebera\ContextReporter\Report\InvalidReportInputException;
 use Priebera\ContextReporter\Report\InvalidScreenshotException;
@@ -161,8 +162,15 @@ final readonly class ReportAjaxController
             'destination' => $attempt->destination,
             'label' => $this->translate('destination.' . $attempt->destination),
             'successful' => $attempt->status === DeliveryStatus::Succeeded,
+            // Failed without the Hub's answer, but the Hub may have stored it (a retry is safe): not "not sent". Only
+            // HubAcknowledgement writes the marker, for any destination whose answer it judges.
+            'unconfirmed' => $attempt->status === DeliveryStatus::Failed && HubAcknowledgement::isUnconfirmed($attempt->message),
             'externalReference' => $attempt->externalReference,
             'externalUrl' => $attempt->externalUrl,
+            // The Hub received the report but did not store its screenshot (e.g. its storage is full)
+            'screenshotNotStored' => $attempt->status === DeliveryStatus::Succeeded && $attempt->hubReceipt?->hasOmittedScreenshots() === true
+                ? ['count' => $attempt->hubReceipt->getOmittedScreenshots(), 'reason' => $attempt->hubReceipt->getPrimaryReason()]
+                : null,
         ], $result->attempts);
 
         return new JsonResponse([
@@ -179,7 +187,7 @@ final readonly class ReportAjaxController
                 'json' => $this->buildDownloadUrl($report->identifier, 'json'),
                 'screenshot' => $report->screenshot !== null ? $this->buildDownloadUrl($report->identifier, 'screenshot', ['download' => '1']) : '',
             ]),
-            'historyUrl' => $backendUser->isAdmin()
+            'historyUrl' => $this->accessPolicy->canUseReportsModule($backendUser)
                 ? (string)$this->uriBuilder->buildUriFromRoute(BackendLinkBuilder::REPORT_MODULE . '.show', ['report' => $report->identifier])
                 : '',
             // The reporter reviewed this data before sending; the JSON has no screenshot content

@@ -17,7 +17,7 @@ answers this question automatically:
 
 ..  code-block:: text
 
-    problem → reporter → structured report → download / email / webhook → external system
+    problem → reporter → structured report → download / email / Hub / webhook → external system
 
 An editor can start a report where the object is:
 
@@ -156,7 +156,8 @@ workflows, assignments, priorities, comments, due dates, SLAs or time
 tracking, and no native Jira, GitLab, GitHub or Slack connectors. The local
 :guilabel:`Context Reports` module is an audit log with manual retry, copy
 and download actions, and a simple :ref:`open/resolved marker <usage-review>`.
-Use the :ref:`webhook <integration-webhook>` to connect any other system.
+Use the :ref:`webhook <integration-webhook>` to connect any other system, or
+send reports to the inbox of :ref:`Context Reporter Hub <integration-hub>`.
 
 All features are part of the extension. There is no paid edition that unlocks
 functionality.

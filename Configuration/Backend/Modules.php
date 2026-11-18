@@ -6,13 +6,15 @@ use Priebera\ContextReporter\Controller\ReportModuleController;
 use Priebera\ContextReporter\Controller\ReportSettingsController;
 
 /**
- * System > Context Reports: report history and settings, administrators only.
+ * System > Context Reports: the report history for administrators and for backend users or groups an
+ * administrator granted this module (Access Rights > Modules). The settings and their actions, the
+ * connection tests and deleting a report stay administrator-only; the controllers check that per action.
  * State-changing routes only accept POST; all routes require the route token.
  */
 return [
     ReportModuleController::MODULE => [
         'parent' => 'system',
-        'access' => 'admin',
+        'access' => 'user',
         'workspaces' => '*',
         'path' => '/module/system/context-reports',
         'iconIdentifier' => 'module-context-reporter',
@@ -49,6 +51,10 @@ return [
             ],
             'testEmail' => [
                 'target' => ReportSettingsController::class . '::testEmailAction',
+                'methods' => ['POST'],
+            ],
+            'testHub' => [
+                'target' => ReportSettingsController::class . '::testHubAction',
                 'methods' => ['POST'],
             ],
             'testWebhook' => [

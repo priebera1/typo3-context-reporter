@@ -51,6 +51,7 @@ Installation with Composer
 
     composer require priebera/typo3-context-reporter
     vendor/bin/typo3 extension:setup
+    vendor/bin/typo3 cache:flush
 
 The setup creates three database tables for reports, screenshots and the
 delivery history, see :ref:`privacy-storage`. The extension also adds its
@@ -72,7 +73,7 @@ Composer), install the ZIP file from the
     automatically after download from TER or file upload`.
 #.  Open :guilabel:`Admin Tools > Extensions` (:guilabel:`System >
     Extensions` in TYPO3 14), choose :guilabel:`Upload Extension` and upload
-    the ZIP file, for example :file:`context_reporter_0.3.0.zip`. Keep the
+    the ZIP file, for example :file:`context_reporter_0.4.0.zip`. Keep the
     file name: the Extension Manager reads the extension key from it.
 #.  Click :guilabel:`Activate` next to :guilabel:`Context Reporter` (and
     confirm in TYPO3 14). The activation creates the database tables.
@@ -97,9 +98,11 @@ First steps
 #.  Open :guilabel:`System > Context Reports` and click
     :guilabel:`Settings` at the top right.
 #.  Set a project name and environment, and configure the
-    :ref:`email <configuration-email>` or :ref:`webhook <configuration-webhook>`
-    destination. Check the :guilabel:`Status` panel and use
-    :guilabel:`Send test email` or :guilabel:`Send test webhook`.
+    :ref:`email <configuration-email>`,
+    :ref:`Context Reporter Hub <configuration-hub>` or
+    :ref:`webhook <configuration-webhook>` destination. Check the
+    :guilabel:`Status` panel and use :guilabel:`Send test email`,
+    :guilabel:`Test connection` or :guilabel:`Send test webhook`.
 #.  Switch the destination on, click :guilabel:`Report a problem` in the
     backend toolbar and send a first report.
 #.  Check the delivery in :guilabel:`System > Context Reports`.
@@ -109,5 +112,5 @@ and can be downloaded as JSON or Markdown.
 
 Decide early how long reports should be kept: the default retention keeps
 them forever, see :ref:`usage-retention`. If administrators should not be
-able to change the webhook destination, pin it in the system configuration,
-see :ref:`privacy-webhook-boundary`.
+able to change the webhook or Hub destination, pin it in the system
+configuration, see :ref:`privacy-webhook-boundary`.

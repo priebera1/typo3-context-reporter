@@ -65,14 +65,28 @@ final readonly class VisibilityNoticeBuilder
                 $notices[] = sprintf($this->label('visibility.parentPage', $languageService), $this->string($parent, 'title'), implode(self::SEPARATOR, $parentFacts));
             }
         }
-        return [...$notices, ...$this->describeTranslations($this->list($visibility, 'translations'), $languageService, $serverTimeZone)];
+        return [...$notices, ...$this->describeTranslations($this->list($visibility, 'translations'), $this->recordNoun($document, $languageService), $languageService, $serverTimeZone)];
+    }
+
+    /**
+     * What the "record" entries of the translations are about, so they cannot be mistaken for the page entries:
+     * "Content element not translated into: German" next to "Page not translated into: German".
+     */
+    private function recordNoun(ContextDocument $document, LanguageService $languageService): string
+    {
+        $table = $this->string($document->getSubject(), 'table');
+        if ($table === 'tt_content') {
+            return $this->label('visibility.contentElement', $languageService);
+        }
+        $title = $table !== '' ? $this->tca->getTableTitle($table, $languageService) : '';
+        return $title !== '' ? $title : $this->label('visibility.record', $languageService);
     }
 
     /**
      * @param list<array<array-key, mixed>> $translations
      * @return list<string>
      */
-    private function describeTranslations(array $translations, LanguageService $languageService, string $serverTimeZone): array
+    private function describeTranslations(array $translations, string $recordNoun, LanguageService $languageService, string $serverTimeZone): array
     {
         $notices = [];
         $missing = ['page' => [], 'record' => []];
@@ -82,7 +96,7 @@ final readonly class VisibilityNoticeBuilder
             if (($translation['enabled'] ?? true) === false) {
                 $disabled[] = $language;
             }
-            foreach (['page' => 'visibility.pageTranslation', 'record' => 'visibility.translation'] as $key => $labelKey) {
+            foreach (['page' => 'visibility.pageTranslation', 'record' => 'visibility.recordTranslation'] as $key => $labelKey) {
                 $state = $this->array($translation, $key);
                 if ($state === []) {
                     continue;
@@ -93,7 +107,9 @@ final readonly class VisibilityNoticeBuilder
                 }
                 $facts = $this->describe($state, $languageService, $serverTimeZone);
                 if ($facts !== []) {
-                    $notices[] = sprintf($this->label($labelKey, $languageService), $language, implode(self::SEPARATOR, $facts));
+                    $notices[] = $key === 'page'
+                        ? sprintf($this->label($labelKey, $languageService), $language, implode(self::SEPARATOR, $facts))
+                        : sprintf($this->label($labelKey, $languageService), $recordNoun, $language, implode(self::SEPARATOR, $facts));
                 }
             }
         }
@@ -101,7 +117,7 @@ final readonly class VisibilityNoticeBuilder
             $notices[] = sprintf($this->label('visibility.pageNotTranslated', $languageService), implode(', ', $missing['page']));
         }
         if ($missing['record'] !== []) {
-            $notices[] = sprintf($this->label('visibility.notTranslated', $languageService), implode(', ', $missing['record']));
+            $notices[] = sprintf($this->label('visibility.recordNotTranslated', $languageService), $recordNoun, implode(', ', $missing['record']));
         }
         if ($disabled !== []) {
             $notices[] = sprintf($this->label('visibility.languageDisabled', $languageService), implode(', ', $disabled));

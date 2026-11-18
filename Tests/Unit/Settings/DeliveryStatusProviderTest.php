@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Priebera\ContextReporter\Tests\Unit\Settings;
 
 use PHPUnit\Framework\Attributes\Test;
+use Priebera\ContextReporter\Configuration\ExtensionSettingsFactory;
 use Priebera\ContextReporter\Delivery\Email\MailConfigurationInspector;
 use Priebera\ContextReporter\Settings\DeliveryStatusProvider;
 use Priebera\ContextReporter\Settings\SecretState;
@@ -69,6 +70,20 @@ final class DeliveryStatusProviderTest extends UnitTestCase
         $exported = var_export($status, true);
         self::assertStringNotContainsString('mailer-user', $exported);
         self::assertStringNotContainsString('mailer-password', $exported);
+    }
+
+    #[Test]
+    public function aCustomTemplateIsPointedOutBecauseItIsSentAsPlainTextOnly(): void
+    {
+        $email = ['enabled' => '1', 'recipients' => 'support@example.com', 'senderAddress' => 'portal@example.com'];
+        $custom = $this->createProvider(['email' => $email + ['bodyTemplate' => 'EXT:my_sitepackage/Resources/Private/Templates/Email/Short.txt']])->getEmailStatus();
+        self::assertSame(['email.customTemplatePlainText'], $this->keys($custom->messages));
+        self::assertSame(StatusMessage::INFO, $custom->messages[0]->severity);
+        self::assertTrue($custom->isReady());
+
+        // Plain text anyway, or the shipped template: nothing to point out
+        self::assertSame([], $this->createProvider(['email' => $email + ['bodyTemplate' => 'EXT:my_sitepackage/Resources/Private/Templates/Email/Short.txt', 'htmlVersion' => '0']])->getEmailStatus()->messages);
+        self::assertSame([], $this->createProvider(['email' => $email + ['bodyTemplate' => ExtensionSettingsFactory::DEFAULT_BODY_TEMPLATE]])->getEmailStatus()->messages);
     }
 
     #[Test]
@@ -177,6 +192,70 @@ final class DeliveryStatusProviderTest extends UnitTestCase
         self::assertSame(SecretState::EnvironmentUnavailable, $missing->endpoint);
         self::assertSame(['webhook.endpointEnvironment', 'webhook.authEnvironment', 'webhook.unsigned'], $this->keys($missing->messages));
         self::assertSame(['CR_MISSING'], $missing->messages[0]->arguments);
+    }
+
+    #[Test]
+    public function completeHubConnectionIsReadyAndOnlyShowsSchemeAndHost(): void
+    {
+        $status = $this->createProvider(['hub' => [
+            'enabled' => '1',
+            'url' => 'https://hub.example.com/in/s_8Fq2LmZx4RtY7vB1nKc3Wd9P',
+            'secret' => 'whsec_8Fq2LmZx4RtY7vB1nKc3Wd9PaQ5sT0uV',
+        ]])->getHubStatus();
+
+        self::assertTrue($status->isReady());
+        self::assertTrue($status->canSendTest());
+        self::assertSame([], $status->messages);
+        self::assertSame(SecretState::Configured, $status->endpoint);
+        self::assertSame('https://hub.example.com', $status->endpointTarget);
+        self::assertSame(SecretState::Configured, $status->signature);
+        $exported = var_export($status, true);
+        self::assertStringNotContainsString('s_8Fq2LmZx4RtY7vB1nKc3Wd9P', $exported);
+        self::assertStringNotContainsString('whsec_', $exported);
+    }
+
+    #[Test]
+    public function incompleteHubConnectionIsExplained(): void
+    {
+        $empty = $this->createProvider([])->getHubStatus();
+        self::assertSame(['hub.disabled', 'hub.noEndpoint', 'hub.noSecret'], $this->keys($empty->messages));
+        self::assertFalse($empty->canSendTest());
+
+        $wrong = $this->createProvider(['hub' => ['enabled' => '1', 'url' => 'https://hooks.example.com/hook', 'secret' => 'plain-secret']])->getHubStatus();
+        self::assertSame(SecretState::Invalid, $wrong->endpoint);
+        self::assertSame(SecretState::Invalid, $wrong->signature);
+        self::assertSame(['hub.endpointInvalid', 'hub.secretInvalid'], $this->keys($wrong->messages));
+        self::assertFalse($wrong->isReady());
+
+        $local = $this->createProvider(['hub' => ['enabled' => '1', 'url' => 'http://localhost:3210/in/s_demoWebsiteLocalDev000001', 'allowInsecureHttp' => '1', 'secret' => 'whsec_localDevSecretDemoWebsite0000000001']])->getHubStatus();
+        self::assertTrue($local->isReady());
+        self::assertSame(['hub.insecure'], $this->keys($local->messages));
+
+        $environment = $this->createProvider(
+            ['hub' => ['enabled' => '1', 'url' => '%env(CR_HUB_URL)%', 'secret' => '%env(CR_HUB_SECRET)%']],
+            ['CR_HUB_URL' => 'https://hub.example.com/in/s_8Fq2LmZx4RtY7vB1nKc3Wd9P'],
+        )->getHubStatus();
+        self::assertSame(SecretState::Environment, $environment->endpoint);
+        self::assertSame('', $environment->endpointTarget);
+        self::assertSame(SecretState::EnvironmentUnavailable, $environment->signature);
+        self::assertSame(['hub.secretEnvironment'], $this->keys($environment->messages));
+        self::assertSame(['CR_HUB_SECRET'], $environment->messages[0]->arguments);
+        self::assertFalse($environment->canSendTest());
+    }
+
+    #[Test]
+    public function aWebhookToTheSameHubSiteIsPointedOut(): void
+    {
+        $hub = ['enabled' => '1', 'url' => 'https://hub.example.com/in/s_8Fq2LmZx4RtY7vB1nKc3Wd9P', 'secret' => 'whsec_8Fq2LmZx4RtY7vB1nKc3Wd9PaQ5sT0uV'];
+
+        $twice = $this->createProvider(['hub' => $hub, 'webhook' => ['enabled' => '1', 'url' => $hub['url'], 'secret' => $hub['secret']]])->getHubStatus();
+        self::assertSame(['hub.alsoWebhook'], $this->keys($twice->messages));
+        self::assertTrue($twice->isReady(), 'The Hub keeps one report per report ID');
+
+        $other = $this->createProvider(['hub' => $hub, 'webhook' => ['enabled' => '1', 'url' => 'https://hooks.example.com/hook']])->getHubStatus();
+        self::assertSame([], $this->keys($other->messages));
+        $webhookOff = $this->createProvider(['hub' => $hub, 'webhook' => ['enabled' => '0', 'url' => $hub['url']]])->getHubStatus();
+        self::assertSame([], $this->keys($webhookOff->messages));
     }
 
     /**

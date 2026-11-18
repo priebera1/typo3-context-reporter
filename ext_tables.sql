@@ -62,6 +62,7 @@ CREATE TABLE tx_contextreporter_delivery (
 	external_reference varchar(255) DEFAULT '' NOT NULL,
 	external_url text,
 	duration_ms int(11) unsigned DEFAULT '0' NOT NULL,
+	hub_receipt text,
 
 	PRIMARY KEY (uid),
 	KEY report (report_uid,destination)

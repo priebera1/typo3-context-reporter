@@ -136,6 +136,30 @@ mail transport is ``null``, ``mbox``, a spool or a local mail catcher such as
 Mailpit in DDEV. Use :guilabel:`Send test email` after every change. The
 delivery history of a report shows transport errors without credentials.
 
+..  _troubleshooting-hub:
+
+Hub deliveries fail
+===================
+
+*   Check the :guilabel:`Status` panel on the :guilabel:`Context Reporter Hub`
+    tab and use :guilabel:`Test connection`. The message names the cause, see
+    :ref:`integration-hub-test`.
+*   A rotated secret makes every delivery fail with HTTP 401: save the new
+    secret and retry the failed deliveries in the delivery history. The Hub
+    creates each report once.
+*   :guilabel:`The Hub could not be reached`: TYPO3 cannot reach the address
+    of the webhook URL, for example because of a firewall, a proxy, DNS, or a
+    container whose network differs from the browser's. See
+    :ref:`integration-hub-local`.
+*   :guilabel:`the Hub did not confirm the report`: the address answered with
+    a ``2xx`` status, but not with a Hub reference, for example a proxy or a
+    connection that broke off during the answer. Retry the delivery; the Hub
+    creates each report once.
+*   The reference is shown without a link: the link of the Hub did not point
+    to the trusted Hub address. When TYPO3 reaches the Hub at another
+    address than the browser, set :confval:`setting-hub-publicurl`, see
+    :ref:`integration-hub-local`.
+
 ..  _troubleshooting-webhook:
 
 Webhook deliveries fail
@@ -149,7 +173,11 @@ Webhook deliveries fail
 *   A missing environment variable is shown as such in the status panel.
 *   The delivery history shows the HTTP status code and the beginning of the
     response body.
-*   Slow endpoints fail after :confval:`setting-webhook-timeout` seconds.
+*   Slow endpoints fail after :confval:`setting-webhook-timeout` seconds, which
+    include the answer: an answer that has not arrived completely by then is
+    not read. The delivery still counts as delivered when the status was
+    ``2xx``, but without a ticket reference; the same applies to answers
+    larger than 64 KB.
 *   For the n8n workflow, see :ref:`integration-n8n-troubleshooting`.
 
 ..  _troubleshooting-screenshot:
@@ -164,6 +192,9 @@ A report with a screenshot cannot be sent
 *   The database rejects the query: ``max_allowed_packet`` of MariaDB or
     MySQL must be larger than the screenshot limit, see
     :ref:`privacy-storage`.
+*   :guilabel:`The screenshot did not arrive completely or is damaged`: the
+    upload was cut off, or the image file is corrupted. Send the report again;
+    pasted or uploaded images that a browser cannot show are refused as well.
 
 ..  _troubleshooting-capture:
 
@@ -184,13 +215,31 @@ shows "Could not be copied to clipboard". Use :guilabel:`Download` instead.
 
 ..  _troubleshooting-database:
 
-The report history shows a database error
-=========================================
+Database update required, deliveries "Not sent"
+================================================
 
-The database schema is older than the extension. Run
-``vendor/bin/typo3 extension:setup`` or
-:guilabel:`Admin Tools > Maintenance > Analyze Database Structure`, see
+The database tables are older than the installed version (typically after an
+update without the database step). :guilabel:`System > Context Reports` and
+its settings name the missing columns; reports are saved but not sent.
+Run ``vendor/bin/typo3 extension:setup`` as a user who can write
+:file:`var/cache`, or
+:guilabel:`Admin Tools > Maintenance > Analyze Database Structure`, flush the
+caches and retry the deliveries marked "Not sent", see
 :ref:`upgrade-procedure`.
+
+..  _troubleshooting-sending:
+
+A delivery stays "Sending"
+==========================
+
+Every delivery is recorded as "Sending" before it leaves the installation,
+and its result replaces it right afterwards. While one is being sent, a
+second retry of the same delivery (another administrator, a double click)
+sends nothing and says so. A delivery that still reads "Sending" after ten
+minutes was interrupted (the PHP process ended, the database was not
+reachable) before its result was recorded: it may have been sent. Check the
+destination (the mailbox, the receiving system) before you retry it; the
+Hub stores a report ID only once, so retrying the Hub is safe.
 
 ..  _troubleshooting-readonly:
 

@@ -9,7 +9,7 @@
     <f:asset.css identifier="context-reporter" href="EXT:context_reporter/Resources/Public/Css/context-reporter.css" />
     <f:asset.module identifier="@typo3/backend/modal.js" />
     <f:variable name="ll" value="LLL:EXT:context_reporter/Resources/Private/Language/locallang_module.xlf:" />
-    <f:variable name="createdAt"><f:format.date format="Y-m-d H:i">{report.createdAt}</f:format.date></f:variable>
+    <f:variable name="createdAt"><f:format.date format="Y-m-d H:i T">{report.createdAt}</f:format.date></f:variable>
 
     <div class="cr-page-header cr-report-header">
         <div class="cr-report-header__main">
@@ -28,7 +28,7 @@
             <f:if condition="{resolved}">
                 <f:then>
                     <p class="cr-report-header__review cr-muted">
-                        <f:variable name="resolvedAt"><f:format.date format="Y-m-d H:i">{report.resolvedAt}</f:format.date></f:variable>
+                        <f:variable name="resolvedAt"><f:format.date format="Y-m-d H:i T">{report.resolvedAt}</f:format.date></f:variable>
                         <f:if condition="{resolvedBy}">
                             <f:then><f:translate key="{ll}show.resolvedBy" arguments="{0: resolvedAt, 1: resolvedBy}" /></f:then>
                             <f:else><f:translate key="{ll}show.resolvedAt" arguments="{0: resolvedAt}" /></f:else>
@@ -113,7 +113,7 @@
                             <f:if condition="{subjectUrl}">
                                 <a class="btn btn-default" href="{subjectUrl}">
                                     <core:icon identifier="{subjectUrlIcon}" size="small" />
-                                    <f:translate key="{ll}show.openSubject" />
+                                    <f:translate key="{ll}{subjectUrlLabel}" />
                                 </a>
                             </f:if>
                             <f:if condition="{metadataUrl}">
@@ -234,7 +234,7 @@
                                         </div>
                                         <p class="cr-delivery__details cr-muted">
                                             <span><f:translate key="{ll}delivery.attempt" arguments="{0: item.attempt.attempt}" /></span>
-                                            <f:if condition="{item.attempt.target}"><span>{item.attempt.target}</span></f:if>
+                                            <f:if condition="{item.target}"><span>{item.target}</span></f:if>
                                             <f:if condition="{item.attempt.responseCode}"><span>HTTP {item.attempt.responseCode}</span></f:if>
                                             <f:if condition="{item.triggeredBy}"><span><f:translate key="{ll}delivery.triggeredBy" arguments="{0: item.triggeredBy}" /></span></f:if>
                                         </p>
@@ -246,6 +246,16 @@
                                                     <f:else>{item.externalReference}</f:else>
                                                 </f:if>
                                             </p>
+                                        </f:if>
+                                        <f:if condition="{item.hubScreenshotReason}">
+                                            <p class="cr-delivery__notice">
+                                                <core:icon identifier="actions-exclamation-triangle" size="small" />
+                                                <f:translate key="{ll}delivery.hubScreenshot.notStored" />
+                                                <f:translate key="{ll}delivery.hubScreenshot.reason.{item.hubScreenshotReason}" />
+                                            </p>
+                                        </f:if>
+                                        <f:if condition="{item.hubStorage}">
+                                            <p class="cr-delivery__notice"><f:translate key="{ll}hub.storage.{item.hubStorage}" /></p>
                                         </f:if>
                                         <f:if condition="{item.message} && !{item.successful}">
                                             <p class="cr-delivery__message">{item.message}</p>
@@ -308,6 +318,7 @@
         </details>
     </section>
 
+    <f:if condition="{deleteUrl}">
     <section class="card cr-card cr-danger-zone" aria-labelledby="cr-delete-heading">
         <div class="card-body">
             <div class="cr-danger-zone__text">
@@ -333,5 +344,6 @@
             </form>
         </div>
     </section>
+    </f:if>
 </f:section>
 </html>

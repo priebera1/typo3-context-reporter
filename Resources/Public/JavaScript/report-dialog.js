@@ -17,6 +17,7 @@ import { label } from '@priebera/context-reporter/labels.js';
 import { OPEN_EVENT } from '@priebera/context-reporter/report-request.js';
 import { buildResultView, describeResult } from '@priebera/context-reporter/report-result.js';
 import { buildFindings } from '@priebera/context-reporter/findings.js';
+import { needsDiscardConfirmation, setFieldError, shouldFocusEditor } from '@priebera/context-reporter/dialog-state.js';
 import {
   ScreenshotError,
   canvasFromFile,
@@ -83,14 +84,19 @@ class ReportDialog {
     this.suspended = false;
     this.capturing = false;
     this.root = h('div', { class: 'cr-dialog' });
-    this.errorBox = h('div', { class: 'alert alert-danger cr-dialog__error', role: 'alert', hidden: true });
+    this.errorBox = h('div', { id: uniqueId('cr-error'), class: 'alert alert-danger cr-dialog__error', role: 'alert', hidden: true });
+    this.discardConfirmed = false;
+    this.discardBox = this.createDiscardBox();
     this.pasteListener = (event) => this.handlePaste(event);
+    // Capture phase: runs before TYPO3's modal (Bootstrap in TYPO3 13, <dialog> in 14) closes on Escape
+    this.keydownListener = (event) => this.handleKeydown(event);
   }
 
   open() {
     this.renderLoading();
     this.showModal();
     document.addEventListener('paste', this.pasteListener);
+    document.addEventListener('keydown', this.keydownListener, true);
     this.prepare();
   }
 
@@ -100,6 +106,89 @@ class ReportDialog {
 
   close() {
     this.modal?.hideModal();
+  }
+
+  /**
+   * Cancel, the close button and Escape: a screenshot is not part of the
+   * draft, so closing with one asks first. Without a screenshot the dialog
+   * closes at once.
+   */
+  requestClose() {
+    if (this.mustConfirmDiscard()) {
+      this.showDiscardPrompt();
+      return;
+    }
+    this.close();
+  }
+
+  /**
+   * @returns {boolean}
+   */
+  mustConfirmDiscard() {
+    return this.state === 'form' && !this.discardConfirmed && !this.suspended && needsDiscardConfirmation(this.editor?.describe());
+  }
+
+  createDiscardBox() {
+    const titleId = uniqueId('cr-discard-title');
+    this.keepEditingButton = h('button', { type: 'button', class: 'btn btn-default', onclick: () => this.hideDiscardPrompt(true) }, label('discard.keep'));
+    return h('section', { class: 'alert alert-warning cr-dialog__discard', role: 'group', 'aria-labelledby': titleId, hidden: true },
+      h('p', { class: 'cr-dialog__discard-title', id: titleId }, h('strong', {}, label('discard.question'))),
+      h('p', {}, label('discard.hint')),
+      h('div', { class: 'cr-dialog__discard-actions' },
+        this.keepEditingButton,
+        h('button', {
+          type: 'button',
+          class: 'btn btn-warning',
+          onclick: () => {
+            this.discardConfirmed = true;
+            this.close();
+          },
+        }, label('discard.confirm')),
+      ),
+    );
+  }
+
+  showDiscardPrompt() {
+    this.discardBox.hidden = false;
+    this.discardBox.scrollIntoView?.({ block: 'nearest' });
+    this.keepEditingButton.focus();
+  }
+
+  /**
+   * @param {boolean} returnFocus back to the screenshot editor
+   */
+  hideDiscardPrompt(returnFocus) {
+    if (this.discardBox.hidden) {
+      return;
+    }
+    this.discardBox.hidden = true;
+    if (returnFocus) {
+      this.editor?.focus();
+    }
+  }
+
+  /**
+   * @param {KeyboardEvent} event
+   */
+  handleKeydown(event) {
+    if (event.key !== 'Escape' || this.modal === null || this.state !== 'form') {
+      return;
+    }
+    if (!this.discardBox.hidden) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.hideDiscardPrompt(true);
+      return;
+    }
+    if (this.editor?.handlesEscape(event.target)) {
+      // Drops the selection or finishes a note; the dialog stays open
+      return;
+    }
+    if (this.mustConfirmDiscard()) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.showDiscardPrompt();
+    }
   }
 
   showModal() {
@@ -113,6 +202,21 @@ class ReportDialog {
     });
     modal.addEventListener('typo3-modal-hidden', () => this.handleHidden(modal));
     modal.addEventListener('typo3-modal-shown', () => this.applyButtonStates());
+    // The close button of the modal header
+    modal.addEventListener('click', (event) => {
+      if (event.target instanceof Element && event.target.closest('.t3js-modal-close') && this.mustConfirmDiscard()) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        this.showDiscardPrompt();
+      }
+    }, true);
+    // Any other way the modal is closed (cancelable in TYPO3 14)
+    modal.addEventListener('typo3-modal-hide', (event) => {
+      if (this.mustConfirmDiscard() && event.cancelable) {
+        event.preventDefault();
+        this.showDiscardPrompt();
+      }
+    });
     this.modal = modal;
   }
 
@@ -131,6 +235,7 @@ class ReportDialog {
       this.saveDraft();
     }
     document.removeEventListener('paste', this.pasteListener);
+    document.removeEventListener('keydown', this.keydownListener, true);
     this.editor?.destroy();
     this.editor = null;
     activeDialog = null;
@@ -166,11 +271,13 @@ class ReportDialog {
     this.hideError();
     const title = this.titleInput.value.trim();
     if (title === '') {
-      this.titleInput.classList.add('is-invalid');
-      this.titleInput.focus();
       this.showError(label('form.title.required'));
+      setFieldError(this.titleInput, this.errorBox, true);
+      this.titleInput.focus();
       return;
     }
+    setFieldError(this.titleInput, this.errorBox, false);
+    this.hideDiscardPrompt(false);
     this.setState('submitting');
     try {
       const formData = new FormData();
@@ -237,7 +344,10 @@ class ReportDialog {
       autocomplete: 'off',
       placeholder: label('form.title.placeholder'),
       oninput: () => {
-        this.titleInput.classList.remove('is-invalid');
+        if (this.titleInput.getAttribute('aria-invalid') === 'true' && this.titleInput.value.trim() !== '') {
+          setFieldError(this.titleInput, this.errorBox, false);
+          this.hideError();
+        }
         this.updatePreview();
       },
     });
@@ -267,8 +377,10 @@ class ReportDialog {
         h('div', { class: 'form-text cr-dialog__hint' }, h('span', {}, label('form.description.hint')), this.counter),
       ),
       this.renderScreenshotSection(),
+      this.renderSensitiveNotice(),
       this.renderTechnicalDetails(),
       this.renderDestinations(destinations),
+      this.discardBox,
       this.errorBox,
     );
 
@@ -383,9 +495,28 @@ class ReportDialog {
     },
     h('legend', { class: 'form-label' }, label('screenshot.legend')),
     h('p', { class: 'form-text' }, label('screenshot.privacy')),
+    // Redaction is manual: nothing in the image is detected or covered automatically
+    h('p', { class: 'form-text cr-screenshot__sensitive' }, icon('actions-exclamation-triangle'), ' ', h('strong', {}, label('screenshot.sensitive'))),
     this.screenshotEmpty,
     this.editorHost,
     h('div', { class: 'cr-screenshot__footer' }, this.screenshotStatus, this.removeScreenshotButton),
+    );
+  }
+
+  /**
+   * Guidance before sending, not a check: nothing in the report or the
+   * screenshot is scanned for secrets or redacted automatically.
+   */
+  renderSensitiveNotice() {
+    const titleId = uniqueId('cr-sensitive-title');
+    return h('section', { class: 'callout callout-info cr-sensitive', 'aria-labelledby': titleId },
+      h('div', { class: 'callout-content' },
+        h('div', { class: 'callout-title', id: titleId }, label('sensitive.title')),
+        h('div', { class: 'callout-body' },
+          h('p', {}, label('sensitive.secrets')),
+          h('p', {}, label('sensitive.context')),
+        ),
+      ),
     );
   }
 
@@ -441,6 +572,7 @@ class ReportDialog {
       return;
     }
     this.capturing = true;
+    const focusAtStart = document.activeElement;
     let canvas = null;
     try {
       await this.suspendModal();
@@ -452,7 +584,7 @@ class ReportDialog {
       this.capturing = false;
     }
     if (canvas) {
-      await this.setScreenshot(canvas);
+      await this.setScreenshot(canvas, focusAtStart);
     } else {
       this.showError(label('screenshot.error.captureFailed'));
     }
@@ -491,8 +623,9 @@ class ReportDialog {
       return;
     }
     this.hideError();
+    const focusAtStart = document.activeElement;
     try {
-      await this.setScreenshot(await canvasFromFile(file));
+      await this.setScreenshot(await canvasFromFile(file), focusAtStart);
     } catch (error) {
       const reason = error instanceof ScreenshotError ? error.reason : 'unsupportedFile';
       this.showError(label(`screenshot.error.${reason}`));
@@ -501,8 +634,9 @@ class ReportDialog {
 
   /**
    * @param {HTMLCanvasElement} canvas
+   * @param {Element|null} focusAtStart the focus when the screenshot was requested
    */
-  async setScreenshot(canvas) {
+  async setScreenshot(canvas, focusAtStart = null) {
     const { ScreenshotEditor } = await import('@priebera/context-reporter/screenshot/editor.js');
     this.editor?.destroy();
     this.screenshotEmpty.hidden = true;
@@ -510,9 +644,14 @@ class ReportDialog {
     this.editor = new ScreenshotEditor(this.editorHost, canvas, { onChange: () => this.handleScreenshotChange() });
     this.handleScreenshotChange();
     this.editorHost.scrollIntoView?.({ block: 'start', behavior: 'smooth' });
+    // The tool shortcuts (V, R, A, D, T, B) must reach the editor, not a text field
+    if (shouldFocusEditor(document.activeElement, focusAtStart)) {
+      this.editor.focus();
+    }
   }
 
   removeScreenshot() {
+    this.hideDiscardPrompt(false);
     this.editor?.destroy();
     this.editor = null;
     this.screenshotEmpty.hidden = false;
@@ -622,7 +761,7 @@ class ReportDialog {
     }
     const sends = (this.prepared?.destinations ?? []).length > 0;
     return [
-      { text: label('button.cancel'), name: 'cancel', btnClass: 'btn-default', trigger: () => this.close() },
+      { text: label('button.cancel'), name: 'cancel', btnClass: 'btn-default', trigger: () => this.requestClose() },
       { text: label('button.download'), name: 'download', icon: 'actions-download', btnClass: 'btn-default', trigger: () => this.submit('download') },
       { text: label(sends ? 'button.send' : 'button.save'), name: 'send', icon: 'actions-check', btnClass: 'btn-primary', trigger: () => this.submit('send') },
     ];

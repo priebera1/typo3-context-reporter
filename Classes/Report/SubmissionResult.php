@@ -16,10 +16,12 @@ final readonly class SubmissionResult
 {
     /**
      * @param list<DeliveryAttempt> $attempts
+     * @param bool $replayed The draft was submitted before: the stored report, nothing stored or delivered again
      */
     public function __construct(
         public Report $report,
         public array $attempts,
+        public bool $replayed = false,
     ) {}
 
     public function getDeliveryState(): DeliveryState

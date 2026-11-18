@@ -9,7 +9,7 @@ use Priebera\ContextReporter\Delivery\Email\MailConfigurationInspector;
 
 /**
  * Configured credentials that must be redacted from logged and displayed
- * error messages: webhook secrets and endpoint, mail transport credentials
+ * error messages: webhook and Hub secrets and endpoints, mail transport credentials
  * and database passwords. Database user names are too common to redact.
  *
  * @internal
@@ -26,7 +26,8 @@ final readonly class ConfiguredSecrets
      */
     public function get(): array
     {
-        $secrets = [...$this->settingsProvider->get()->webhook->getSecrets(), ...$this->mailConfiguration->getSecrets()];
+        $settings = $this->settingsProvider->get();
+        $secrets = [...$settings->webhook->getSecrets(), ...$settings->hub->getSecrets(), ...$this->mailConfiguration->getSecrets()];
         $connections = $GLOBALS['TYPO3_CONF_VARS']['DB']['Connections'] ?? [];
         foreach (is_array($connections) ? $connections : [] as $connection) {
             if (is_array($connection) && is_string($connection['password'] ?? null)) {

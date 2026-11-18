@@ -1,0 +1,125 @@
+<html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers" data-namespace-typo3-fluid="true">
+<f:comment>
+    The HTML part of the report email (Concept "Title block"). Fixed by the extension; the plain-text part stays the
+    customisable template. Every value is escaped by Fluid; links are http(s) URLs checked in ReportEmailModel.
+    Email-safe: tables, inline styles, system fonts, no images or remote resources; one style block for phones and
+    dark mode (Apple Mail, iOS Mail). Gmail and Outlook apps invert colours themselves.
+</f:comment>
+<f:variable name="sans" value="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;" />
+<f:variable name="mono" value="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace;" />
+<f:variable name="label" value="{sans}font-size:12px;line-height:16px;color:#5A676B;" />
+<f:variable name="value" value="{sans}font-size:14px;line-height:20px;color:#141A1D;" />
+<f:variable name="h2" value="margin:0;{sans}font-size:13px;line-height:18px;font-weight:600;color:#3B464A;" />
+<f:variable name="link" value="color:#0A545C;text-decoration:underline;" />
+<f:spaceless>
+<!DOCTYPE html>
+<html lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>{model.subjectLine}</title>
+{outlookHead -> f:format.raw()}
+<style>{css -> f:format.raw()}</style>
+</head>
+<body style="margin:0;padding:0;">
+<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#FFFFFF;opacity:0;">{model.preheader}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="bg-sheet" style="background:#F6F7F4;">
+<tr><td align="center" class="outer" style="padding:28px 16px;">
+<!--[if mso]><table role="presentation" width="640" cellpadding="0" cellspacing="0"><tr><td><![endif]-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="card bg-card bd" style="max-width:640px;background:#FFFFFF;border:1px solid #CCD5D3;">
+<tr><td class="px bd" style="padding:14px 28px;border-bottom:1px solid #CCD5D3;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+<td class="lnk" style="{sans}font-size:14px;line-height:20px;font-weight:700;color:#0A545C;">Context Reporter</td>
+<td align="right" class="t2 v" style="{sans}font-size:13px;line-height:20px;color:#3B464A;">{model.project.name}<f:if condition="{model.project.environment}">&nbsp; <span class="tag" style="display:inline-block;padding:0 6px;border:1px solid #93A3A3;border-radius:3px;font-size:12px;line-height:18px;color:#3B464A;">{model.project.environment}</span></f:if></td>
+</tr></table>
+</td></tr>
+<tr><td class="px" style="padding:24px 28px 16px;"><h1 class="h1 t1 v" style="margin:0;{sans}font-size:22px;line-height:29px;font-weight:600;color:#141A1D;">{model.title}</h1></td></tr>
+<tr><td class="px" style="padding:0 28px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="bd" style="border:1px solid #CCD5D3;border-top:0;">
+<tr>
+<td class="cell bd" valign="top" width="50%" style="padding:9px 12px;border-top:1px solid #CCD5D3;"><div class="t3" style="{label}">Report</div><div class="t1 v" style="padding-top:2px;{mono}font-size:13px;line-height:20px;color:#141A1D;">{model.reportId}</div></td>
+<f:if condition="{model.hub}">
+<f:then><td class="cell bd" valign="top" width="50%" style="padding:9px 12px;border-top:1px solid #CCD5D3;border-left:1px solid #CCD5D3;"><div class="t3" style="{label}">Context Reporter Hub</div><div class="t1" style="padding-top:2px;{value}"><f:if condition="{model.hub.url}"><f:then><a class="lnk" href="{model.hub.url}" style="{mono}font-size:13px;font-weight:600;{link}">{model.hub.reference}</a></f:then><f:else><span style="{mono}font-size:13px;font-weight:600;">{model.hub.reference}</span></f:else></f:if></div><div class="t3" style="{label}">Received by the Hub</div></td></f:then>
+<f:else><td class="cell bd" valign="top" width="50%" style="padding:9px 12px;border-top:1px solid #CCD5D3;border-left:1px solid #CCD5D3;"><div class="t3" style="{label}">Reported via</div><div class="t1 v" style="padding-top:2px;{value}">{model.source}</div></td></f:else>
+</f:if>
+</tr>
+<tr>
+<td class="cell bd" valign="top" width="50%" style="padding:9px 12px;border-top:1px solid #CCD5D3;"><div class="t3" style="{label}">Created</div><div class="t1" style="padding-top:2px;{value}">{model.created.local}</div><f:if condition="{model.created.utc}"><div class="t3" style="{label}">{model.created.utc}</div></f:if></td>
+<td class="cell bd" valign="top" width="50%" style="padding:9px 12px;border-top:1px solid #CCD5D3;border-left:1px solid #CCD5D3;"><div class="t3" style="{label}">Reported by</div><div class="t1 v" style="padding-top:2px;{value}">{model.reporter.primary}</div><div class="t3 v" style="{label}">{model.reporter.secondary}<f:if condition="{model.hub}"><f:if condition="{model.reporter.via}"><f:if condition="{model.reporter.secondary}"> · </f:if>via {model.reporter.via}</f:if></f:if></div></td>
+</tr>
+</table>
+</td></tr>
+<tr><td class="px" style="padding:26px 28px 8px;"><h2 class="t2" style="{h2}">What happened</h2></td></tr>
+<f:if condition="{model.description}">
+<f:then><tr><td class="px t1 v" style="padding:0 28px;{sans}font-size:15px;line-height:23px;color:#141A1D;white-space:pre-wrap;">{model.description}</td></tr></f:then>
+<f:else><tr><td class="px t3" style="padding:0 28px;{sans}font-size:14px;line-height:20px;color:#5A676B;">No description was given.</td></tr></f:else>
+</f:if>
+<tr><td class="px" style="padding:26px 28px 8px;"><h2 class="t2" style="{h2}">Where it happened</h2></td></tr>
+<tr><td class="px" style="padding:0 28px;">
+<div class="t1 v" style="{sans}font-size:17px;line-height:24px;font-weight:600;color:#141A1D;">{model.object.label}</div>
+<div class="t3 v" style="padding:0 0 12px;{sans}font-size:13px;line-height:20px;color:#5A676B;">{model.object.meta}<f:if condition="{model.object.identifier}"><f:if condition="{model.object.meta}"> · </f:if><span style="{mono}">{model.object.identifier}</span></f:if></div>
+<f:if condition="{model.object.factRows}">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+<f:for each="{model.object.factRows}" as="pair"><tr><f:for each="{pair}" as="fact"><td class="cell" valign="top" width="50%" style="padding:0 12px 10px 0;"><div class="t3" style="{label}">{fact.label}</div><div class="t1 v" style="{value}"><f:if condition="{fact.url}"><f:then><a class="lnk" href="{fact.url}" style="{link}">{fact.value}</a></f:then><f:else>{fact.value}</f:else></f:if></div></td></f:for></tr></f:for>
+</table>
+</f:if>
+<f:if condition="{model.object.action}"><div style="padding:2px 0 0;{sans}font-size:14px;line-height:20px;"><a class="lnk" href="{model.object.action.url}" style="{link}">{model.object.action.label}</a></div></f:if>
+</td></tr>
+<tr><td class="px" style="padding:26px 28px 8px;"><h2 class="t2" style="{h2}">Findings</h2></td></tr>
+<tr><td class="px" style="padding:0 28px;">
+<f:if condition="{model.findings}">
+<f:then>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="bg-panel bd" style="background:#F6F7F4;border:1px solid #CCD5D3;"><tr><td style="padding:12px 14px 8px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+<f:for each="{model.findings.groups}" as="group">
+<tr><td colspan="2" class="ta" style="padding:6px 0 4px;{sans}font-size:13px;line-height:18px;font-weight:600;color:#8A5A00;">{group.title}</td></tr>
+<f:for each="{group.items}" as="item"><tr><td valign="top" width="14" style="padding:8px 0 0;"><div class="mk" style="width:6px;height:6px;background:#8A5A00;font-size:0;line-height:0;">&nbsp;</div></td><td class="t1 v" style="padding:0 0 4px;{sans}font-size:15px;line-height:22px;color:#141A1D;">{item}</td></tr></f:for>
+</f:for>
+</table>
+<div class="t3" style="padding:6px 0 0;{sans}font-size:12px;line-height:18px;color:#5A676B;">{model.findings.note}</div>
+</td></tr></table>
+</f:then>
+<f:else><div class="t3" style="{sans}font-size:14px;line-height:20px;color:#5A676B;">No findings: nothing in the stored settings points to a cause.</div></f:else>
+</f:if>
+</td></tr>
+<f:if condition="{model.reportUrl}">
+<tr><td class="px" style="padding:26px 28px 2px;font-size:0;">
+<table role="presentation" class="bt" cellpadding="0" cellspacing="0" style="display:inline-table;margin:0 8px 8px 0;"><tr><td class="b1c" style="background:#0E6E78;border-radius:4px;"><a class="b1" href="{model.reportUrl}" style="color:#FFFFFF;border:1px solid #0E6E78;display:block;padding:10px 18px;border-radius:4px;{sans}font-size:15px;line-height:20px;font-weight:600;text-decoration:none;">Open report in TYPO3</a></td></tr></table>
+<f:if condition="{model.hub.url}"><table role="presentation" class="bt" cellpadding="0" cellspacing="0" style="display:inline-table;margin:0 8px 8px 0;"><tr><td class="b2c" style="background:#FFFFFF;border-radius:4px;"><a class="b2" href="{model.hub.url}" style="color:#0A545C;border:1px solid #0A545C;display:block;padding:10px 18px;border-radius:4px;{sans}font-size:15px;line-height:20px;font-weight:600;text-decoration:none;">Open in Context Reporter Hub</a></td></tr></table></f:if>
+</td></tr>
+<tr><td class="px t3" style="padding:0 28px;{label}line-height:18px;">The report opens in the Context Reports module and needs a TYPO3 backend login.</td></tr>
+</f:if>
+<f:if condition="{model.attachments}">
+<tr><td class="px" style="padding:26px 28px 8px;"><h2 class="t2" style="{h2}">Attachments</h2></td></tr>
+<tr><td class="px" style="padding:0 28px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+<f:for each="{model.attachments}" as="file"><tr><td valign="top" width="52" style="padding:2px 0 10px;"><span class="tag" style="display:inline-block;min-width:34px;padding:1px 4px;border:1px solid #93A3A3;border-radius:3px;text-align:center;{mono}font-size:11px;line-height:16px;color:#3B464A;">{file.tag}</span></td><td valign="top" style="padding:0 0 10px;"><div class="t1" style="{mono}font-size:13px;line-height:20px;color:#141A1D;word-break:break-all;">{file.name}</div><div class="t3" style="{label}">{file.detail}</div></td></tr></f:for>
+</table>
+</td></tr>
+</f:if>
+<tr><td class="px" style="padding:18px 28px 8px;"><h2 class="t2" style="{h2}">Technical context</h2></td></tr>
+<tr><td class="px t3" style="padding:0 28px;{label}line-height:18px;">Collected by Context Reporter in TYPO3.<f:if condition="{model.jsonAttached}"> Also in the attached JSON file.</f:if><f:if condition="{technicalMode} == 'omitted'"> It is too long for this formatted version: see the plain-text version of this email.</f:if></td></tr>
+<tr><td class="px" style="padding:0 28px 26px;">
+<f:if condition="{technicalMode} == 'columns'">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+<f:for each="{0: model.technical.left, 1: model.technical.right}" as="column" iteration="it"><td class="col" valign="top" width="50%" style="padding:0 {f:if(condition: it.isFirst, then: '14px', else: '0')} 0 0;">
+<f:for each="{column}" as="section"><div class="t2 bd" style="margin:14px 0 2px;padding:0 0 3px;border-bottom:1px solid #CCD5D3;{label}font-weight:600;line-height:17px;color:#3B464A;">{section.title}</div><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><f:for each="{section.rows}" as="row"><tr><td class="t3" valign="top" style="width:44%;padding:3px 8px 0 0;{label}line-height:17px;">{row.label}</td><td class="t2 tv" valign="top" style="padding:3px 0 0;{label}line-height:17px;color:#3B464A;">{row.value}</td></tr></f:for></table></f:for>
+</td></f:for>
+</tr></table>
+</f:if>
+<f:if condition="{technicalMode} == 'text'"><div class="t2 tv" style="padding:12px 0 0;{mono}font-size:12px;line-height:17px;color:#3B464A;white-space:pre-wrap;">{technicalText}</div></f:if>
+</td></tr>
+</table>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;">
+<tr><td class="px t3" style="padding:16px 28px 0;{label}line-height:18px;">{model.footer.sentBy}<f:if condition="{model.footer.reply}"> {model.footer.reply}</f:if><br>You receive these emails because your address is a recipient in the Context Reporter settings of this TYPO3 installation.</td></tr>
+</table>
+<!--[if mso]></td></tr></table><![endif]-->
+</td></tr>
+</table>
+</body>
+</html>
+</f:spaceless>
+</html>

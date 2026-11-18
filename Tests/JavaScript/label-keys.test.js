@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { HUB_SCREENSHOT_REASONS } from '../../Resources/Public/JavaScript/report-result.js';
 import { COLORS, TOOLS } from '../../Resources/Public/JavaScript/screenshot/annotation-tools.js';
 
 const javaScriptDirectory = new URL('../../Resources/Public/JavaScript/', import.meta.url);
@@ -35,6 +36,7 @@ describe('locallang_js.xlf', () => {
       ...reasons.map((reason) => `screenshot.error.${reason}`),
       ...TOOLS.map((tool) => `editor.tool.${tool.id}`),
       ...COLORS.map((color) => `editor.color.${color.id}`),
+      ...[...HUB_SCREENSHOT_REASONS, 'other'].map((reason) => `result.hubScreenshot.reason.${reason}`),
     ];
 
     expect(reasons.length).toBeGreaterThan(0);
